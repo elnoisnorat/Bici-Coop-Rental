@@ -29,6 +29,8 @@ class RentalHandler:
         result['BID'] = row[4]
         return result
 
+
+
     def rentBicycle(self, cid, tid):
         rDao = RentalDAO()
         return rDao.rentBicycle(cid, tid)
@@ -64,20 +66,27 @@ class RentalHandler:
 
     def checkInBicycle(self, form):
         rfid = form['rfid']
+        plate = form['lp']
         token = form['token']
+        bHand = BicycleHandler()
+        rDao = RentalDAO()
 
         if not rfid:
-            return jsonify(Error="Bicycle was not scanned.")
+            if not plate:
+                return jsonify(Error="Bicycle was not scanned.")
+            else:
+                bid = bHand.getBIDByPlate(plate)
 
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-            wID = data['wID']
-        except:
-            return jsonify("Invalid token at check in")
+        else:
 
-        rDao = RentalDAO()
-        bHand = BicycleHandler()
-        bid = bHand.getBIDByRFID(rfid)
+            try:
+                data = jwt.decode(token, SECRET_KEY)
+                wID = data['wID']
+            except:
+                return jsonify("Invalid token at check in")
+
+            bid = bHand.getBIDByRFID(rfid)
+
         if not bid:
             return jsonify(Error="Bicycle does not exist.")
         rid = rDao.getRIDByBID(bid)

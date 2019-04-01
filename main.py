@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, flash
 
 from handler.client import ClientHandler
 from handler.maintenance import MaintenanceHandler
@@ -12,6 +12,8 @@ from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
 from config.validation import isWorker, isAdmin, isClient
 app = Flask(__name__)
+
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 @app.route('/')
 def hello_world():
@@ -40,7 +42,7 @@ def bicycle():
 def checkIn():
     return RentalHandler().checkInBicycle(request.json)
 
-@app.route('/chckOut', methods=["PUT"])
+@app.route('/checkOut', methods=["PUT"])
 def checkOut():
     return RentalHandler().checkOutBicycle(request.json)
 
@@ -57,7 +59,7 @@ def createWorker():
 
 @app.route('/getWorker', methods=["GET"])
 def getWorker():
-    return WorkerHandler().getWorker(request.args)
+    return WorkerHandler().getWorker(request.json)
 
 #########################################################Client#########################################################
 @app.route('/client', methods=["POST"])  #Verify if it needs to be split up
@@ -121,15 +123,8 @@ def getClient():
 @app.route('/test')
 def test():
 
-    dict = {
-        "user" : "BOB"
-    }
-
-    test = []
-    test.append(dict['user'])
-    print(dict['user'] + "-----" + test[0])
-
-    return jsonify("DONE")
+    count = BicycleHandler().getAvailableBicycleCount()
+    return jsonify(count)
 
 if __name__ == '__main__':
     app.run(debug=True)

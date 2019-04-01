@@ -5,6 +5,7 @@ from flask import jsonify
 class BicycleHandler():
 
     def __init__(self):
+        self.orderBy_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand']
         self.bike_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand', 'orderby']
 
     def build_bike_dict(self, row):
@@ -21,33 +22,27 @@ class BicycleHandler():
         result = {}
         result[row] = row[row]
 
-    def getBicycle(self, args):
+    def getBicycle(self, form):
         bDao = BicycleDAO()
 
-        argName = []
-        argValue = []
-
-        for arg in args:
-            if args[arg] and arg in self.bike_attributes:
-                argName.append(arg)
-                argValue.append(args[arg])
-
-        if len(argName) == 0:
+        filteredArgs = {}
+        for arg in form:
+            if form[arg] and arg in self.bike_attributes:
+                if arg != 'orderby':
+                    filteredArgs[arg] = form[arg]
+                elif form[arg] in self.orderBy_attributes:
+                    filteredArgs[arg] = form[arg]
+        if len(filteredArgs) == 0:
             bike_list = bDao.getAllBicycles()
+
         else:
-            '''
-            for arg in args:
-                if not arg in self.bike_attributes:
-                    return jsonify(Error="Invalid Argument"), 401
-            '''
-            if not 'orderby' in argName:
-                bike_list = bDao.getBikeByArguments(argName, argValue)
+            if not 'orderby' in filteredArgs:
+                bike_list = bDao.getBikeByArguments(filteredArgs)
 
-            elif ((len(argName)) == 1) and 'orderby' in argName:
-                bike_list = bDao.getBikeWithSorting(argValue[0])
-
+            elif len(filteredArgs) == 1 and 'orderby' in filteredArgs:
+                bike_list = bDao.getBikeWithSorting(filteredArgs['orderby'])
             else:
-                bike_list = bDao.getBikeByArgumentsWithSorting(argName, argValue)
+                bike_list = bDao.getBikeByArgumentsWithSorting(filteredArgs)
 
         result_list = []
 
@@ -101,4 +96,10 @@ class BicycleHandler():
         bDao = BicycleDAO()
         bid = bDao.getBIDByRFID(rfid)
         return bid
+
+    def getAvailableBicycleCount(self):
+        bDao = BicycleDAO()
+        count = bDao.getAvailableBicycleCount()
+        return count
+
 

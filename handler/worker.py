@@ -10,32 +10,41 @@ import datetime
 class WorkerHandler:
 
     def __init__(self):
-        self.worker_attributes = ['wid', 'uid', 'status', 'orderby']
+        self.worker_attributes = ['fName', 'lName', 'pNumber', 'wid', 'uid', 'status', 'orderby']
+        self.orderBy_attributes = ['fName', 'lName', 'pNumber', 'wid', 'uid', 'status']
 
     def build_worker_dict(self, row):
         result = {}
-        result['wid'] = row[0]
-        result['fName'] = row[1]
-        result['lName'] = row[2]
-        result['status'] = row[3]
+        result['Worker ID'] = row[0]
+        result['First Name'] = row[1]
+        result['Last Name'] = row[2]
+        result['Email'] = row[3]
+        result['Phone Number'] = row[4]
+        result['Status'] = row[5]
         return result
 
-    def getWorker(self, args):
+    def getWorker(self, form):
         wDao = WorkerDAO()
-        if not args:
-            worker = wDao.getAllWorkers()
-        for arg in args:
-            if not arg in self.worker_attributes:
-                return jsonify(Error="Invalid Argument"), 401
 
-        if not 'orderby' in args:
-            worker_list = wDao.getWorkerByArguments(args)
+        filteredArgs = {}
+        for arg in form:
+            if form[arg] and arg in self.worker_attributes:
+                if arg != 'orderby':
+                    filteredArgs[arg] = form[arg]
+                elif form[arg] in self.orderBy_attributes:
+                    filteredArgs[arg] = form[arg]
 
-        elif ((len(args)) == 1) and 'orderby' in args:
-            worker_list = wDao.getWorkerWithSorting(args.get('orderby'))
+        if len(filteredArgs) == 0:
+            worker_list = wDao.getAllWorkers()
+
+        elif not 'orderby' in filteredArgs:
+            worker_list = wDao.getWorkerByArguments(filteredArgs)
+
+        elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:
+            worker_list = wDao.getWorkerWithSorting(filteredArgs['orderedby'])
 
         else:
-            worker_list = wDao.getWorkerByArgumentsWithSorting(args)
+            worker_list = wDao.getWorkerByArgumentsWithSorting(filteredArgs)
 
         result_list = []
 
@@ -47,20 +56,19 @@ class WorkerHandler:
 
     def insert(self, form):
         email = form['Email']
-        status = form['status']
 
         uHandler = UsersHandler()
         wDao = WorkerDAO()
         uDao = UsersDAO()
-        uid = uDao.getUserByEmail(email)
+        uid = uDao.getUserIDByEmail(email)
         if not uid:
             uid = uHandler.insert(form)
 
         if wDao.getWorkerByUID(uid):
             return jsonify(Error="User is already a Worker")
-        if uid and status:
-            wID = wDao.insert(uid, status)
-            return jsonify("Worker #: " + wID + " was successfully added.")
+        if uid:
+            wID = wDao.insert(uid)
+            return jsonify("Worker #: " + str(wID) + " was successfully added.")
         else:
             return jsonify(Error="Null value in attributes of the worker."), 401
 

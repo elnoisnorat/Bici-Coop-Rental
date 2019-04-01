@@ -20,7 +20,7 @@ class WorkerDAO:
     def getWorkerByID(self, wid):
         cursor = self.conn.cursor()
         query = '''
-            Select WID, FName, LName, Status
+            Select WID, FName, LName, Email, PNumber, Status
             From Users natural inner join Worker
             Where WID = %s
         '''
@@ -28,24 +28,67 @@ class WorkerDAO:
         result = cursor.fetchone()
         return result
 
-    def getWorkerByUID(self):
-        return ''
+    def getWorkerByUID(self, uid):
+        cursor = self.conn.cursor()
+        query = '''
+            Select WID
+            From Worker
+            Where UID = %s
+        '''
+        cursor.execute(query, (uid,))
+        result = cursor.fetchone()
+        return result
 
-    def getWorkerByArguments(self):
-        return ''
+    def getWorkerByArguments(self, form):
+        argument = ""
+        values = []
+        for arg in form:
+            argument = argument + arg + "= %s" + " and "
+            value = form[arg]
+            values.append(str(value))
+        argument = argument[:-5]
+        cursor = self.conn.cursor()
 
-    def getWorkerWithSorting(self):
-        return ''
+        query = "Select WID, FName, LName, Email, PNumber, Status From Worker NATURAL INNER JOIN  Users Where " + argument
+        cursor.execute(query, values)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
 
-    def getWorkerByArgumentsWithSorting(self):
-        return ''
+    def getWorkerWithSorting(self, orderBy):
+        cursor = self.conn.cursor()
+        query = "select * from Bike order by " + orderBy
+        cursor.execute(query)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
 
-    def insert(self, uid, status):
+    def getWorkerByArgumentsWithSorting(self, form):
+        argument = ""
+        values = []
+        for arg in form:
+            if arg != 'orderby':
+                argument = argument + arg + "= %s" + " and "
+                value = form[arg]
+                values.append(str(value))
+        argument = argument[:-5]
+        cursor = self.conn.cursor()
+
+        query = "select * from Bike where " + argument + " order by " + form['orderby']
+        cursor.execute(query, values)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
+    def insert(self, uid):
         cursor = self.conn.cursor()
         query = '''
             insert into worker(UID, Status) values (%s, %s) returning wID
         '''
-        cursor.execute(query, (uid, status))
+        cursor.execute(query, (uid, 'ACTIVE'))
         wID = cursor.fetchone()[0]
         self.conn.commit()
         return wID
@@ -57,6 +100,15 @@ class WorkerDAO:
             '''
         cursor.execute(query, (wid, status))
         self.conn.commit()
+
+    def getAllWorkers(self):
+        cursor = self.conn.cursor()
+        query = '''SELECT WID, FName, LName, Email, PNumber, Status FROM Worker NATURAL INNER JOIN Users'''
+        cursor.execute(query)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
 
 
 

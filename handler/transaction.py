@@ -2,6 +2,7 @@ import jwt
 from flask import jsonify
 from dao.transaction import TransactionDAO
 from config.encryption import SECRET_KEY
+from handler.bicycle import BicycleHandler
 from handler.rental import RentalHandler
 
 
@@ -47,8 +48,12 @@ class TransactionHandler:
 
     def newTransaction(self, form):
         tDao = TransactionDAO()
+        bHand = BicycleHandler()
         pMethod = form['Stripe']  # STRIPE CODE
         token = form['token']
+
+        if bHand.getAvailableBicycleCount() <= 0:
+            return jsonify("We are sorry. At the moment there are no bicycles available for rent.")
 
         '''
 		    STRIPE CODE
@@ -61,6 +66,7 @@ class TransactionHandler:
             return jsonify(Error="Invalid token."), 401
         if not cid:
             return jsonify(Error="Client does not exist."), 401
+
         tid = tDao.newTransaction(cid, pMethod)
 
         rHandler = RentalHandler()

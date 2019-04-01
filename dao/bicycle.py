@@ -16,41 +16,45 @@ class BicycleDAO:
             result.append(row)
         return result
 
-    def getBikeByArguments(self, args, kargs):
+    def getBikeByArguments(self, form):
+        argument = ""
+        values = []
+        for arg in form:
+            argument = argument + arg + "= %s" + " and "
+            value = form[arg]
+            values.append(str(value))
+        argument = argument[:-5]
         cursor = self.conn.cursor()
-        arguments = ""
-        #values = list(args.values())
-        for arg in args:
-            arguments = arguments + arg + "= %s" + " and "
-        arguments = arguments[:-5]  # Remove the last ' and '
-        query = "Select * From Bike Where " + arguments
-        cursor.execute(query, kargs)
+
+        query = "Select * From Bike Where " + argument
+        cursor.execute(query, values)
         result = []
         for row in cursor:
             result.append(row)
         return result
 
-    def getBikeWithSorting(self, orderby):
+    def getBikeWithSorting(self, orderBy):
         cursor = self.conn.cursor()
-        query = "select * from Bike order by " + orderby
+        query = "select * from Bike order by " + orderBy
         cursor.execute(query)
-        print(cursor.query)
         result = []
         for row in cursor:
             result.append(row)
         return result
 
-    def getBikeByArgumentsWithSorting(self, args , kargs):
-        cursor = self.conn.cursor()
-        arguments = ""
-        sort = kargs.pop(len(kargs) - 1)
-        for arg in args:
+    def getBikeByArgumentsWithSorting(self, form):
+        argument = ""
+        values = []
+        for arg in form:
             if arg != 'orderby':
-                arguments = arguments + arg + "= %s" + " and "
-        arguments = arguments[:-5]  # Remove the last ' and '
-        query = "select * from Bike where " + arguments + " order by " + sort
-        cursor.execute(query, kargs)
-        print(cursor.query)
+                argument = argument + arg + "= %s" + " and "
+                value = form[arg]
+                values.append(str(value))
+        argument = argument[:-5]
+        cursor = self.conn.cursor()
+
+        query = "select * from Bike where " + argument + " order by " + form['orderby']
+        cursor.execute(query, values)
         result = []
         for row in cursor:
             result.append(row)
@@ -139,15 +143,10 @@ class BicycleDAO:
         for arg in form:
             argument = argument + arg + "= %s" + ", "
             value = form[arg]
-            print(value)
             values.append(str(value))
         values.append(bid)
         argument = argument[:-2]
-        print(argument)
-        for arg in values:
-            print(arg)
         query = '''Update Bike set ''' + argument + ''' Where BID = %s'''
-        print(query)
         cur = self.conn.cursor()
         cur.execute(query, (values))
         self.conn.commit()
@@ -203,3 +202,14 @@ class BicycleDAO:
         cur.execute(query, (rfid,))
         bid = cur.fetchone()
         return bid
+
+    def getAvailableBicycleCount(self):
+        cur = self.conn.cursor()
+        query = '''
+                    Select count(*)
+                    From Bike
+                    Where Status = %s
+                '''
+        cur.execute(query, ('Available',))
+        count = cur.fetchone()
+        return count
