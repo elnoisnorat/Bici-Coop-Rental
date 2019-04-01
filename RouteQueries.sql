@@ -15,10 +15,8 @@ CREATE TABLE Maintenance(MID SERIAL PRIMARY KEY, StartTime TIMESTAMP, EndTime TI
 
 CREATE TABLE DecommissionReq( DQID SERIAL PRIMARY KEY , RequestedBy INTEGER REFERENCES Users(UID), AnsweredBy INTEGER REFERENCES Admin(AID), Status VARCHAR(15),  BID INTEGER REFERENCES Bike(BID));
 CREATE TABLE ServiceMaintenance(SMID SERIAL PRIMARY KEY, FName varchar(50), LName varchar(50), Bike varchar(50), Service varchar(100), Price REAL, WorkedBy INTEGER REFERENCES Worker(WID), WorkStatus varchar(15), Notes VARCHAR(180), STime TIMESTAMP, ETime TIMESTAMP);
+CREATE TABLE PunchCard(PCID serial primary key, stampType varchar(5), stamp timestamp );
 
-ALTER TABLE Transactions DROP COLUMN BID;
-ALTER TABLE Rental ADD COLUMN dueDate TIMESTAMP;
-ALTER TABLE Rental DROP COLUMN TID;
 /*
 Create User
  */
@@ -133,3 +131,9 @@ Update MaintenanceRequest
  */
 
  update Maintenance set servicedby = 'Server', EndTime= now() where MID = 'midGiven';
+
+/*
+PunchCard
+ */
+
+ insert into PunchCard(stampType, STAMP) VALUES ('In / Out ', now();)
