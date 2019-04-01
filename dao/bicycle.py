@@ -137,12 +137,12 @@ class BicycleDAO:
         argument = ""
         values = []
         for arg in form:
-            argument = argument + arg + "= %s" + " And "
+            argument = argument + arg + "= %s" + ", "
             value = form[arg]
             print(value)
             values.append(str(value))
         values.append(bid)
-        argument = argument[:-5]
+        argument = argument[:-2]
         print(argument)
         for arg in values:
             print(arg)
