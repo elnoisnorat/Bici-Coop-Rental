@@ -1,14 +1,69 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>
-      Ionic Blank
-    </ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-title>
+            BiciCoop Rental
+        </ion-title>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div class="ion-padding">
-    The world is your oyster.
-    <p>If you get lost, the <a target="_blank" rel="noopener" href="https://ionicframework.com/docs/">docs</a> will be your guide.</p>
-  </div>
+    <div class="ion-padding">
+
+        <p>If you get lost, the <a target="_blank" rel="noopener" href="https://ionicframework.com/docs/">docs</a> will be your guide.</p>
+    </div>
+
+    <!-- Input with placeholder -->
+    <ion-input placeholder="Enter Input"></ion-input>
+
+    <!-- Input with clear button when there is a value -->
+    <ion-input clearInput placeholder="Enter Input"></ion-input>
+
+    <!-- Number type input -->
+    <ion-input type="number"></ion-input>
+
+    <!-- Number type password -->
+    <ion-input type="password"></ion-input>
+
+    <!-- Number type password -->
+    <ion-input type="text"></ion-input>
+
+    <!-- Number type password -->
+    <ion-input type="email"></ion-input>
+
+    <!-- Inputs with labels -->
+    <ion-item>
+        <ion-label required=true position="stacked">First Name</ion-label>
+        <ion-input></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="stacked">Last Name</ion-label>
+        <ion-input></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Floating Label</ion-label>
+        <ion-input></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="fixed">Fixed Label</ion-label>
+        <ion-input></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="stacked">Stacked Label</ion-label>
+        <ion-input></ion-input>
+    </ion-item>
+
+
+    <!-- Readonly input -->
+    <ion-input value="Readonly" readonly></ion-input>
+
+    <ion-row>
+        <div text-center>
+            Please Login <a routerLink='/login'>
+                register</a> first!
+        </div>
+    </ion-row>
 </ion-content>
