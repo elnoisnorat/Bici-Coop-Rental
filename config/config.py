@@ -1,2 +1,0 @@
-SECRET_KEY : '''BLAH'''
-ENC_ALG : '''SH256'''
