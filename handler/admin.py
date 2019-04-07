@@ -14,13 +14,20 @@ class AdminHandler:
         if email and password:
             aDao = AdminDAO()
             aID = aDao.workerLogin(email, password)
+            if not aID:
+                return None
             token = jwt.encode({'Role': 'Admin', 'aID': aID, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes = 1)}, SECRET_KEY)
+
+            uHand = UsersHandler()
+            userInfo = uHand.getProfile(email)
+
             response = {
-                'token': token.decode('UTF-8')
+                'token': token.decode('UTF-8'),
+                'info' : userInfo
             }
             return jsonify(response)
         else:
-            return jsonify(Error = "Invalid username or password.!"), 401
+            return None
 
     def insert(self, form):
         email = form['Email']
@@ -29,12 +36,12 @@ class AdminHandler:
         uDao = UsersDAO()
         uid = uDao.getUserByEmail(email)
         if not uid:
-            uid = uHandler.insert(form)
+            uid = uHandler.insert(form)                                                      #INSERT #1
 
         if aDao.getAdminByUID(uid):
             return jsonify(Error="User is already an Admin")
         if uid:
-            aID = aDao.insert(uid)
+            aID = aDao.insert(uid)                                                           #INSERT #2
             return jsonify("Admin #: " + aID + " was successfully added.")
         else:
             return jsonify(Error="Null value in attributes of the admin."), 401

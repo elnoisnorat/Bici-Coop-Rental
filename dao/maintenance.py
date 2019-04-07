@@ -8,13 +8,14 @@ class MaintenanceDAO:
         pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
         self.conn = psycopg2._connect(connection_url)
 
-    def requestMaintenance(self, uid, bid, notes):
+    def requestMaintenance(self, wid, bid, notes):
         cursor = self.conn.cursor()
         query = '''
-          insert into Maintenance(StartTime, EndTime, Status, Notes, Bike, RequestedBy, ServicedBy)
-          values (Null, Null, Queued, %s, %s, %s, Null) returning MID;
+         INSERT INTO Maintenance(starttime, status, notes, bid, requestedby) 
+         VALUES (now(), 'Pending', 'Notes', 'bidGiven', 'requestor') returning MID;
         '''
-        cursor.execute(query, (notes, bid, uid))
+
+        cursor.execute(query, (notes, bid, wid))
         mID = cursor.fetchone()[0]
         self.conn.commit()
         return mID

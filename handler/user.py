@@ -1,5 +1,18 @@
+import random
+import string
+
+import jwt
+from flask_login import current_user
+
+from config.encryption import SECRET_KEY
 from flask import jsonify
 from dao.user import UsersDAO
+import pickle
+
+#from handler.client import ClientHandler
+from handler.sendEmail import EmailHandler
+
+
 class UsersHandler:
 
     def __init__(self):
@@ -14,12 +27,15 @@ class UsersHandler:
         result['PNumber'] = row[4]
         return result
 
+    def build_profile_dict(self, row):
+        result = {}
+        result['Name'] = row[1]
+        result['Last Name'] = row[2]
+        result['Email'] = row[3]
+        result['Phone Number'] = row[4]
+        return result
+
     def insert(self, form):
-        '''
-        if len(form) != 5:
-            return jsonify(Error="Malformed post request"), 400
-        else:
-        '''
         FName = form['FName']
         LName = form['LName']
         password = form['password']
@@ -31,7 +47,7 @@ class UsersHandler:
             return jsonify("User already exists")
 
         if FName and LName and password and PNumber and Email:
-            uID = uDao.insert(FName, LName, password, PNumber, Email)
+            uID = uDao.insert(FName, LName, password, PNumber, Email)   #INSERT #1
             return uID
         else:
             return jsonify(Error="Unexpected attributes in post request"), 400
@@ -64,13 +80,13 @@ class UsersHandler:
     
     def updateName(self, form):
         uDao = UsersDAO()
-
+        email = current_user.email
         email = form['email']
         uName = form['FName']
         uLName = form['LName']
 
         if not email:
-            return jsonify(Error="No worker id given")
+            return jsonify(Error="No email given")
 
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User not found."), 404
@@ -87,53 +103,39 @@ class UsersHandler:
                 result = self.build_worker_dict(row)
                 return jsonify(User=result), 200
 
-    def updatePassword(self, form):
+    def updatePassword(self, form):     #When User is logged in
+
         uDao = UsersDAO()
-
-        email = form['email']
+        #token = form['token']
         password = form['password']
-
-        if not email:
-            return jsonify(Error="No user email given")
+        email = current_user.id
 
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User not found."), 404
         else:
-            if len(form) != 3:
-                return jsonify(Error="Malformed update request."), 400
+            if password:
+                uDao.updatePassword(email, password)
             else:
-                if password:
-                    uDao.updateName(email, password)
-                else:
-                    return jsonify(Error="No attributes in update request"), 400
+                return jsonify(Error="No attributes in update request"), 400
 
-                row = uDao.getUserByEmail(email)
-                result = self.build_worker_dict(row)
-                return jsonify(User=result), 200
 
     def updatePNumber(self, form):
         uDao = UsersDAO()
 
-        email = form['email']
+        email = current_user.id
         pNumber = form['pNumber']
-
-        if not email:
-            return jsonify(Error="No worker email given")
 
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User not found."), 404
-        else:
-            if len(form) != 3:
-                return jsonify(Error="Malformed update request."), 400
-            else:
-                if pNumber:
-                    uDao.updatePNumber(email, pNumber)
-                else:
-                    return jsonify(Error="No attributes in update request"), 400
 
-                row = uDao.getUserByEmail(wid)
-                result = self.build_worker_dict(row)
-                return jsonify(User=result), 200
+        if pNumber:
+            uDao.updatePNumber(email, pNumber)
+        else:
+            return jsonify(Error="No attributes in update request"), 400
+
+        row = uDao.getUserByEmail(email)
+        result = self.build_worker_dict(row)
+        return jsonify(User=result), 200
 
     def getUserWithCID(self, cid):
         uDao = UsersDAO()
@@ -144,9 +146,15 @@ class UsersHandler:
             user = self.build_user_dict(row)
             return jsonify(user)
 
-    def getUserByEmail(self, Email):
+    def getUserByEmail(self, email):
         uDao = UsersDAO()
-        result = uDao.getUserByEmail(Email)
+        result = uDao.getUserByEmail(email)
+        return result
+
+    def getProfile(self, email):
+        uDao = UsersDAO()
+        row = uDao.getUserByEmail(email)
+        result = self.build_profile_dict(row)
         return result
 
     def getUserIDByEmail(self, Email):
@@ -162,3 +170,28 @@ class UsersHandler:
         else:
             user = self.build_user_dict(row)
             return jsonify(user)
+
+    def confirmAccount(self, args):
+        value = args.get('value')
+        package = pickle.loads(value.decode('base64', 'strict'))
+        uID = package['uID']
+        code = package['code']
+        uDao = UsersDAO()
+        uDao.confirmAccount(uID, code)
+
+    def resetPassword(self, form):
+        email = form['Email']
+        uDao = UsersDAO()
+        if not uDao.getUserByEmail('email'):
+            return jsonify(Error="User does not exist."), 404
+        else:
+            password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            eHand = EmailHandler()
+            eHand.resetPassword(email, password)
+
+            uDao.updatePassword(email, password)
+            return jsonify("Email has been sent.")
+
+
+
+

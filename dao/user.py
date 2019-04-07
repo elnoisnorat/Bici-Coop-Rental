@@ -59,6 +59,7 @@ class UsersDAO:
         '''
         cursor.execute(query, (password, email,))
         result = cursor.fetchone()
+        self.conn.commit()
         return result
 
     def updatePNumber(self, email, pNumber):
@@ -69,6 +70,7 @@ class UsersDAO:
         '''
         cursor.execute(query, (pNumber, email,))
         result = cursor.fetchone()
+        self.conn.commit()
         return result
 
     def getUserWithCID(self, cid):
@@ -103,3 +105,12 @@ class UsersDAO:
         cursor.execute(query, (wid,))
         result = cursor.fetchone()
         return result
+
+    def confirmAccount(self, uID, code):
+        cursor = self.conn.cursor()
+        query = '''
+            update Users set Confirmation = True
+            Where uID = %s and Code = %s
+        '''
+        cursor.execute(query, (uID, code,))
+        self.conn.commit()

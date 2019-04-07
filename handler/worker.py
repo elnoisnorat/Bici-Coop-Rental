@@ -1,5 +1,6 @@
 from flask import jsonify
 from config.encryption import SECRET_KEY, ENC_ALG
+from handler.punchCard import PunchCardHandler
 from handler.user import UsersHandler
 from dao.user import UsersDAO
 from dao.worker import WorkerDAO
@@ -84,17 +85,13 @@ class WorkerHandler:
         if not wDao.getWorkerByID(wid):
             return jsonify(Error="Worker not found."), 404
         else:
-            if len(form) != 2:
-                return jsonify(Error="Malformed update request."), 400
+            if status:
+                wDao.updateStatus(wid, status)
             else:
-                if status:
-                    wDao.updateStatus(wid, status)
-                else:
-                    return jsonify(Error="No attributes in update request"), 400
-
-                row = wDao.getWorkerByID(wid)
-                result = self.build_worker_dict(row)
-                return jsonify(Worker=result), 200
+                return jsonify(Error="No attribute in update request"), 400
+            row = wDao.getWorkerByID(wid)
+            result = self.build_worker_dict(row)
+            return jsonify(Worker=result), 200
 
     def workerLogin(self, form):
         email = form['email']
@@ -102,12 +99,29 @@ class WorkerHandler:
         if email and password:
             wDao = WorkerDAO()
             wID = wDao.workerLogin(email, password)
+            if not wID:
+                return None
             token = jwt.encode(
                 {'Role': 'Worker', 'wID': wID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1)},
                 SECRET_KEY)
+
+            uHand = UsersHandler()
+            userInfo = uHand.getProfile(email)
+
             response = {
-                'token': token.decode('UTF-8')
+                'token': token.decode('UTF-8'),
+                'info' : userInfo
             }
+
+            pHand = PunchCardHandler()
+            pHand.inType(wID)
             return jsonify(response)
         else:
-            return jsonify(Error="Invalid username or password."), 401
+            return None
+
+    def workerLogOut(token):
+        wID = token['wID']
+        pHand = PunchCardHandler()
+        pHand.outType(wID)
+
+

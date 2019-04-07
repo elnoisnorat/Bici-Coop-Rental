@@ -8,17 +8,24 @@ class RentalDAO:
         pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
         self.conn = psycopg2._connect(connection_url)
 
-    def rentBicycle(self,cid,tid):  #NEEDS QUERY
-        #cursor = self.conn.cursor()
-        #query = '''
-        #  insert into Rental(CID, TID, STime, ETime, BID, ReceivedBy, DispatchedBy)
-        #  values (%s, %s, NOW(), Null, Null , Null, Null) returning rID;
-        #'''
-        #cursor.execute(query, (cid, tid,))
-        #rID = cursor.fetchone()[0]
-        #self.conn.commit()
-        #return rID
-        return 1
+    def rentBicycle(self, cid, tid):  #NEEDS QUERY
+        cursor = self.conn.cursor()
+        query = '''
+          INSERT INTO rental(stime, client, dueDate) 
+          VALUES (now(), %s, now() +8 ) 
+          RETURNING RID;
+        '''
+        cursor.execute(query, (cid,))
+        rID = cursor.fetchone()[0]
+
+        query = '''
+            INSERT INTO RentLink(RID, TID) VALUES (%s, %s);
+        '''
+        cursor.execute(query, (rID, tid))
+
+        self.conn.commit()
+        return rID
+        #return 1
 
     def getRentalByCID(self, cID): #ReceivedBy typo
         cursor = self.conn.cursor()

@@ -21,13 +21,20 @@ class ClientHandler:
         if email and password:
             cDao = ClientDAO()
             cID = cDao.clientLogin(email, password)
-            token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
+            if not cID:
+                return None
+            token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 2)}, SECRET_KEY)
+            uHand = UsersHandler()
+            userInfo = uHand.getProfile(email)
+
             response = {
-                'token': token.decode('UTF-8')
+                'token': token.decode('UTF-8'),
+                'info' : userInfo
             }
+
             return jsonify(response)
         else:
-            return jsonify(Error="Invalid username or password."), 401
+            return None
 
     def insert(self, form):
         if len(form) != 5:
@@ -40,12 +47,12 @@ class ClientHandler:
             uid = uHandler.getUserIDByEmail(Email)
 
             if not uid:
-                uid = uHandler.insert(form)
+                uid = uHandler.insert(form)                                                 #Insert #1
 
             if cDao.getClientByUID(uid):
                 return jsonify(Error="User is already a Client")
             if uid:
-                cID = cDao.insert(uid)
+                cID = cDao.insert(uid)                                                      #Insert #2
                 return jsonify("Client #: " + str(cID) + " was successfully added.")
             else:
                 return jsonify(Error="Null value in attributes of the client."), 401
@@ -76,7 +83,7 @@ class ClientHandler:
         return jsonify(Inventory=result_list)
 
     def updatePassword(self, form):
-        uDao = UsersHandler.updatePassword()
+        uDao = UsersHandler.updatePassword()                                                #Update #1
 
     def getClientByCID(self, cid):
         cDao = ClientDAO()

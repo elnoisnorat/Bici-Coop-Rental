@@ -1,5 +1,7 @@
 from dao.bicycle import BicycleDAO
 from flask import jsonify
+from config.validation import isDecomissioned
+
 
 
 class BicycleHandler():
@@ -7,12 +9,13 @@ class BicycleHandler():
     def __init__(self):
         self.orderBy_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand']
         self.bike_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand', 'orderby']
+        self.update_attributes = ['lp', 'status']
 
     def build_bike_dict(self, row):
         result = {}
-        result['bid'] = row[0]
+        #result['bid'] = row[0]
         result['plate'] = row[1]
-        result['rfid'] = row[2]
+        #result['rfid'] = row[2]
         result['status'] = row[3]
         result['model'] = row[4]
         result['brand'] = row[5]
@@ -61,36 +64,10 @@ class BicycleHandler():
 
         if plate and rfid and status and model and brand:
             bDao = BicycleDAO()
-            bID = bDao.insert(plate, rfid, status, model, brand)
-            print(bID)
+            bID = bDao.insert(plate, rfid, status, model, brand)                                    #INSERT #1
             return jsonify("Bicycle was successfully added.")
         else:
             return jsonify(Error="Missing attributes of the bicycle."), 401
-
-    def update(self, form):
-        bDao = BicycleDAO()
-
-        bid = form['bid']
-
-        filteredArgs = {}
-        for arg in form:
-            if form[arg] and arg != 'bid' and arg in self.bike_attributes:
-                filteredArgs[arg] = form[arg]
-
-        if len(filteredArgs) == 0:
-            return jsonify(Error="No values given for update"), 400
-
-        if not bid:
-            return jsonify(Error="No bicycle id given")
-
-        if not bDao.getBikeByID(bid):
-            return jsonify(Error="Bicycle not found in inventory."), 401
-
-        bDao.updateBicycle(filteredArgs, bid)
-
-        row = bDao.getBikeByID(bid)
-        result = self.build_bike_dict(row)
-        return jsonify(Bicycle=result), 200
 
     def getBIDByRFID(self, rfid):
         bDao = BicycleDAO()
@@ -102,4 +79,44 @@ class BicycleHandler():
         count = bDao.getAvailableBicycleCount()
         return count
 
+    def getStatusByID(self, bid):
+        bDao = BicycleDAO()
+        status = bDao.getStatusByID(bid)
+        return status
 
+    @isDecomissioned
+    def update(self, form):
+        bDao = BicycleDAO()
+
+        bid = form['bid']
+
+        filteredArgs = {}
+        for arg in form:
+            if form[arg] and arg != 'bid' and arg in self.update_attributes:
+                filteredArgs[arg] = form[arg]
+
+        if len(filteredArgs) == 0:
+            return jsonify(Error="No values given for update"), 400
+
+        if not bid:
+            return jsonify(Error="No bicycle id given")
+
+        if not bDao.getBikeByID(bid):
+            return jsonify(Error="Bicycle not found in inventory."), 401
+
+        bDao.updateBicycle(filteredArgs, bid)                                               #UPDATE #1
+
+        row = bDao.getBikeByID(bid)
+        result = self.build_bike_dict(row)
+        return jsonify(Bicycle=result), 200
+
+    @isDecomissioned
+    def updateStatusIsAvailable(self, bid):
+        bDao = BicycleDAO()
+        bDao.updateStatus(bid, 'Rented')                                                    #UPDATE #1
+        bDao.freeBicyle()                                                                   #UPDATE #2
+
+    @isDecomissioned
+    def updateStatusIsReserved(self, bid):
+        bDao = BicycleDAO()
+        bDao.updateStatus(bid, 'Rented')                                                    #UPDATE #1

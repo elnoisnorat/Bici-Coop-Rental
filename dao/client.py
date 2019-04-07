@@ -18,7 +18,13 @@ class ClientDAO:
             Where email = %s and password = crypt(%s, password)
         '''
         cur.execute(query, (email, password))
-        cID = cur.fetchone()[0]
+
+        row = cur.fetchone()
+        if row is None:
+            return row
+
+        else:
+            cID = row[0]
         return cID
 
     def insert(self, uID):

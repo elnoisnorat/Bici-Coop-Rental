@@ -14,7 +14,14 @@ class AdminDAO:
             Where email = %s and password = crypt(%s, password)
         '''
         cur.execute(query, (email, password))
-        aID = cur.fetchone()
+
+        row = cur.fetchone()
+        if row is None:
+            return row
+
+        else:
+            aID = row[0]
+
         return aID
 
     def insert(self, uid):

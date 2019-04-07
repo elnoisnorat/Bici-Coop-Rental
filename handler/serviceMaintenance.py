@@ -26,7 +26,7 @@ class ServiceMaintenanceHandler:
         except:
             return jsonify(Error="Invalid token")
 
-        sID = sDao.requestServiceMaintenance(uid, uName, uLName, service, price, notes)
+        sID = sDao.requestServiceMaintenance(uid, uName, uLName, service, price, notes)             #Insert #1
         return jsonify("Personal maintenance request: " + sID + " has been created.")
 
 

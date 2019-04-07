@@ -14,7 +14,13 @@ class WorkerDAO:
             Where email = %s and password = crypt(%s, password)
         '''
         cur.execute(query, (email, password))
-        wID = cur.fetchone()
+        row = cur.fetchone()
+        if row is None:
+            return row
+
+        else:
+            wID = row[0]
+
         return wID
 
     def getWorkerByID(self, wid):
@@ -109,6 +115,7 @@ class WorkerDAO:
         for row in cursor:
             result.append(row)
         return result
+
 
 
 

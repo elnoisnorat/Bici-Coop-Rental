@@ -29,6 +29,7 @@ class MaintenanceHandler:
             if not bid:
                 return jsonify("You have no current rental at the moment.")
 
+
         elif data['Role'] == 'Worker':
             bHand = BicycleHandler()
             wid = data['wID']
@@ -38,7 +39,7 @@ class MaintenanceHandler:
             if not bid:
                 return jsonify("The bicycle is not registered in the inventory.")
 
-        rID = mDao.requestMaintenance(uid, bid, notes)
+        rID = mDao.requestMaintenance(uid, bid, notes)                                  #Insert #1
         return jsonify("Maintenance request: " + rID + " has been created.")
 
 

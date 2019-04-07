@@ -27,6 +27,7 @@ class BicycleDAO:
         cursor = self.conn.cursor()
 
         query = "Select * From Bike Where " + argument
+
         cursor.execute(query, values)
         result = []
         for row in cursor:
@@ -101,7 +102,7 @@ class BicycleDAO:
                     Where bid = %s
                 '''
         cur.execute(query, (bid,))
-        status = cur.fetchone()
+        status = cur.fetchone()[0]
         return status
 
     def getModelByID(self, bid):
@@ -213,3 +214,11 @@ class BicycleDAO:
         cur.execute(query, ('Available',))
         count = cur.fetchone()
         return count
+
+    def freeBicyle(self, bid):
+        cur = self.conn.cursor()
+        query = '''
+                    UPDATE Bike set Status = 'Available' where bid = (SELECT BID from bike where Status= 'Reserved' LIMIT 1);
+                '''
+        cur.execute(query)
+        self.conn.commit()

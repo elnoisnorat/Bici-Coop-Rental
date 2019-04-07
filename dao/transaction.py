@@ -9,7 +9,7 @@ class TransactionDAO:
 
     def getAllTransactions(self):
         cursor = self.conn.cursor()
-        query = "SELECT TID, Stamp, token, FName, LName, LP FROM Transactions natural inner join Client natural inner join User natural inner join Bike;"
+        query = "SELECT TID, Stamp, token, FName, LName, LP FROM Transactions natural inner join Client natural inner join Users natural inner join Bike;"
         cursor.execute(query)
         result = []
         for row in cursor:
@@ -46,7 +46,19 @@ class TransactionDAO:
             result.append(row)
         return result
 
-    def newTransaction(self, cid, pMethod): #NEEDS QUERY
+    def newTransactionWithCash(self, cid, pMethod): #NEEDS QUERY
+        #cursor = self.conn.cursor()
+        #query = '''
+        #  insert into Transaction()
+        #  values () returning TID;
+        #'''
+        #cursor.execute(query, ))
+        #tID = cursor.fetchone()[0]
+        #self.conn.commit()
+        #return tID
+        return 1
+
+    def newTransactionWithCreditCard(self, cid, pMethod): #NEEDS QUERY
         #cursor = self.conn.cursor()
         #query = '''
         #  insert into Transaction()

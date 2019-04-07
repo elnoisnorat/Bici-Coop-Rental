@@ -24,9 +24,10 @@ class RentalHandler:
     def build_rental_dict(self,row):
         result = {}
         result['rentalID'] = row[0]
-        result['Start_Time'] = row[1]
-        result['End_Time'] = row[2]
-        result['BID'] = row[4]
+        result['Rental Start Date'] = row[1]
+        result['Date Delivered'] = row[2]
+        result['Due Date'] = row[7]
+        result['BID'] = row[6]
         return result
 
 
@@ -133,11 +134,22 @@ class RentalHandler:
         if not rid:
             return jsonify(Error="Rental does not exist.")
 
+        bStatus = bHand.getStatusByID(bid)
+        if bStatus == 'Available':
+            bHand.updateStatusIsAvailable(bid)
+        elif bStatus == 'Reserved':
+            bHand.updateStatusIsReserved(bid)
+
+        else:
+            print('ROLLBACK')
+            #RollBack
+
         rDao.checkOut(wID, bid, rid)
 
         row = rDao.getRentalByID(rid)
         if not row:
-            return jsonify(Error="Rental was")
+            #RollBack
+            return jsonify(Error="Rental was not created correctly.")
         rental = self.build_checkIn_dict(row)
         return jsonify(Rental=rental)
 
