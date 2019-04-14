@@ -8,7 +8,7 @@ class RentalPlanDAO:
 
     def getRentalPlan(self):
         cursor = self.conn.cursor()
-        query = "Select * From RentalPlan"
+        query = "Select * From Plans"
         cursor.execute(query)
         result = []
         for row in cursor:

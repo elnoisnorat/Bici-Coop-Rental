@@ -1,8 +1,12 @@
+import base64
 import jwt
+import pickle
 from flask import Flask, request, jsonify
 #from handler.schedule import ScheduleHandler
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_rbac import RBAC, RoleMixin, UserMixin as userRBAC
+from werkzeug.security import gen_salt
+
 from handler.client import ClientHandler
 from handler.maintenance import MaintenanceHandler
 from handler.price import PriceHandler
@@ -17,34 +21,33 @@ from handler.user import UsersHandler
 from config.validation import isWorker, isClient, hasRole, isAdmin
 from config.encryption import SECRET_KEY
 from config.dbconfig import db_string
-from flask_sqlalchemy import SQLALCHEMY
+from model.user import User
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']
 login_manager = LoginManager()
 login_manager.init_app(app)
-rbac = RBAC()
 
 app.secret_key = SECRET_KEY
-db = SQLALCHEMY(app)
 
-class User(UserMixin, userRBAC, db.model):
-    id = db.Column
-
-
-class Role(RoleMixin):
-    pass
-
-client = Role('client')
-worker = Role('worker')
+@login_manager.user_loader
+def load_user(id):
+    size = len(id)
+    email = id[0:size-1]
+    role = id[size-1]
+    info = UsersHandler().getUserInfo(email, role)
+    if not info:
+        return
+    user = User(info, role)
+    return user
 
 @app.route('/currentUser')
 @login_required
 def hello_world():
-    return 'The current user is ' + current_user.id
+    return 'The current user role is ' + current_user.name
 
 @app.route('/home')
-@rbac.allow(roles=['worker'], methods=['GET'])
+#@rbac.allow(roles=['client'], methods=['GET'])
 #@isWorker
 def home():
     return 'Welcome Home'
@@ -52,12 +55,17 @@ def home():
 #########################################################Worker#########################################################
 @app.route('/workerLogin')
 def workerLogin():
+    if current_user.is_authenticated:
+        return jsonify("User already logged in.")
     token = WorkerHandler().workerLogin(request.json)
-    if token is None:
+    if token is -2:
         return jsonify(Error="Invalid/Missing username or password")
+    elif token is -1:
+        return jsonify(Error="This account is currently locked.")
     else:
-        user = User()
-        user.id = request.json['Email']
+        info = UsersHandler().getUserInfo(request.json['Email'], "W")
+        user = User(info, "W")
+        user.id = request.json["Email"] + "W"
         login_user(user)
         return token
 
@@ -82,19 +90,42 @@ def checkIn():
 def checkOut():
     return RentalHandler().checkOutBicycle(request.json)
 
+@app.route('/bicycleDetails')
+def bicycleDetails():
+    return MaintenanceHandler().getMaintenance(request.json)
+
+@app.route('/provideMaintenance')
+def provideMaintenance():
+    return MaintenanceHandler().provideMaintenance(request.json)
+
+@app.route('/requestDecommission')
+
+
+
 
 
 ##########################################################Admin#########################################################
 @app.route('/adminLogin')
 def adminLogin():
+    if current_user.is_authenticated:
+        return jsonify("User already logged in.")
     token = AdminHandler().adminLogin(request.json)
-    if token is None:
+    if token is -2:
         return jsonify(Error="Invalid/Missing username or password")
+    elif token is -1:
+        return jsonify(Error="This account is currently locked.")
     else:
-        user = User()
-        user.id = request.json['Email']
+        info = UsersHandler().getUserInfo(request.json['Email'], "A")
+        user = User(info, "A")
+        user.id = request.json["Email"] + "A"
         login_user(user)
         return token
+
+@app.route('/createAdmin')
+#@isAdmin
+#@login_required
+def createAdmin():
+    return AdminHandler().insert(request.json)
 
 @app.route('/createWorker', methods=["POST"])
 #@isAdmin
@@ -111,7 +142,9 @@ def getWorker():
 #@isAdmin
 #@login_required
 def updateWorkerStatus():
-    return updateWorkerStatus(request.json)
+    return WorkerHandler().updateStatus(request.json)
+
+
 
 @app.route('/editPlan')
 #@isAdmin
@@ -129,14 +162,17 @@ def createClient():
 
 @app.route('/clientLogin', methods=["GET"])
 def clientLogin():
+    #if current_user.is_authenticated:
+    #    return jsonify("User already logged in.")
     token = ClientHandler().clientLogin(request.json)
-    if token is None:
+    if token is -2:
         return jsonify(Error="Invalid/Missing username or password")
+    elif token is -1:
+        return jsonify(Error="This account is currently locked.")
     else:
-
-        user = User()
-        user.id = request.json['Email']
-        #user.add_role(client)
+        info = UsersHandler().getUserInfo(request.json['Email'], "C")
+        user = User(info, "C")
+        user.id = request.json["Email"] + "C"
         login_user(user)
         return token
 
@@ -183,8 +219,17 @@ def updateName():   #Requires token (All)
     return UsersHandler().updateName(request.json)
 
 @app.route('/profile')
+@login_required
 def profile():
-    return current_user
+    profile = {}
+    profile["Name"] = current_user.name
+    profile["Last Name"] = current_user.lName
+    profile["Email"] = current_user.email
+    profile["Phone Number"] = current_user.pNumber
+    profile["Role"] = current_user.role
+    profile["Role ID"] = current_user.roleID
+
+    return jsonify(Profile=profile)
 
 @app.route('/updatePassword')
 #@login_required
@@ -198,12 +243,14 @@ def updatePassword():
 def updatePhoneNumber():
     return UsersHandler().updatePNumber(request.json)
 
-@app.route('/forgotPassword')
+@app.route('/forgotPassword', methods=["GET"])
 def forgotPassword():
-    return UsersHandler.resetPassword(request.json)
+    if current_user.is_authenticated:
+        return jsonify("User logged in. Please use update password.")
+    return UsersHandler().resetPassword(request.json)
 
-@app.route('/confirm/<string:confirmation>')
-def confirmAccount(confirmation):
+@app.route('/confirm', methods=["GET"])
+def confirmAccount():
     return UsersHandler().confirmAccount(request.args)
 
 #####################################################CLIENT&WORKER######################################################
@@ -223,41 +270,42 @@ def getbicycle():
 #@login_required
 def getClient():
     if request.method == "GET":
-        return ClientHandler().getClient(request.args)
+        return ClientHandler().getClient(request.json)
     else:
         return jsonify(Error="Invalid method")
 
 @app.route('/test')
 def test():
+    email = "bbob21308@gmail.com"
+    code_64 = base64.b64encode(email.encode())
+    token = {"data": code_64}
+    link = "localhost:5000/confirm?value="
+    #code_64 = pickle.dumps(code)
+    print(link)
+    print(base64.b64decode(code_64))
     #test = ScheduleHandler().testSchedule()
     #return test
-    user = UsersHandler().getUserByEmail(request.json['email'])
-    return jsonify(user)
 
-@login_manager.user_loader
-def load_user(email):
-    if not UsersHandler().getUserByEmail(email):
-        return
+    return "Done"
 
-    user = User()
-    user.id = email
-    return user
 
-@app.route('/logout')
+
+@app.route('/logout')       #Make seperate log out  for worker
 #@hasRole
 @login_required
 def logout():
+    if current_user.role == "Worker":
+        WorkerHandler().workerLogOut(current_user.email)
     logout_user()
-    try:
-        data = jwt.decode(request.json['token'], SECRET_KEY)
-        if (data['Role'] == 'Worker'):
-            WorkerHandler().workerLogOut(data['wID'])
-    except:
-        jsonify(Error="Invalid token")
-
-
     return jsonify('You are now logged out')
 
-
+'''
+@app.route('/workerLogOut')
+@login_required
+def workerLogOut():
+    email = current_user.id
+    WorkerHandler().workerLogOut(email)
+    return jsonify("Worker has logged out.")
+'''
 if __name__ == '__main__':
     app.run(debug=True)

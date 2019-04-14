@@ -1,28 +1,24 @@
 
 # using SendGrid's Python Library
 # https://github.com/sendgrid/sendgrid-python
+import base64
 import os
-
-import pickle
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from config.config import EMAIL_KEY
+from config.encryption import EMAIL_KEY
 
 class EmailHandler:
-    def confirmationEmail(self, email, uid, code):
-        package = {
-            "uID" : uid,
-            "code" : code
-        }
+    def confirmationEmail(self, email, uid):
 
-        code_64 = pickle.dumps(package).encode('base64', 'strict')
-        link = ""
-        content = '''Please click <a href="''' + link + '''">here</a>'''
+        #code_64 = pickle.dumps(email).encode('base64', 'strict')
+
+        link = "localhost:5000/confirm?value=" + uid
+        content = '''Please click <a href="''' + link + '''">here.</a>'''
         message = Mail(
-            from_email='example',
-            to_emails= email,
+            from_email='fcrygkiro@gmail.com',
+            to_emails=email,
             subject='Account Confirmation',
-            html_content = content)
+            html_content=content)
         try:
             sg = SendGridAPIClient(EMAIL_KEY)
             response = sg.send(message)
@@ -35,12 +31,14 @@ class EmailHandler:
     def resetPassword(self, email, password):
 
         content = password
-
+        print(email)
+        print(content)
         message = Mail(
-            from_email='example',
+            from_email='fcrygkiro@gmail.com',
             to_emails= email,
-            subject='Account Confirmation',
-            html_content = content)
+            subject='Password Recovery',
+            html_content = "Here is your new password: " + content +
+                           ". Please login to your account and set a new password.")
         try:
             sg = SendGridAPIClient(EMAIL_KEY)
             response = sg.send(message)

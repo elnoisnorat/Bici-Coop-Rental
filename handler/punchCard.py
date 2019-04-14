@@ -1,6 +1,5 @@
 from dao.punchCard import PunchCardDAO
 
-
 class PunchCardHandler:
     def inType(self, wid):
         pDao = PunchCardDAO()

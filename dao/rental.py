@@ -1,4 +1,5 @@
 from config.dbconfig import pg_config
+import datetime
 import psycopg2
 
 class RentalDAO:
@@ -32,14 +33,27 @@ class RentalDAO:
         query = '''
             Select *
             From Rental
-            Where Client = %s AND RecivedBy IS NULL
+            Where Client = %s AND ReceivedBy IS NULL
         '''
         cursor.execute(query, (cID,))
 
         result = []
         for row in cursor:
             result.append(row)
+        return result
 
+    def getRentalByCIDCheckOut(self, cID): #ReceivedBy typo
+        cursor = self.conn.cursor()
+        query = '''
+            Select *
+            From Rental
+            Where Client = %s AND ReceivedBy IS NULL AND DispatchedBy IS NULL
+        '''
+        cursor.execute(query, (cID,))
+
+        result = []
+        for row in cursor:
+            result.append(row)
         return result
 
     def getBIDByCID(self, cID):
@@ -47,7 +61,7 @@ class RentalDAO:
         query = '''
                 Select BID
                 From Rental
-                Where Client = %s AND RecivedBy IS NULL
+                Where Client = %s AND ReceivedBy IS NULL
                 '''
         cursor.execute(query, (cID,))
 
@@ -67,13 +81,38 @@ class RentalDAO:
         return rid
 
     def checkIn(self, wID, rid):
-        cur = self.conn.cursor()
-        query = '''
-                    Update Rental set RecivedBy = %s AND ETime = CURRENT_DATE Where RID = %s
+        debt = False
+        try:
+            cursor = self.conn.cursor()
+            currenTime = datetime.datetime.now()
+            query = '''
+                    Update Rental set ReceivedBy = %s, ETime = %s Where RID = %s
+                    returning duedate, client, bid
                 '''
-        cur.execute(query, (wID, rid,))
-        self.conn.commit()
-        return rid
+            cursor.execute(query, (wID, currenTime, rid,))
+            row = cursor.fetchone()
+            dueDate = row[0]
+            client = row[1]
+            bid = row[2]
+
+            query = '''
+                    Update Bike set Status = %s Where BID = %s
+                    '''
+            cursor.execute(query, ('AVAILABLE', bid,))
+
+            if currenTime > dueDate:
+                debt = True
+                query = '''
+                Update Client set debtor = %s Where CID = %s
+                returning duedate
+                '''
+                cursor.execute(query, (True, client,))
+            self.conn.commit()
+
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        return debt
 
     def getRentalByID(self, rid):
         cursor = self.conn.cursor()
@@ -89,8 +128,37 @@ class RentalDAO:
     def checkOut(self, wID, bid, rid):
         cur = self.conn.cursor()
         query = '''
-                    Update Rental set DispatchedBy = %s AND BID = %s AND STime = CURRENT_DATE Where RID = %s
+                    Update Rental set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE Where RID = %s
                 '''
         cur.execute(query, (wID, bid, rid,))
         self.conn.commit()
+
+    def getBIDByCIDAndPlate(self, cid, plate):
+        cursor = self.conn.cursor()
+        query = '''
+            Select BID
+            From Rental Natural Inner Join Bike
+            Where Client = %s AND lp = %s AND ReceivedBy IS NULL
+        '''
+        cursor.execute(query, (cid, plate,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        bid = result[0]
+
+        return bid
+
+    def getNewRentals(self, tid):
+        cursor = self.conn.cursor()
+        query = '''
+            Select RID
+            From RentLink NATURAL INNER JOIN Rental
+            Where TID = %s
+        '''
+        cursor.execute(query, (tid,))
+        result = []
+        for row in cursor:
+            result.append(row)
+
+        return result
 

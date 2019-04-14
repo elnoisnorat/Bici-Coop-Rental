@@ -6,10 +6,10 @@ class AdminDAO:
         pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
         self.conn = psycopg2._connect(connection_url)
 
-    def workerLogin(self, email, password):
+    def adminLogin(self, email, password):
         cur = self.conn.cursor()
         query ='''
-            Select wID
+            Select AID
             From Users natural inner join Admin
             Where email = %s and password = crypt(%s, password)
         '''
@@ -28,7 +28,16 @@ class AdminDAO:
         return ''
 
     def getAdminByUID(self, uid):
-        return ''
+        cur = self.conn.cursor()
+        query ='''
+            Select AID
+            From Admin
+            Where UID = %s
+        '''
+        cur.execute(query, (uid,))
+
+        aID = cur.fetchone()[0]
+        return aID
 
 
 

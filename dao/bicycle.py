@@ -88,9 +88,9 @@ class BicycleDAO:
         query = '''
                     Select rfid
                     From Bike
-                    Where bid = %s
+                    Where bid = %s and Status != %s
                 '''
-        cur.execute(query, (bid,))
+        cur.execute(query, (bid, 'DECOMMISSIONED'))
         rfid = cur.fetchone()
         return rfid
 
@@ -198,9 +198,9 @@ class BicycleDAO:
         query = '''
                     Select BID
                     From Bike
-                    Where RFID = %s
+                    Where RFID = %s and Status != %s
                 '''
-        cur.execute(query, (rfid,))
+        cur.execute(query, (rfid, 'DECOMMISSIONED'))
         bid = cur.fetchone()
         return bid
 
@@ -211,14 +211,59 @@ class BicycleDAO:
                     From Bike
                     Where Status = %s
                 '''
-        cur.execute(query, ('Available',))
-        count = cur.fetchone()
+        cur.execute(query, ('AVAILABLE',))
+        count = cur.fetchone()[0]
         return count
 
-    def freeBicyle(self, bid):
+    def updateStatusCheckOut(self, bid, status, wid, rid):
+        try:
+            cur = self.conn.cursor()
+            query = '''
+                    Update Bike set status = %s Where bid = %s 
+                '''
+            cur.execute(query, (status, bid,))
+            query = '''
+                    Update Rental set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE Where RID = %s
+                    '''
+            cur.execute(query, (wid, bid, rid,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+
+    def freeBicyle(self, bid, status, wid, rid):
+        try:
+            cur = self.conn.cursor()
+            query = '''
+                    Update Bike set status = %s Where bid = %s 
+                '''
+            cur.execute(query, (status, bid,))
+
+            query = '''
+                    UPDATE Bike set Status = 'AVAILABLE' 
+                    where bid = (SELECT BID from bike 
+                                  where Status= 'RESERVED' LIMIT 1);
+                '''
+            cur.execute(query)
+
+            query = '''
+                    Update Rental 
+                    set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE 
+                    Where RID = %s
+                     '''
+            cur.execute(query, (wid, bid, rid,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+
+    def getBIDByPlate(self, plate):
         cur = self.conn.cursor()
         query = '''
-                    UPDATE Bike set Status = 'Available' where bid = (SELECT BID from bike where Status= 'Reserved' LIMIT 1);
+                    Select BID
+                    From Bike
+                    Where lp = %s
                 '''
-        cur.execute(query)
-        self.conn.commit()
+        cur.execute(query, (plate,))
+        plate = cur.fetchone()[0]
+        return plate

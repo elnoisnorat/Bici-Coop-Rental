@@ -9,7 +9,7 @@ class BicycleHandler():
     def __init__(self):
         self.orderBy_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand']
         self.bike_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand', 'orderby']
-        self.update_attributes = ['lp', 'status']
+        self.update_attributes = ['lp', 'status', 'rfid']
 
     def build_bike_dict(self, row):
         result = {}
@@ -84,7 +84,7 @@ class BicycleHandler():
         status = bDao.getStatusByID(bid)
         return status
 
-    @isDecomissioned
+    #@isDecomissioned
     def update(self, form):
         bDao = BicycleDAO()
 
@@ -111,12 +111,16 @@ class BicycleHandler():
         return jsonify(Bicycle=result), 200
 
     @isDecomissioned
-    def updateStatusIsAvailable(self, bid):
+    def updateStatusIsAvailable(self, bid, wid, rid):
         bDao = BicycleDAO()
-        bDao.updateStatus(bid, 'Rented')                                                    #UPDATE #1
-        bDao.freeBicyle()                                                                   #UPDATE #2
+        bDao.freeBicyle(bid, 'RENTED', wid, rid)                                                      #UPDATE #1
 
     @isDecomissioned
-    def updateStatusIsReserved(self, bid):
+    def updateStatusIsReserved(self, bid, wid, rid):
         bDao = BicycleDAO()
-        bDao.updateStatus(bid, 'Rented')                                                    #UPDATE #1
+        bDao.updateStatusCheckOut(bid, 'RENTED', wid, rid)                                                    #UPDATE #1
+
+    def getBIDByPlate(self, plate):
+        bDao = BicycleDAO()
+        bid = bDao.getBIDByPlate(plate)
+        return bid

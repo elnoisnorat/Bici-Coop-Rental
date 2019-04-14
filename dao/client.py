@@ -46,14 +46,50 @@ class ClientDAO:
         uID = cursor.fetchone()
         return uID
 
-    def getUserByArguments(self):
-        return ''
+    def getClientByArguments(self, form):
+        argument = ""
+        values = []
+        for arg in form:
+            argument = argument + arg + "= %s" + " and "
+            value = form[arg]
+            values.append(str(value))
+        argument = argument[:-5]
+        cursor = self.conn.cursor()
 
-    def getUserWithSorting(self):
-        return ''
+        query = "Select CID, FName, LName, Email, PNumber, DebtorFlag " \
+                "From Client NATURAL INNER JOIN Users Where " + argument
+        cursor.execute(query, values)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
 
-    def getUserByArgumentsWithSorting(self):
-        return ''
+    def getClientWithSorting(self, orderBy):
+        cursor = self.conn.cursor()
+        query = "select CID, FName, LName, Email, PNumber, DebtorFlag from Client NATURAL INNER JOIN Users order by " + orderBy
+        cursor.execute(query)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
+    def getClientByArgumentsWithSorting(self, form):
+        argument = ""
+        values = []
+        for arg in form:
+            if arg != 'orderby':
+                argument = argument + arg + "= %s" + " and "
+                value = form[arg]
+                values.append(str(value))
+        argument = argument[:-5]
+        cursor = self.conn.cursor()
+
+        query = "select CID, FName, LName, Email, PNumber, DebtorFlag from Client NATURAL INNER JOIN Users where " + argument + " order by " + form['orderby']
+        cursor.execute(query, values)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
 
     def getClientByCID(self, cid):
         cursor = self.conn.cursor()
@@ -64,6 +100,17 @@ class ClientDAO:
         '''
         cursor.execute(query, (cid,))
         result = cursor.fetchone()
+        return result
+
+    def getAllClients(self):
+        cursor = self.conn.cursor()
+        query = '''SELECT CID, FName, LName, Email, PNumber, DebtorFlag 
+                   from Client NATURAL INNER JOIN Users
+                '''
+        cursor.execute(query)
+        result = []
+        for row in cursor:
+            result.append(row)
         return result
 
 

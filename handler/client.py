@@ -1,3 +1,5 @@
+from flask_login import current_user
+
 from dao.client import ClientDAO
 from handler.user import UsersHandler
 from dao.user import UsersDAO
@@ -8,79 +10,103 @@ import datetime
 
 class ClientHandler:
 
+    def __init__(self):
+        self.client_attributes = ['FName', 'LName', 'PNumber', 'cid', 'uid', 'debtorflag', 'orderby']
+        self.orderBy_attributes = ['fName', 'lName', 'pNumber', 'cid', 'uid', 'debtorflag']
+
     def build_client_dict(self, row):
         result = {}
         result['cID'] = row[0]
         result['fName'] = row[1]
         result['lName'] = row[2]
+        result['Email'] = row[3]
+        result['Phone Number'] = row[4]
+        result['Debtor Flag'] = row[5]
         return result
 
     def clientLogin(self, form):
+        uHand = UsersHandler()
         email = form['Email']
         password = form['password']
         if email and password:
-            cDao = ClientDAO()
-            cID = cDao.clientLogin(email, password)
-            if not cID:
-                return None
-            token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 2)}, SECRET_KEY)
-            uHand = UsersHandler()
-            userInfo = uHand.getProfile(email)
+            confirmation = uHand.getConfirmation(email)
+            if confirmation is False:
+                return jsonify("Email has not been confirmed yet.")
+            elif confirmation is None:
+                return -2
 
-            response = {
-                'token': token.decode('UTF-8'),
-                'info' : userInfo
-            }
+            attempts = uHand.getLoginAttempts(email)
+            blockTime = uHand.getBlockTime(email)
 
-            return jsonify(response)
+            if datetime.datetime.now() > blockTime:
+
+                if attempts == 7:
+                    uHand.setBlockTime(email)
+                    return -1
+
+                cDao = ClientDAO()
+                cID = cDao.clientLogin(email, password)
+                if not cID:
+                    uHand.addToLoginAttempt(email)
+                    return -2
+
+                uHand.resetLoginAttempt(email)
+
+                token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
+                userInfo = uHand.getProfile(email)
+                userInfo['Role'] = 'Client'
+
+                response = {
+                    'token': token.decode('UTF-8'),
+                    'info' : userInfo
+                    }
+
+                return jsonify(response)
+            else:
+                return -1
         else:
-            return None
+            return -2
 
     def insert(self, form):
-        if len(form) != 5:
-            return jsonify(Error="Malformed request")
+        uHandler = UsersHandler()
+        try:
+            uID = uHandler.insert(form, 'Client')
+        except Exception as e:
+            raise e
+        cDao = ClientDAO()
+        cID = cDao.getClientByUID(uID)
+        return jsonify("Client #: " + str(cID) + " was successfully added.")
+
+    def getClient(self, form):
+        cDao = ClientDAO()
+
+        filteredArgs = {}
+        for arg in form:
+            if form[arg] and arg in self.client_attributes:
+                if arg != 'orderby':
+                    filteredArgs[arg] = form[arg]
+                elif form[arg] in self.orderBy_attributes:
+                    filteredArgs[arg] = form[arg]
+
+        if len(filteredArgs) == 0:
+            client_list = cDao.getAllClients()
+
+        if not 'orderby' in filteredArgs:
+            client_list = cDao.getClientByArguments(filteredArgs)
+
+        elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:
+            client_list = cDao.getClientWithSorting(filteredArgs['orderby'])
 
         else:
-            Email = form['Email']
-            uHandler = UsersHandler()
-            cDao = ClientDAO()
-            uid = uHandler.getUserIDByEmail(Email)
-
-            if not uid:
-                uid = uHandler.insert(form)                                                 #Insert #1
-
-            if cDao.getClientByUID(uid):
-                return jsonify(Error="User is already a Client")
-            if uid:
-                cID = cDao.insert(uid)                                                      #Insert #2
-                return jsonify("Client #: " + str(cID) + " was successfully added.")
-            else:
-                return jsonify(Error="Null value in attributes of the client."), 401
-
-    def getClient(self, args):
-        uDao = UsersDAO()
-        if not args:
-            user = uDao.getAllUsers()
-        for arg in args:
-            if not arg in self.user_attributes:
-                return jsonify(Error="Invalid Argument"), 401
-
-        if not 'orderby' in args:
-            user_list = uDao.getUserByArguments(args)
-
-        elif ((len(args)) == 1) and 'orderby' in args:
-            user_list = uDao.getUserWithSorting(args.get('orderby'))
-
-        else:
-            user_list = uDao.getUserByArgumentsWithSorting(args)
+            client_list = cDao.getClientByArgumentsWithSorting(filteredArgs)
 
         result_list = []
 
-        for row in user_list:
-            result = self.build_user_dict(row)
+        for row in client_list:
+            result = self.build_client_dict(row)
             result_list.append(result)
 
-        return jsonify(Inventory=result_list)
+        return jsonify(Clients=result_list)
 
     def updatePassword(self, form):
         uDao = UsersHandler.updatePassword()                                                #Update #1

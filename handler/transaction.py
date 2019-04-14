@@ -1,5 +1,7 @@
 import jwt
 from flask import jsonify
+from flask_login import current_user
+
 from dao.transaction import TransactionDAO
 from config.encryption import SECRET_KEY
 from handler.bicycle import BicycleHandler
@@ -46,36 +48,22 @@ class TransactionHandler:
             result = self.build_transaction_dict(row)
             resultList.append(result)
         return jsonify(Transactions=resultList)
-'''
-    def newTransactionWithCash(self, form):
+
+    def newTransaction(self, form):
         tDao = TransactionDAO()
         bHand = BicycleHandler()
-        pMethod = form['pMethod']
-        amount = form['Amount']
-        tToken =    {
-                    "method": pMethod,
-                    "amount": amount
-                    }
-        elif form['method'] == 'creditCard':
-            token = \
-                {
-                    "method": form['method'],
-                    "": form['charge']
-                }
-        else:
-            return jsonify(Error="Invalid payment method")
-
-
-        form['Stripe']  # STRIPE CODE
-        token = form['token']
-
-        if bHand.getAvailableBicycleCount() <= 0:
+        #token = form['token']
+        amount = form['amount']
+        card = form['card']
+        cid = current_user.roleID
+        available = bHand.getAvailableBicycleCount()
+        if available < int(amount):
             return jsonify("We are sorry. At the moment there are no bicycles available for rent.")
 
-        
-		    #STRIPE CODE
-		
-
+        #Integration with the strip API static values for testing
+        stripeToken = 'token'
+        cost = 9.99
+        '''
         try:
             data = jwt.decode(token, SECRET_KEY)
             cid = data['cID']
@@ -83,21 +71,21 @@ class TransactionHandler:
             return jsonify(Error="Invalid token."), 401
         if not cid:
             return jsonify(Error="Client does not exist."), 401
+        '''
+        try:
+            tid = tDao.newTransaction(stripeToken, cid, amount, cost)                    #Insert #1A
+        except Exception as e:
+            return jsonify(Error="An error has occurred during the transaction process."), 401
 
-        if pMethod == 'Cash':   #stripeToken not used
-            tid = tDao.newTransactionWithCash(cid, pMethod)                     #Insert #1A
+        rHand = RentalHandler()
+        rental_list = rHand.getNewRentals(tid)
+        rentals = ""
+        for rental in rental_list:
+            rentals = rentals + str(rental) + ", "
+        rentals[-2]
+        return jsonify("Transaction # " + str(tid) + " and rental(s) # " + rentals + " have been created successfully.")
 
-        elif pMethod == 'CreditCard':
-            tid = tDao.newTransactionWithCreditCard()                           #Insert #1B
-        else:
-            return jsonify(Error="No payment method given."), 401
-
-        rHandler = RentalHandler()
-
-        rID = rHandler.rentBicycle(cid, tid)                                    #Insert #2
-
-        return jsonify("Transaction # " + str(tid) + " and rental # " + str(rID) + " have been created successfully.")
-
+'''
         def newTransactionWithCreditCard(self, form):
             tDao = TransactionDAO()
             bHand = BicycleHandler()

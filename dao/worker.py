@@ -64,7 +64,7 @@ class WorkerDAO:
 
     def getWorkerWithSorting(self, orderBy):
         cursor = self.conn.cursor()
-        query = "select * from Bike order by " + orderBy
+        query = "select WID, FName, LName, Email, PNumber, Status from Worker NATURAL INNER JOIN Users order by " + orderBy
         cursor.execute(query)
         result = []
         for row in cursor:
@@ -82,7 +82,7 @@ class WorkerDAO:
         argument = argument[:-5]
         cursor = self.conn.cursor()
 
-        query = "select * from Bike where " + argument + " order by " + form['orderby']
+        query = "select WID, FName, LName, Email, PNumber, Status from Worker NATURAL INNER JOIN Users where " + argument + " order by " + form['orderby']
         cursor.execute(query, values)
         result = []
         for row in cursor:
@@ -104,7 +104,7 @@ class WorkerDAO:
         query = '''
             update Worker set Status = %s Where WID = %s
             '''
-        cursor.execute(query, (wid, status))
+        cursor.execute(query, (status, wid))
         self.conn.commit()
 
     def getAllWorkers(self):
@@ -115,6 +115,13 @@ class WorkerDAO:
         for row in cursor:
             result.append(row)
         return result
+
+    def getWIDByEmail(self, email):
+        cursor = self.conn.cursor()
+        query = '''SELECT WID FROM Worker NATURAL INNER JOIN Users'''
+        cursor.execute(query)
+        wid = cursor.fetchone()[0]
+        return wid
 
 
 

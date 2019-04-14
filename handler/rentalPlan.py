@@ -5,9 +5,10 @@ from dao.rentalPlan import RentalPlanDAO
 
 class RentalPlanHandler:
     def build_plan_dict(self, row):
-        '''
-        Plan attribute
-        '''
+        result = {}
+        result['Plan Name'] = row[1]
+        result['Cost'] = row[2]
+        return result
 
     def getRentalPlan(self):
         rDao = RentalPlanDAO()
@@ -19,8 +20,6 @@ class RentalPlanHandler:
         return jsonify(RentalPlan=result_list)
 
     def editPlan(self, json):
-        '''
-            Wait for table:
-        '''
+
         rDao = RentalPlanDAO().editPlan()
         return jsonify('Rental Plan update was successful.')

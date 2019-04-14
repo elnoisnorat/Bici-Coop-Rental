@@ -8,17 +8,28 @@ class MaintenanceDAO:
         pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
         self.conn = psycopg2._connect(connection_url)
 
-    def requestMaintenance(self, wid, bid, notes):
-        cursor = self.conn.cursor()
-        query = '''
-         INSERT INTO Maintenance(starttime, status, notes, bid, requestedby) 
-         VALUES (now(), 'Pending', 'Notes', 'bidGiven', 'requestor') returning MID;
-        '''
+    def requestMaintenance(self, uid, bid):
+        try:
+            cursor = self.conn.cursor()
+            query = '''
+            INSERT INTO Maintenance(starttime, status, bid, requestedby) 
+            VALUES (now(), 'PENDING', %s, %s) 
+            returning MID;
+            '''
+            cursor.execute(query, (bid, uid,))
+            mID = cursor.fetchone()[0]
 
-        cursor.execute(query, (notes, bid, wid))
-        mID = cursor.fetchone()[0]
-        self.conn.commit()
-        return mID
+            query = '''
+            Update Bike set status = 'MAINTENANCE' 
+            Where BID = %s  
+            '''
+            cursor.execute(query, (bid,))
+
+            self.conn.commit()
+            return mID
+        except Exception as e:
+            self.conn.rollback()
+            raise e
 
 
         '''
@@ -31,3 +42,55 @@ class MaintenanceDAO:
         RequestedBy INTEGER REFERENCES Worker(WID),
         ServicedBy INTEGER REFERENCES Worker(WID)
         '''
+
+    def getMaintenance(self):
+        cursor = self.conn.cursor()
+        query = '''SELECT * FROM Maintenance Where endtime is Null'''
+        cursor.execute(query)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
+    def provideMaintenance(self, wid, mID, notes, service):
+        try:
+            cursor = self.conn.cursor()
+            query = '''
+            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s, Service = %s
+            Where mID = %s and Status = 'PENDING'
+            Returning BID
+            '''
+            cursor.execute(query, (wid, notes, 'Finished', service, mID))
+            bid = cursor.fetchone()[0]
+            query = '''
+                        Update Bike set status = 'AVAILABLE' 
+                        Where BID = %s  
+                        '''
+            cursor.execute(query, (bid,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+
+    def getRequestByBID(self, bid):
+        cursor = self.conn.cursor()
+        query = '''SELECT MID 
+                   FROM Maintenance NATURAL INNER JOIN Bike 
+                   Where BID = %s AND EndTime IS NULL
+                '''
+        cursor.execute(query, bid)
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        mID = result[0]
+        return mID
+
+    def getRequestByMID(self, mid):
+        cursor = self.conn.cursor()
+        query = '''SELECT * 
+                   FROM Maintenance
+                   Where MID = %s
+                '''
+        cursor.execute(query, mid)
+        result = cursor.fetchone()
+        return result

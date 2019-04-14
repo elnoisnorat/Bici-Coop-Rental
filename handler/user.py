@@ -1,3 +1,4 @@
+import base64
 import random
 import string
 
@@ -35,7 +36,7 @@ class UsersHandler:
         result['Phone Number'] = row[4]
         return result
 
-    def insert(self, form):
+    def insert(self, form, Role):
         FName = form['FName']
         LName = form['LName']
         password = form['password']
@@ -43,17 +44,26 @@ class UsersHandler:
         Email = form['Email']
         uDao = UsersDAO()
 
-        if uDao.getUserByEmail(Email):
-            return jsonify("User already exists")
+        if FName and LName and password and PNumber and Email and Role:
+            try:
+                uID = uDao.insert(FName, LName, password, PNumber, Email, Role)   #INSERT #1
+            except Exception as e:
+                raise e
 
-        if FName and LName and password and PNumber and Email:
-            uID = uDao.insert(FName, LName, password, PNumber, Email)   #INSERT #1
             return uID
         else:
-            return jsonify(Error="Unexpected attributes in post request"), 400
+            return jsonify(Error="Null values in user creation request."), 400
 
     def getUser(self,form):
         uDao = UsersDAO()
+
+        filteredArgs = {}
+        for arg in form:
+            if form[arg] and arg in self.worker_attributes:
+                if arg != 'orderby':
+                    filteredArgs[arg] = form[arg]
+                elif form[arg] in self.orderBy_attributes:
+                    filteredArgs[arg] = form[arg]
 
         if not args:
             user = uDao.getAllUsers()
@@ -81,7 +91,7 @@ class UsersHandler:
     def updateName(self, form):
         uDao = UsersDAO()
         email = current_user.email
-        email = form['email']
+        #email = form['email']
         uName = form['FName']
         uLName = form['LName']
 
@@ -108,13 +118,14 @@ class UsersHandler:
         uDao = UsersDAO()
         #token = form['token']
         password = form['password']
-        email = current_user.id
+        email = current_user.email
 
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User not found."), 404
         else:
             if password:
                 uDao.updatePassword(email, password)
+                return jsonify("Password has been updated")
             else:
                 return jsonify(Error="No attributes in update request"), 400
 
@@ -122,8 +133,8 @@ class UsersHandler:
     def updatePNumber(self, form):
         uDao = UsersDAO()
 
-        email = current_user.id
-        pNumber = form['pNumber']
+        email = current_user.email
+        pNumber = form['PNumber']
 
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User not found."), 404
@@ -134,7 +145,7 @@ class UsersHandler:
             return jsonify(Error="No attributes in update request"), 400
 
         row = uDao.getUserByEmail(email)
-        result = self.build_worker_dict(row)
+        result = self.build_user_dict(row)
         return jsonify(User=result), 200
 
     def getUserWithCID(self, cid):
@@ -173,24 +184,63 @@ class UsersHandler:
 
     def confirmAccount(self, args):
         value = args.get('value')
-        package = pickle.loads(value.decode('base64', 'strict'))
-        uID = package['uID']
-        code = package['code']
+        print(value)
+        #uID = pickle.loads(value.decode('base64', 'strict'))
+        #code = package['code']
         uDao = UsersDAO()
-        uDao.confirmAccount(uID, code)
+        uDao.confirmAccount(value)
+        return jsonify("Account was successfully activated.")
 
     def resetPassword(self, form):
         email = form['Email']
         uDao = UsersDAO()
-        if not uDao.getUserByEmail('email'):
+        if not uDao.getUserByEmail(email):
             return jsonify(Error="User does not exist."), 404
         else:
-            password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            password = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
             eHand = EmailHandler()
-            eHand.resetPassword(email, password)
 
             uDao.updatePassword(email, password)
+            eHand.resetPassword(email, password)
+
             return jsonify("Email has been sent.")
+
+    def addToLoginAttempt(self, email):
+        uDao = UsersDAO()
+        attempts = uDao.getLoginAttempts(email)
+        attempts = attempts + 1
+        uDao.addToLoginAttempt(email, attempts)
+
+
+    def resetLoginAttempt(self, email):
+        uDao = UsersDAO()
+        uDao.resetLoginAttempt(email)
+
+    def getBlockTime(self, email):
+        uDao = UsersDAO()
+        bTime = uDao.getBlockTime(email)
+        return bTime
+
+    def setBlockTime(self, email):
+        uDao = UsersDAO()
+        uDao.setBlockTime(email)
+
+    def getConfirmation(self, email):
+        uDao = UsersDAO()
+        state = uDao.getConfirmation(email)
+        return state
+
+    def getLoginAttempts(self, email):
+        uDao = UsersDAO()
+        attempts = uDao.getLoginAttempts(email)
+        return attempts
+
+
+    def getUserInfo(self, email, role):
+        uDao = UsersDAO()
+        user = uDao.getUserInfo(email, role)
+        return user
+
 
 
 
