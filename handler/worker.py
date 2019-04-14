@@ -112,7 +112,7 @@ class WorkerHandler:
         if email and password:
             confirmation = uHand.getConfirmation(email)
             if confirmation is False:
-                return jsonify("Email has not been confirmed yet.")
+                return jsonify(Error="Email has not been confirmed yet."), 401
             elif confirmation is None:
                 return -2
 
