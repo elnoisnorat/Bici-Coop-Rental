@@ -295,7 +295,7 @@ def test():
 @login_required
 def logout():
     if current_user.role == "Worker":
-        WorkerHandler().workerLogOut(current_user.email)
+        WorkerHandler().workerLogOut()
     logout_user()
     return jsonify('You are now logged out')
 

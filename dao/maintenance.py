@@ -60,7 +60,7 @@ class MaintenanceDAO:
             Where mID = %s and Status = 'PENDING'
             Returning BID
             '''
-            cursor.execute(query, (wid, notes, 'Finished', service, mID))
+            cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
             bid = cursor.fetchone()[0]
             query = '''
                         Update Bike set status = 'AVAILABLE' 

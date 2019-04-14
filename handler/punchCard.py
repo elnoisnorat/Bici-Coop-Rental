@@ -7,4 +7,5 @@ class PunchCardHandler:
 
     def outType(self, wid):
         pDao = PunchCardDAO()
+        print(wid)
         pDao.outType(wid)

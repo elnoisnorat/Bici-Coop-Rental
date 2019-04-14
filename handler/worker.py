@@ -1,5 +1,7 @@
 from flask import jsonify
 from config.encryption import SECRET_KEY, ENC_ALG
+from flask_login import current_user
+
 from handler.punchCard import PunchCardHandler
 from handler.user import UsersHandler
 from dao.user import UsersDAO
@@ -149,9 +151,9 @@ class WorkerHandler:
         else:
             return -2
 
-    def workerLogOut(self, email):
+    def workerLogOut(self):
         wDao = WorkerDAO()
-        wid = wDao.getWIDByEmail(email)
+        wid = current_user.roleID
         pHand = PunchCardHandler()
         pHand.outType(wid)
 
