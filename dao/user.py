@@ -33,7 +33,7 @@ class UsersDAO:
                 query = "insert into Admin(UID) values (%s)"
 
             if Role == "Worker":
-                query = "insert into Worker(UID, Status) values (%s, 'Active')"
+                query = "insert into Worker(UID, Status) values (%s, 'ACTIVE')"
 
             cursor.execute(query, (uID,))
             #cID = cursor.fetchone()

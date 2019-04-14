@@ -11,7 +11,7 @@ class WorkerDAO:
         query ='''
             Select wID
             From Users natural inner join Worker
-            Where email = %s and password = crypt(%s, password)
+            Where email = %s and password = crypt(%s, password) and status = 'ACTIVE'
         '''
         cur.execute(query, (email, password))
         row = cur.fetchone()
