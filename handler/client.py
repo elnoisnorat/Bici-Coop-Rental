@@ -52,12 +52,10 @@ class ClientHandler:
 
                 uHand.resetLoginAttempt(email)
 
-                token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
+                #token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
                 userInfo = uHand.getProfile(email)
-                userInfo['Role'] = 'Client'
 
                 response = {
-                    'token': token.decode('UTF-8'),
                     'info' : userInfo
                     }
 
