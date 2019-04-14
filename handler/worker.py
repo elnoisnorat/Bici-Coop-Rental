@@ -126,10 +126,12 @@ class WorkerHandler:
                     return -1
 
                 wDao = WorkerDAO()
-                wID = wDao.workerLogin(email, password)
-                if not wID:
+                worker = wDao.workerLogin(email, password)
+                if worker is None:
                     uHand.addToLoginAttempt(email)
                     return -2
+                elif worker[1]:
+                    return -3
 
                 uHand.resetLoginAttempt(email)
 

@@ -9,19 +9,19 @@ class WorkerDAO:
     def workerLogin(self, email, password):
         cur = self.conn.cursor()
         query ='''
-            Select wID
+            Select wID, status
             From Users natural inner join Worker
-            Where email = %s and password = crypt(%s, password) and status = 'ACTIVE'
+            Where email = %s and password = crypt(%s, password)
         '''
         cur.execute(query, (email, password))
         row = cur.fetchone()
         if row is None:
             return row
 
-        else:
-            wID = row[0]
+        # else:
+        #     wID = row[0]
 
-        return wID
+        return row
 
     def getWorkerByID(self, wid):
         cursor = self.conn.cursor()

@@ -62,6 +62,8 @@ def workerLogin():
         return jsonify(Error="Invalid/Missing username or password"), 401
     elif token is -1:
         return jsonify(Error="This account is currently locked."), 401
+    elif token is -3:
+        return jsonify(Error="This account is disabled."), 401
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "W")
         user = User(info, "W")
