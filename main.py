@@ -23,8 +23,6 @@ login_manager.init_app(app)
 
 app.secret_key = SECRET_KEY
 
-
-
 @login_manager.user_loader
 def load_user(id):
     size = len(id)
@@ -292,6 +290,7 @@ def profile():
 @app.route('/updatePassword', methods=["PUT"])                                                  #24
 #@login_required
 #@hasRole
+#@validUpdatePassword
 def updatePassword():
     return UsersHandler().updatePassword(request.json)
 
@@ -360,13 +359,7 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    rental = request.json["Email"]
-    try:
-        #rental = request.json['test']
-        result = {"ALERT": "User has returned the bicycle after the due date.", "Rental": rental}
-        return jsonify(result)
-    except:
-        return jsonify("FAIL")
+
 
 '''
     Route used to logout a user.

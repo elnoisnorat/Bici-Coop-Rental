@@ -110,7 +110,9 @@ class UsersHandler:
 
     def updatePassword(self, form):     #When User is logged in
         uDao = UsersDAO()
-        password = form['password']
+        password = form['oldPassword']
+        newPassword = form['newPassword']
+        confirmPassword = form['confirmPassword']
         email = current_user.email
 
         if not uDao.getUserByEmail(email):
