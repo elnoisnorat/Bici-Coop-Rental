@@ -91,46 +91,47 @@ class WorkerHandler:
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
+
         if email and password:                                                      #No null arguments
             confirmation = uHand.getConfirmation(email)
             if confirmation is False:
-                return jsonify(Error="Email has not been confirmed yet."), 401      #User has not confirmed account
+                return -4                                                             #User has not confirmed account
             elif confirmation is None:
                 return -2
+            elif confirmation is True:
+                attempts = uHand.getLoginAttempts(email)                                #Get current number of attempts
+                blockTime = uHand.getBlockTime(email)                                   #Get current account block time
 
-            attempts = uHand.getLoginAttempts(email)                                #Get current number of attempts
-            blockTime = uHand.getBlockTime(email)                                   #Get current account block time
+                if datetime.datetime.now() > blockTime:                                 #If current time > block time proceed
 
-            if datetime.datetime.now() > blockTime:                                 #If current time > block time proceed
+                    if attempts == 7:
+                        uHand.setBlockTime(email)                                       #Lock account at 7 attempts
+                        return -1
 
-                if attempts == 7:
-                    uHand.setBlockTime(email)                                       #Lock account at 7 attempts
+                    wDao = WorkerDAO()
+                    worker = wDao.workerLogin(email, password)                          #Validate User
+                    if worker is None:
+                        uHand.addToLoginAttempt(email)                                  #Add to login attempt
+                        return -2
+                    elif worker[1] == "INACTIVE":                                       #Reject if inactive
+                        return -3
+
+                    uHand.resetLoginAttempt(email)                                      #Set login attempt to 0
+
+                    # token = jwt.encode(
+                    #     {'Role': 'Worker', 'wID': wID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
+                    #     SECRET_KEY)
+                    userInfo = uHand.getProfile(email)                                  #Get User information
+
+                    response = {
+                        'info' : userInfo
+                    }
+
+                    pHand = PunchCardHandler()
+                    pHand.inType(worker[0])                                             #Make Punch Card Entry
+                    return jsonify(response)
+                else:
                     return -1
-
-                wDao = WorkerDAO()
-                worker = wDao.workerLogin(email, password)                          #Validate User
-                if worker is None:
-                    uHand.addToLoginAttempt(email)                                  #Add to login attempt
-                    return -2
-                elif worker[1] == "INACTIVE":                                       #Reject if inactive
-                    return -3
-
-                uHand.resetLoginAttempt(email)                                      #Set login attempt to 0
-
-                # token = jwt.encode(
-                #     {'Role': 'Worker', 'wID': wID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
-                #     SECRET_KEY)
-                userInfo = uHand.getProfile(email)                                  #Get User information
-
-                response = {
-                    'info' : userInfo
-                }
-
-                pHand = PunchCardHandler()
-                pHand.inType(worker[0])                                             #Make Punch Card Entry
-                return jsonify(response)
-            else:
-                return -1
         else:
             return -2
 

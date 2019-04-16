@@ -32,7 +32,7 @@ class ClientHandler:
         if email and password:                                                  #No null arguments
             confirmation = uHand.getConfirmation(email)
             if confirmation is False:                                           #User has not confirmed account
-                return jsonify("Email has not been confirmed yet."), 403
+                return -4
             elif confirmation is None:                                          #User does not exist
                 return -2
 

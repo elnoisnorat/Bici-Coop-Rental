@@ -12,7 +12,7 @@ from handler.worker import WorkerHandler
 from handler.admin import AdminHandler
 from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
-from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin
+from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword
 from config.encryption import SECRET_KEY
 from model.user import User
 
@@ -54,6 +54,7 @@ def home():
     Route used for the worker's login
 '''
 @app.route('/workerLogin', methods=["GET"])                                                     #1
+@validPassword
 def workerLogin():
     if current_user.is_authenticated:
         return jsonify(Error="Invalid/Missing username or password."), 401
@@ -64,6 +65,8 @@ def workerLogin():
         return jsonify(Error="This account is currently locked."), 401
     elif token is -3:
         return jsonify(Error="This account is disabled."), 403
+    elif token is -4:
+        return jsonify(Error="Awaiting confirmation."), 403
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "W")
         user = User(info, "W")
@@ -75,8 +78,8 @@ def workerLogin():
     Route used for the creation and modifications done to a bicycle.
 '''
 @app.route('/bicycle', methods=["POST", "PUT"])                                                 #2, 3
-@isWorkerOrAdmin
 @login_required
+@isWorkerOrAdmin
 def bicycle():
     if request.method == "POST":
         return BicycleHandler().insert(request.json)
@@ -87,8 +90,8 @@ def bicycle():
     Route used for the check in process of a bicycle that is about to be returned.
 '''
 @app.route('/checkIn', methods=["PUT"])                                                         #4
-@isWorker
 @login_required
+@isWorker
 def checkIn():
     return RentalHandler().checkInBicycle(request.json)
 
@@ -96,8 +99,8 @@ def checkIn():
     Route used for the check out process of a bicycle that is about to be released to a client.
 '''
 @app.route('/checkOut', methods=["PUT"])                                                        #5
-@isWorker
 @login_required
+@isWorker
 def checkOut():
     return RentalHandler().checkOutBicycle(request.json)
 
@@ -120,6 +123,7 @@ def provideMaintenance():
     Route used for the login of an administrator.
 '''
 @app.route('/adminLogin', methods=["GET"])                                                      #8
+@validPassword
 def adminLogin():
     if current_user.is_authenticated:
         return jsonify(Error="Invalid/Missing username or password."), 401
@@ -128,6 +132,8 @@ def adminLogin():
         return jsonify(Error="Invalid/Missing username or password"), 401
     elif token is -1:
         return jsonify(Error="This account is currently locked."), 403
+    elif token is -4:
+        return jsonify(Error="Awaiting confirmation."), 403
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "A")
         user = User(info, "A")
@@ -139,8 +145,8 @@ def adminLogin():
     Route used for the creation of an administrator.
 '''
 @app.route('/createAdmin', methods=["POST"])                                                    #9
-@isAdmin
 @login_required
+@isAdmin
 def createAdmin():
     return AdminHandler().insert(request.json)
 
@@ -148,8 +154,8 @@ def createAdmin():
     Route used for the creation of a worker.
 '''
 @app.route('/createWorker', methods=["POST"])                                                   #10
-@isAdmin
 @login_required
+@isAdmin
 def createWorker():
     return WorkerHandler().insert(request.json)
 
@@ -157,6 +163,7 @@ def createWorker():
     Route used to get an individual or list of workers.
 '''
 @app.route('/getWorker', methods=["GET"])                                                       #11
+@login_required
 @isAdmin
 def getWorker():
     return WorkerHandler().getWorker(request.json)
@@ -165,8 +172,8 @@ def getWorker():
     Route used to update the status of a worker.
 '''
 @app.route('/updateWorkerStatus', methods=["PUT"])                                              #12
-@isAdmin
 @login_required
+@isAdmin
 def updateWorkerStatus():
     return WorkerHandler().updateStatus(request.json)
 
@@ -174,8 +181,8 @@ def updateWorkerStatus():
     Route used to edit the rental plans.
 '''
 @app.route('/editPlan', methods=["PUT"])                                                        #13
-@isAdmin
 @login_required
+@isAdmin
 def editPlan():
     return RentalPlanHandler().editPlan(request.json)
 
@@ -198,6 +205,7 @@ def createClient():
     Route used for the login process of a client.
 '''
 @app.route('/clientLogin', methods=["GET"])                                                     #17
+@validPassword
 def clientLogin():
     if current_user.is_authenticated:
         return jsonify(Error="Invalid/Missing username or password."), 401
@@ -206,6 +214,8 @@ def clientLogin():
         return jsonify(Error="Invalid/Missing username or password"), 401
     elif token is -1:
         return jsonify(Error="This account is currently locked."), 403
+    elif token is -4:
+        return jsonify(Error="Awaiting confirmation."), 403
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "C")
         user = User(info, "C")
@@ -217,8 +227,8 @@ def clientLogin():
     Route used for the creation of a bicycle rental.
 '''
 @app.route('/rentBicycle', methods=["POST"])                                                    #18
-@isClient
 @login_required
+@isClient
 def rentBicycle():
     return TransactionHandler().newTransaction(request.json)
 
@@ -227,8 +237,8 @@ def rentBicycle():
     Route used to get the rental plans that have been established.
 '''
 @app.route('/getRentalPlan', methods=["GET"])                                                   #19
-@isClient
 @login_required
+@isClient
 def getRentalPlan():
     return RentalPlanHandler().getRentalPlan()
 
@@ -236,8 +246,8 @@ def getRentalPlan():
     Route used to view the current bicycle rentals that the client has.
 '''
 @app.route('/viewCurrentRental', methods = ["GET"])                                             #20
-@isClient
 @login_required
+@isClient
 def viewCurrentRental():
     return RentalHandler().getRentalByCID(request.json)
 
@@ -245,8 +255,8 @@ def viewCurrentRental():
     Route used to request maintenance for a bicycle that is not in the system.
 '''
 @app.route('/requestPersonalMaintenance', methods=["POST"])                                     #21
-@isClient
 @login_required
+@isClient
 def requestPersonalMaintenance():
     return ServiceMaintenanceHandler().requestServiceMaintenance(request.json)
 
@@ -324,8 +334,8 @@ def requestRentalMaintenance():
     Route used to get a list of bicycles.
 '''
 @app.route('/bicycle', methods=["GET"])                                                         #29
-@isWorkerOrAdmin
 @login_required
+@isWorkerOrAdmin
 def getbicycle():
     return BicycleHandler().getBicycle(request.json)
 
@@ -350,16 +360,20 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    rental = [5,4]
-    result = {"ALERT": "User has returned the bicycle after the due date.", "Rental": rental}
-    return jsonify(result)
+    rental = request.json["Email"]
+    try:
+        #rental = request.json['test']
+        result = {"ALERT": "User has returned the bicycle after the due date.", "Rental": rental}
+        return jsonify(result)
+    except:
+        return jsonify("FAIL")
 
 '''
     Route used to logout a user.
 '''
 @app.route('/logout', methods=["POST"])
-@hasRole
 @login_required
+@hasRole
 def logout():
     if current_user.role == "Worker":
         WorkerHandler().workerLogOut()
