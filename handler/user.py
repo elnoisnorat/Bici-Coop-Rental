@@ -189,16 +189,19 @@ class UsersHandler:
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User does not exist."), 400
         else:
-            while
-            password = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
-            size = len(password)
-            if size >= 8 \
+            valid = True
+            while valid:
+                password = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
+                size = len(password)
+                if size >= 8 \
                     and any(a.islower() for a in password) \
                     and any(a.isupper() for a in password) \
                     and any(a.isnumeric() for a in password):
+                    valid = False
+            print(password)
             eHand = EmailHandler()
             uDao.updatePassword(email, password)
-            eHand.resetPassword(email, password)
+            #eHand.resetPassword(email, password)
             return jsonify("Email has been sent.")
 
     def addToLoginAttempt(self, email):
