@@ -18,9 +18,6 @@ class WorkerDAO:
         if row is None:
             return row
 
-        # else:
-        #     wID = row[0]
-
         return row
 
     def getWorkerByID(self, wid):

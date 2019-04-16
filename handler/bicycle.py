@@ -7,9 +7,9 @@ from config.validation import isDecomissioned
 class BicycleHandler():
 
     def __init__(self):
-        self.orderBy_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand']
-        self.bike_attributes = ['bid', 'lp', 'rfid', 'status', 'model', 'brand', 'orderby']
-        self.update_attributes = ['lp', 'status', 'rfid']
+        self.orderBy_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand']
+        self.bike_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'orderby']
+        self.update_attributes = ['lp', 'bikestatus', 'rfid']
 
     def build_bike_dict(self, row):
         result = {}

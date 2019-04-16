@@ -102,7 +102,11 @@ class RentalHandler:
         row = rDao.getRentalByID(rid)
         rental = self.build_checkIn_dict(row)
         if debt is True:
-            return jsonify("User has returned the bicycle after the due date.", Rental=rental)
+            result = {
+                "ALERT": "User has returned the bicycle after the due date.",
+                "Rental": rental
+            }
+            return jsonify(result)
         else:
             return jsonify(Rental=rental)
 

@@ -20,7 +20,7 @@ class MaintenanceDAO:
             mID = cursor.fetchone()[0]
 
             query = '''
-            Update Bike set status = 'MAINTENANCE' 
+            Update Bike set bikestatus = 'MAINTENANCE' 
             Where BID = %s  
             '''
             cursor.execute(query, (bid,))
@@ -45,7 +45,7 @@ class MaintenanceDAO:
 
     def getMaintenance(self):
         cursor = self.conn.cursor()
-        query = '''SELECT * FROM Maintenance Where endtime is Null'''
+        query = '''SELECT MID, starttime, Status, bid, lp, bikestatus FROM Maintenance Natural Inner join Bike Where endtime is Null'''
         cursor.execute(query)
         result = []
         for row in cursor:
@@ -63,7 +63,7 @@ class MaintenanceDAO:
             cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
             bid = cursor.fetchone()[0]
             query = '''
-                        Update Bike set status = 'AVAILABLE' 
+                        Update Bike set bikestatus = 'AVAILABLE' 
                         Where BID = %s  
                         '''
             cursor.execute(query, (bid,))
@@ -78,7 +78,7 @@ class MaintenanceDAO:
                    FROM Maintenance NATURAL INNER JOIN Bike 
                    Where BID = %s AND EndTime IS NULL
                 '''
-        cursor.execute(query, bid)
+        cursor.execute(query, str(bid))
         result = cursor.fetchone()
         if result is None:
             return result

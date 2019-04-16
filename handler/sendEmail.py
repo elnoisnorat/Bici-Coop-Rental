@@ -11,11 +11,12 @@ class EmailHandler:
     def confirmationEmail(self, email, uid):
 
         #code_64 = pickle.dumps(email).encode('base64', 'strict')
+        # token = jwt.encode({'Role': 'Admin', 'aID': aID, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
 
         link = "localhost:5000/confirm?value=" + uid
         content = '''Please click <a href="''' + link + '''">here.</a>'''
         message = Mail(
-            from_email='fcrygkiro@gmail.com',
+            from_email='',
             to_emails=email,
             subject='Account Confirmation',
             html_content=content)
@@ -34,7 +35,7 @@ class EmailHandler:
         print(email)
         print(content)
         message = Mail(
-            from_email='fcrygkiro@gmail.com',
+            from_email='',
             to_emails= email,
             subject='Password Recovery',
             html_content = "Here is your new password: " + content +

@@ -91,7 +91,7 @@ class BicycleDAO:
                     Where bid = %s and Status != %s
                 '''
         cur.execute(query, (bid, 'DECOMMISSIONED'))
-        rfid = cur.fetchone()
+        rfid = cur.fetchone()[0]
         return rfid
 
     def getStatusByID(self, bid):
@@ -198,10 +198,10 @@ class BicycleDAO:
         query = '''
                     Select BID
                     From Bike
-                    Where RFID = %s and Status != %s
+                    Where RFID = %s and bikestatus != %s
                 '''
         cur.execute(query, (rfid, 'DECOMMISSIONED'))
-        bid = cur.fetchone()
+        bid = cur.fetchone()[0]
         return bid
 
     def getAvailableBicycleCount(self):
@@ -209,7 +209,7 @@ class BicycleDAO:
         query = '''
                     Select count(*)
                     From Bike
-                    Where Status = %s
+                    Where bikestatus = %s
                 '''
         cur.execute(query, ('AVAILABLE',))
         count = cur.fetchone()[0]
@@ -219,7 +219,7 @@ class BicycleDAO:
         try:
             cur = self.conn.cursor()
             query = '''
-                    Update Bike set status = %s Where bid = %s 
+                    Update Bike set bikestatus = %s Where bid = %s 
                 '''
             cur.execute(query, (status, bid,))
             query = '''
@@ -235,14 +235,14 @@ class BicycleDAO:
         try:
             cur = self.conn.cursor()
             query = '''
-                    Update Bike set status = %s Where bid = %s 
+                    Update Bike set bikestatus = %s Where bid = %s 
                 '''
             cur.execute(query, (status, bid,))
 
             query = '''
-                    UPDATE Bike set Status = 'AVAILABLE' 
+                    UPDATE Bike set bikestatus = 'AVAILABLE' 
                     where bid = (SELECT BID from bike 
-                                  where Status= 'RESERVED' LIMIT 1);
+                                  where bikestatus= 'RESERVED' LIMIT 1);
                 '''
             cur.execute(query)
 

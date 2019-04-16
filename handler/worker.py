@@ -13,7 +13,7 @@ import datetime
 class WorkerHandler:
 
     def __init__(self):
-        self.worker_attributes = ['fName', 'lName', 'pNumber', 'wid', 'uid', 'status', 'orderby']
+        self.worker_attributes = ['fName', 'lName', 'pNumber', 'email' 'wid', 'uid', 'status', 'orderby']
         self.orderBy_attributes = ['fName', 'lName', 'pNumber', 'wid', 'uid', 'status']
 
     def build_worker_dict(self, row):
@@ -66,24 +66,6 @@ class WorkerHandler:
         wDao = WorkerDAO()
         wID = wDao.getWorkerByUID(uID)
         return jsonify("Worker #: " + str(wID) + " was successfully added.")
-    '''    
-        email = form['Email']
-
-        uHandler = UsersHandler()
-        wDao = WorkerDAO()
-        uDao = UsersDAO()
-        uid = uDao.getUserIDByEmail(email)
-        if not uid:
-            uid = uHandler.insert(form)
-
-        if wDao.getWorkerByUID(uid):
-            return jsonify(Error="User is already a Worker")
-        if uid:
-            wID = wDao.insert(uid)
-            return jsonify("Worker #: " + str(wID) + " was successfully added.")
-        else:
-            return jsonify(Error="Null value in attributes of the worker."), 401
-    '''
 
     def updateStatus(self, form):
         wDao = WorkerDAO()
@@ -91,14 +73,14 @@ class WorkerHandler:
         wid = form['Worker ID']
         status = form['Status']
 
-        if not wid:
+        if not wid:                                                                 #Check for null value
             return jsonify(Error="No worker id given")
 
         if not wDao.getWorkerByID(wid):
-            return jsonify(Error="Worker not found."), 404
+            return jsonify(Error="Worker not found."), 404                          #Check if worker exists
         else:
             if status:
-                wDao.updateStatus(wid, status)
+                wDao.updateStatus(wid, status)                                      #Update Status
             else:
                 return jsonify(Error="No attribute in update request"), 400
             row = wDao.getWorkerByID(wid)
@@ -109,43 +91,43 @@ class WorkerHandler:
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
-        if email and password:
+        if email and password:                                                      #No null arguments
             confirmation = uHand.getConfirmation(email)
             if confirmation is False:
-                return jsonify(Error="Email has not been confirmed yet."), 401
+                return jsonify(Error="Email has not been confirmed yet."), 401      #User has not confirmed account
             elif confirmation is None:
                 return -2
 
-            attempts = uHand.getLoginAttempts(email)
-            blockTime = uHand.getBlockTime(email)
+            attempts = uHand.getLoginAttempts(email)                                #Get current number of attempts
+            blockTime = uHand.getBlockTime(email)                                   #Get current account block time
 
-            if datetime.datetime.now() > blockTime:
+            if datetime.datetime.now() > blockTime:                                 #If current time > block time proceed
 
                 if attempts == 7:
-                    uHand.setBlockTime(email)
+                    uHand.setBlockTime(email)                                       #Lock account at 7 attempts
                     return -1
 
                 wDao = WorkerDAO()
-                worker = wDao.workerLogin(email, password)
+                worker = wDao.workerLogin(email, password)                          #Validate User
                 if worker is None:
-                    uHand.addToLoginAttempt(email)
+                    uHand.addToLoginAttempt(email)                                  #Add to login attempt
                     return -2
-                elif worker[1]:
+                elif worker[1] == "INACTIVE":                                       #Reject if inactive
                     return -3
 
-                uHand.resetLoginAttempt(email)
+                uHand.resetLoginAttempt(email)                                      #Set login attempt to 0
 
                 # token = jwt.encode(
                 #     {'Role': 'Worker', 'wID': wID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
                 #     SECRET_KEY)
-                userInfo = uHand.getProfile(email)
+                userInfo = uHand.getProfile(email)                                  #Get User information
 
                 response = {
                     'info' : userInfo
                 }
 
                 pHand = PunchCardHandler()
-                pHand.inType(wID)
+                pHand.inType(worker[0])                                             #Make Punch Card Entry
                 return jsonify(response)
             else:
                 return -1
@@ -153,10 +135,9 @@ class WorkerHandler:
             return -2
 
     def workerLogOut(self):
-        wDao = WorkerDAO()
         wid = current_user.roleID
         pHand = PunchCardHandler()
-        pHand.outType(wid)
+        pHand.outType(wid)                                                          #Make Punch Card Entry
 
 
 

@@ -52,10 +52,10 @@ class TransactionDAO:
         try:
             cursor = self.conn.cursor()
             query = '''
-              UPDATE bike SET status = 'RESERVED' 
+              UPDATE bike SET bikestatus = 'RESERVED' 
               WHERE BID in (SELECT bid from bike 
-                            where status = 'AVAILABLE' limit %s) 
-                            returning bid;
+                            where bikestatus = 'AVAILABLE' limit %s) 
+                            returning bid;bike
                     '''
             cursor.execute(query, (amount,))
 

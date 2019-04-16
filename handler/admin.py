@@ -12,32 +12,31 @@ class AdminHandler:
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
-        if email and password:
+        if email and password:                                              #No null arguments
             confirmation = uHand.getConfirmation(email)
-            if confirmation is False:
-                return jsonify("Email has not been confirmed yet.")
-            elif confirmation is None:
+            if confirmation is False:                                       #User has not confirmed account
+                return jsonify("Email has not been confirmed yet."), 403
+            elif confirmation is None:                                      #User does not exist
                 return -2
 
-            attempts = uHand.getLoginAttempts(email)
-            blockTime = uHand.getBlockTime(email)
+            attempts = uHand.getLoginAttempts(email)                        #Get current number of attempts
+            blockTime = uHand.getBlockTime(email)                           #Get current account block time
 
-            if datetime.datetime.now() > blockTime:
+            if datetime.datetime.now() > blockTime:                         #If current time > block time proceed
 
                 if attempts == 7:
-                    uHand.setBlockTime(email)
+                    uHand.setBlockTime(email)                               #Lock account at 7 attempts
                     return -1
 
                 aDao = AdminDAO()
-                aID = aDao.adminLogin(email, password)
+                aID = aDao.adminLogin(email, password)                      #Validate User
                 if not aID:
-                    uHand.addToLoginAttempt(email)
+                    uHand.addToLoginAttempt(email)                          #Add to login attempt
                     return -2
 
-                uHand.resetLoginAttempt(email)
+                uHand.resetLoginAttempt(email)                              #Set login attempt to 0
 
-                #token = jwt.encode({'Role': 'Admin', 'aID': aID, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
-                userInfo = uHand.getProfile(email)
+                userInfo = uHand.getProfile(email)                          #Get User information
 
                 response = {
                     'info' : userInfo
@@ -51,31 +50,9 @@ class AdminHandler:
     def insert(self, form):
         uHandler = UsersHandler()
         try:
-            uID = uHandler.insert(form, "Admin")
+            uID = uHandler.insert(form, "Admin")                             #Try to insert a new user with role admin
         except Exception as e:
             raise e
         aDao = AdminDAO()
         aID = aDao.getAdminByUID(uID)
         return jsonify("Admin #: " + str(aID) + " was successfully added.")
-
-    '''
-        email = form['Email']
-        uHandler = UsersHandler()
-        aDao = AdminDAO()
-        uDao = UsersDAO()
-        uid = uDao.getUserByEmail(email)
-        if not uid:
-            uid = uHandler.insert(form)                                                      #INSERT #1
-
-        if aDao.getAdminByUID(uid):
-            return jsonify(Error="User is already an Admin")
-        if uid:
-            aID = aDao.insert(uid)                                                           #INSERT #2
-            return jsonify("Admin #: " + aID + " was successfully added.")
-        else:
-            return jsonify(Error="Null value in attributes of the admin."), 401
-    '''
-
-    def getAdmin(self):
-        return ''
-

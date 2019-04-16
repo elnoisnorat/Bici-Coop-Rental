@@ -96,15 +96,14 @@ class RentalDAO:
             bid = row[2]
 
             query = '''
-                    Update Bike set Status = %s Where BID = %s
+                    Update Bike set bikestatus = %s Where BID = %s
                     '''
             cursor.execute(query, ('AVAILABLE', bid,))
 
             if currenTime > dueDate:
                 debt = True
                 query = '''
-                Update Client set debtor = %s Where CID = %s
-                returning duedate
+                Update Client set debtorflag = %s Where CID = %s
                 '''
                 cursor.execute(query, (True, client,))
             self.conn.commit()

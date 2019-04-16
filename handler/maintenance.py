@@ -21,23 +21,27 @@ class MaintenanceHandler:
         result['Service'] = row[8]
         return result
 
+    def build_getMaintenance_dict(self, row):
+        result = {}
+        result['Maintenance ID'] = row[0]
+        result['Start Time'] = row[1]
+        result['Status'] = row[2]
+        result['Bicycle ID'] = row[3]
+        result['Plate'] = row[4]
+        result['Bicycle Status'] = row[5]
+        return result
+
     def requestMaintenance(self, form):
         mDao = MaintenanceDAO()
         uHand = UsersHandler()
         rHand = RentalHandler()
 
-        '''
-        token = form['token']
-
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-
-        except:
-            return jsonify(Error="Invalid token in request maintenance")
-        '''
         if current_user.role == 'Client':
             cid = current_user.roleID
-            plate = form['lp']
+            try:
+                plate = form['lp']
+            except:
+                return jsonify(Error='No plate given.')
             uid = uHand.getUserWithCID(cid)
             bid = rHand.getBIDByCIDAndPlate(cid, plate)
             if not bid:
@@ -52,7 +56,7 @@ class MaintenanceHandler:
             bid = bHand.getBIDByRFID(rfid)
             if not bid:
                 return jsonify("The bicycle is not registered in the inventory.")
-
+        print(bid)
         noRep = mDao.getRequestByBID(bid)
 
         if noRep:
@@ -73,7 +77,7 @@ class MaintenanceHandler:
 
         result_list = []
         for row in row:
-            result = self.build_maintenance_dict(row)
+            result = self.build_getMaintenance_dict(row)
             result_list.append(result)
         return jsonify(Details=result)
 

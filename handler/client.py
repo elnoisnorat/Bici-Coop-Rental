@@ -13,6 +13,7 @@ class ClientHandler:
     def __init__(self):
         self.client_attributes = ['FName', 'LName', 'PNumber', 'cid', 'uid', 'debtorflag', 'orderby']
         self.orderBy_attributes = ['fName', 'lName', 'pNumber', 'cid', 'uid', 'debtorflag']
+        self.attempts = 0
 
     def build_client_dict(self, row):
         result = {}
@@ -28,32 +29,33 @@ class ClientHandler:
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
-        if email and password:
+        if email and password:                                                  #No null arguments
             confirmation = uHand.getConfirmation(email)
-            if confirmation is False:
-                return jsonify("Email has not been confirmed yet.")
-            elif confirmation is None:
+            if confirmation is False:                                           #User has not confirmed account
+                return jsonify("Email has not been confirmed yet."), 403
+            elif confirmation is None:                                          #User does not exist
                 return -2
 
-            attempts = uHand.getLoginAttempts(email)
-            blockTime = uHand.getBlockTime(email)
+            attempts = uHand.getLoginAttempts(email)                            #Get current number of attempts
+            blockTime = uHand.getBlockTime(email)                               #Get current account block time
 
-            if datetime.datetime.now() > blockTime:
+            if datetime.datetime.now() > blockTime:                             #If current time > block time proceed
 
                 if attempts == 7:
-                    uHand.setBlockTime(email)
+                    uHand.setBlockTime(email)                                   #Lock account at 7 attempts
                     return -1
 
                 cDao = ClientDAO()
-                cID = cDao.clientLogin(email, password)
+                cID = cDao.clientLogin(email, password)                         #Validate User
                 if not cID:
-                    uHand.addToLoginAttempt(email)
+                    uHand.addToLoginAttempt(email)                              #Add to login attempt
                     return -2
 
-                uHand.resetLoginAttempt(email)
+                uHand.resetLoginAttempt(email)                                  #Set login attempt to 0
 
                 #token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
-                userInfo = uHand.getProfile(email)
+
+                userInfo = uHand.getProfile(email)                              #Get User information
 
                 response = {
                     'info' : userInfo
@@ -68,7 +70,7 @@ class ClientHandler:
     def insert(self, form):
         uHandler = UsersHandler()
         try:
-            uID = uHandler.insert(form, 'Client')
+            uID = uHandler.insert(form, 'Client')                               #Try to insert a new user with role admin
         except Exception as e:
             raise e
         cDao = ClientDAO()
@@ -79,35 +81,35 @@ class ClientHandler:
         cDao = ClientDAO()
 
         filteredArgs = {}
-        for arg in form:
+        for arg in form:                                                        #Filter arguments received using a dictionary
             if form[arg] and arg in self.client_attributes:
                 if arg != 'orderby':
                     filteredArgs[arg] = form[arg]
                 elif form[arg] in self.orderBy_attributes:
                     filteredArgs[arg] = form[arg]
 
-        if len(filteredArgs) == 0:
+        if len(filteredArgs) == 0:                                              #No arguments given getAll()
             client_list = cDao.getAllClients()
 
-        if not 'orderby' in filteredArgs:
+        if not 'orderby' in filteredArgs:                                       #If no order by give list without order
             client_list = cDao.getClientByArguments(filteredArgs)
 
-        elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:
+        elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:          #If order by with no other arguments getAll() ordered
             client_list = cDao.getClientWithSorting(filteredArgs['orderby'])
 
         else:
-            client_list = cDao.getClientByArgumentsWithSorting(filteredArgs)
+            client_list = cDao.getClientByArgumentsWithSorting(filteredArgs)    #If order by give list with order
 
         result_list = []
 
-        for row in client_list:
+        for row in client_list:                                                 #Build dictionary
             result = self.build_client_dict(row)
             result_list.append(result)
 
         return jsonify(Clients=result_list)
 
-    def updatePassword(self, form):
-        uDao = UsersHandler.updatePassword()                                                #Update #1
+    # def updatePassword(self, form):
+    #     uDao = UsersHandler.updatePassword()                                                #Update #1
 
     def getClientByCID(self, cid):
         cDao = ClientDAO()
