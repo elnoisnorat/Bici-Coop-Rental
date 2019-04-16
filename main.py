@@ -12,7 +12,7 @@ from handler.worker import WorkerHandler
 from handler.admin import AdminHandler
 from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
-from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword
+from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword
 from config.encryption import SECRET_KEY
 from model.user import User
 
@@ -288,9 +288,9 @@ def profile():
     Route used to modify a user's password.
 '''
 @app.route('/updatePassword', methods=["PUT"])                                                  #24
-#@login_required
-#@hasRole
-#@validUpdatePassword
+@login_required
+@hasRole
+@validUpdatePassword
 def updatePassword():
     return UsersHandler().updatePassword(request.json)
 
