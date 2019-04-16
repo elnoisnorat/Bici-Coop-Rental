@@ -359,7 +359,7 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-
+    return ""
 
 '''
     Route used to logout a user.
