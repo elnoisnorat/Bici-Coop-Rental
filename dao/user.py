@@ -259,3 +259,16 @@ class UsersDAO:
         cursor.execute(query, (email,))
         result = cursor.fetchone()
         return result
+
+    def checkCurrentPassword(self, oldPassword):
+        cursor = self.conn.cursor()
+        query = '''
+                    Select *
+                    From Users
+                    Where password = crypt(%s, password)
+                '''
+        cursor.execute(query, (oldPassword,))
+        result = cursor.fetchone()
+        if result is None:
+            return False
+        return True

@@ -2,6 +2,7 @@ from flask import request, jsonify
 from functools import wraps
 from flask_login import current_user
 from dao.bicycle import BicycleDAO
+from handler.user import UsersHandler
 
 
 def isWorker(f):
@@ -82,8 +83,12 @@ def validUpdatePassword(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         try:
+            uHand = UsersHandler()
             password_list = []
             oldPassword = request.json['oldPassword']
+            if not uHand.checkCurrentPassword(oldPassword):
+                return jsonify(Error="Malformed update request."), 400
+
             newPassword = request.json['newPassword']
             confirmPassword = request.json['confirmPassword']
             if oldPassword != newPassword and newPassword == confirmPassword:
