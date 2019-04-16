@@ -88,7 +88,7 @@ class BicycleDAO:
         query = '''
                     Select rfid
                     From Bike
-                    Where bid = %s and Status != %s
+                    Where bid = %s and bikestatus != %s
                 '''
         cur.execute(query, (bid, 'DECOMMISSIONED'))
         rfid = cur.fetchone()[0]
@@ -97,7 +97,7 @@ class BicycleDAO:
     def getStatusByID(self, bid):
         cur = self.conn.cursor()
         query = '''
-                    Select status
+                    Select bikestatus
                     From Bike
                     Where bid = %s
                 '''
@@ -130,7 +130,7 @@ class BicycleDAO:
     def insert(self, plate, rfid, status, model, brand):
         cur = self.conn.cursor()
         query = '''
-                    Insert into Bike(LP, RFID, Status, Model, Brand)
+                    Insert into Bike(LP, RFID, bikestatus, Model, Brand)
                     values (%s, %s, %s, %s, %s) returning bid
                 '''
         cur.execute(query, (plate, rfid, status, model, brand,))
@@ -172,7 +172,7 @@ class BicycleDAO:
     def updateStatus(self, bid, status):
         cur = self.conn.cursor()
         query = '''
-                    Update Bike set status = %s Where bid = %s 
+                    Update Bike set bikestatus = %s Where bid = %s 
                 '''
         cur.execute(query, (status, bid,))
         self.conn.commit()
