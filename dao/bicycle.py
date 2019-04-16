@@ -127,7 +127,7 @@ class BicycleDAO:
         brand = cur.fetchone()
         return brand
 
-    def insert(self, plate, rfid, status, model, brand):
+    def insert(self, plate, rfid, model, brand):
         cur = self.conn.cursor()
         query = '''
                     Insert into Bike(LP, RFID, bikestatus, Model, Brand)
