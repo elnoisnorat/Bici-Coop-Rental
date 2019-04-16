@@ -133,7 +133,7 @@ class BicycleDAO:
                     Insert into Bike(LP, RFID, bikestatus, Model, Brand)
                     values (%s, %s, %s, %s, %s) returning bid
                 '''
-        cur.execute(query, (plate, rfid, status, model, brand,))
+        cur.execute(query, (plate, rfid, 'AVAILABLE', model, brand,))
         bID = cur.fetchone()[0]
         self.conn.commit()
         return bID

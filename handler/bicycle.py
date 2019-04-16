@@ -58,13 +58,12 @@ class BicycleHandler():
     def insert(self, form):
         plate = form['lp']
         rfid = form['rfid']
-        status = form['status']
         model = form['model']
         brand = form['brand']
 
-        if plate and rfid and status and model and brand:
+        if plate and rfid and model and brand:
             bDao = BicycleDAO()
-            bID = bDao.insert(plate, rfid, status, model, brand)                                    #INSERT #1
+            bID = bDao.insert(plate, rfid, model, brand)                                    #INSERT #1
             return jsonify("Bicycle was successfully added.")
         else:
             return jsonify(Error="Missing attributes of the bicycle."), 401
