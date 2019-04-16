@@ -9,6 +9,7 @@ def Login():
     t = requests.get('http://127.0.0.1:5000/workerLogin', json=payload)
     print(t.text)
     r = requests.get('http://localhost:5000/home', json=t.text)
+    p = requests.post('http://localhost:5000/post', json={"hello":"world"})
     return print(r.text)
 
     #print("Approved!")

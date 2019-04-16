@@ -87,3 +87,36 @@ class RentalDAO:
         cur.execute(query, (wID, bid, rid,))
         self.conn.commit()
 
+    def editPlan(self, name, amount):
+        cur = self.conn.cursor()
+        query =" UPDATE Plans set name = %s, amount = %s WHERE PID = 1"
+        cur.execute(query, (name, amount))
+        #print(cur.fetchone())
+        self.conn.commit()
+
+    def editOverduePlan(self, name,amount):
+        cur = self.conn.cursor()
+        query = " UPDATE Plans set name = %s, amount = %s WHERE PID = 2"
+        cur.execute(query, (name, amount))
+        self.conn.commit()
+
+    def getPlan(self):
+        cur = self.conn.cursor()
+        query = " Select name, amount from plans WHERE PID = 1"
+        cur.execute(query)
+        result = cur.fetchone()
+        return result
+
+    def getOverduePlan(self):
+        cur = self.conn.cursor()
+        query = " Select name, amount from plans WHERE PID = 2"
+        cur.execute(query)
+        print("Query:\n")
+        result = cur.fetchone()
+        print(result[0][0])
+        return result
+
+
+
+
+

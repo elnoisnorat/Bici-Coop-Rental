@@ -1,6 +1,7 @@
 import jwt
+import stripe
 from flask import jsonify
-
+import traceback
 from config.encryption import SECRET_KEY
 from dao.rental import RentalDAO
 from handler.bicycle import BicycleHandler
@@ -140,6 +141,73 @@ class RentalHandler:
             return jsonify(Error="Rental was")
         rental = self.build_checkIn_dict(row)
         return jsonify(Rental=rental)
+
+    def changePlan(self, form):
+
+        rDao = RentalDAO()
+        try:
+            response = jsonify(stripe.Plan.create(
+                id=form['name'],
+                amount=form['amount'],
+                interval="week",
+                product={
+                    "name": "Rental"
+                },
+                currency="usd",
+            ))
+            rDao.editPlan(form['name'], form['amount'])
+            return response
+            pass
+        except Exception as e:
+            return jsonify(Error= str(e))
+
+        return jsonify("Success")
+
+    def changeOverduePlan(self, form):
+
+        rDao = RentalDAO()
+        try:
+            response = jsonify(stripe.Plan.create(
+                id=form['name'],
+                amount=form['amount'],
+                interval="day",
+                product={
+                    "name": "Rental"
+                },
+                currency="usd",
+            ))
+
+            rDao.editOverduePlan(form['name'], form['amount'])
+            return response
+            pass
+        except Exception as e:
+            return jsonify( traceback.print_exc())
+
+        return jsonify("Success")
+        return
+
+    def getPlan(self):
+        rDao = RentalDAO()
+        try:
+            result = rDao.getPlan()
+            return result
+            pass
+        except Exception as e:
+           raise e
+
+
+    def getOverduePlan(self):
+        rDao = RentalDAO()
+        try:
+            result = rDao.getOverduePlan()
+            return result
+            pass
+        except Exception as e:
+            raise e
+
+
+
+
 
 
 
