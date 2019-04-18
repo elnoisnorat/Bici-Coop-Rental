@@ -1,40 +1,41 @@
-#---------------------------------------------------------------#
-#Name:BiciCoop Rental Main
+# ---------------------------------------------------------------#
+# Name:BiciCoop Rental Main
 #
-#This code containg the GUI for the Workstation Module.
-#The inner class containg the diferrent page in the program.
-#This classes areLoginPage, ForgotPage, MainPage, ReceivePage,
-#ReleasePage, InventoryPage, NewBike and EditBike,MaintenancePage,
-#ViewUser, NewPass, RequestPage, ReportPage.
-#Inside some classes contain a basic validation method tha validate
-#data before send request to the server
+# This code containg the GUI for the Workstation Module.
+# The inner class containg the diferrent page in the program.
+# This classes areLoginPage, ForgotPage, MainPage, ReceivePage,
+# ReleasePage, InventoryPage, NewBike and EditBike,MaintenancePage,
+# ViewUser, NewPass, RequestPage, ReportPage.
+# Inside some classes contain a basic validation method tha validate
+# data before send request to the server
 #
-#Credits: Harrison@pythonprogramming.net,
-#https://pythonprogramming.net/tkinter-depth-tutorial-making-actual-program/
-#Author: Angel L. Rodriguez Ortolaza
-#Revised by: Victor Lugo
-#---------------------------------------------------------------#
+# Credits: Harrison@pythonprogramming.net,
+# https://pythonprogramming.net/tkinter-depth-tutorial-making-actual-program/
+# Author: Angel L. Rodriguez Ortolaza
+# Revised by: Victor Lugo
+# ---------------------------------------------------------------#
 
 import tkinter as tk
 from tkinter import ttk, StringVar, font, IntVar, messagebox
-import requests
-from RFID_test import RFID_Handler
+# import requests
+# from RFID_test import RFID_Handler
+# import traceback
 
-#Font setup
+# Font setup
 LARGE_FONT = ("Verdana", 18)
 MEDIUM_FONT = ("Verdana", 12)
 SMALL_FONT = ("Verdana", 10)
 
 BACK_GROUND = '#F2E68F'
 
-#RFID Setup
-tes = RFID_Handler()
-tes.initRFID()
+# RFID Setup
+# tes = RFID_Handler()
+# tes.initRFID()
 ##test rfid here
 
-#Network setup
-ses = requests.Session()
-link = 'http://33659b68.ngrok.io'
+# Network setup
+# ses = requests.Session()
+# link = 'http://e2f00ed0.ngrok.io'
 
 
 def popupmsg(msg):
@@ -45,6 +46,12 @@ def popupmsg(msg):
     B1 = ttk.Button(popup, text="Okay", command=popup.destroy)
     B1.pack()
     popup.mainloop()
+
+
+def logout():
+    # r = ses.post(link + '/logout')
+    # print(r.text)
+    print('dummy')
 
 
 class Worker:
@@ -60,8 +67,11 @@ class Worker:
         myworker.email = email
         myworker.phone = phone
 
-    def set_phone(myworker,phone):
+    def set_phone(myworker, phone):
         myworker.phone = phone
+
+    def set_name(myworker, name):
+        myworker.name = name
 
     def get_full_name(myworker):
         return myworker.name + " " + myworker.last
@@ -134,6 +144,8 @@ repairedOldBicycle = Bicycle("", "", "", "")
 
 newWorker = Worker("", "", "", "")
 newOldWorker = Worker("", "", "", "")
+editWorker = Worker("", "", "", "")
+editOldWorker = Worker("", "", "", "")
 
 
 class BiciCoopRentalapp(tk.Tk):
@@ -171,7 +183,7 @@ class BiciCoopRentalapp(tk.Tk):
 
         for F in (
                 LoginPage, ForgotPage, MainPage, ReceivePage, ReleasePage, InventoryPage, NewBike, EditBike,
-                MaintenancePage, ViewUser, NewPass, RequestPage, ReportPage):
+                MaintenancePage, ViewUser, EditUser, NewPass, RequestPage, ReportPage):
 
             frame = F(container, self)
             self.frames[F] = frame
@@ -209,24 +221,42 @@ class LoginPage(tk.Frame):
             entry_user.insert(0, "Enter Email")
             entry_pass.delete(0, 'end')
 
-        def validate(event): #toserver
+        def validate(event):  # toserver
 
             val = str(entry_user.get())
             if val.find('@') == -1 or val.count("@") != 1:
                 messagebox.showwarning("Alert", "Invalid Email Format")
                 entry_user.focus()
-            elif val.find(".") == -1 or val.rindex('.') != len(val) - 4:
+            elif val.find(".") == -1 or len(val) - val.rindex('.') <= 2:
                 messagebox.showwarning("Alert", "Invalid Email Format")
                 entry_user.focus()
             elif len(str(entry_pass.get())) < 8:
                 messagebox.showwarning("Alert", "Invalid Entry")
                 entry_pass.focus()
             else:  # send to server
-                #here (entry_user.get() and entry_pass.get())
-                #if invalid then messagebox.showwarning("Alert", "Invalid Entry")
-                newWorker.set_worker("Juan", "Perez", entry_user.get(), "7875674567")
+                newWorker.set_worker("Angel", "Rodriguez", entry_user.get(), "7876015466")
+                editWorker.set_phone("7876015466")
                 clean()
+                #loading
                 controller.show_frame(MainPage)
+
+                # try:
+                #     r = ses.get(link + '/workerLogin', json={"Email": entry_user.get(), "password": entry_pass.get()})
+                #     # in tunnel not found????
+                #     print(r.text)
+                #
+                #     if 'Error' in r.json():
+                #         mese = r.json()["Error"]
+                #         messagebox.showwarning("Alert", mese)
+                #     else:
+                #         t = r.json()["info"]
+                #         newWorker.set_worker(t["Name"], t["Last Name"], t["Email"], t["Phone Number"])
+                #         clean()
+                #         controller.show_frame(MainPage)
+                #
+                # except:
+                #
+                #     traceback.print_exc()
 
         label_login = tk.Label(self, text="Login Page", font=LARGE_FONT, bg=BACK_GROUND)
         label_login.grid(row=0, columnspan=10)
@@ -250,7 +280,7 @@ class LoginPage(tk.Frame):
         entry_pass.grid(row=4, column=4, sticky='W')
 
         button_forgot = tk.Button(self, text="Forgot Password", borderwidth=0, bg=BACK_GROUND,
-                                 command=lambda: [clean(), controller.show_frame(ForgotPage)])
+                                  command=lambda: [clean(), controller.show_frame(ForgotPage)])
         button_forgot.grid(row=5, columnspan=10)
         f = font.Font(button_forgot, button_forgot.cget("font"))
         f.configure(underline=True)
@@ -280,7 +310,7 @@ class ForgotPage(tk.Frame):
             entry_b.delete(0, 'end')
             entry_b.insert(0, "Email")
 
-        def validate(event): #toserver
+        def validate(event):  # toserver
 
             val = str(entry_b.get())
             if val.find('@') == -1 or val.count("@") != 1:
@@ -288,7 +318,7 @@ class ForgotPage(tk.Frame):
             elif val.find(".") == -1 or val.rindex('.') != len(val) - 4:
                 messagebox.showwarning("Alert", "  Invalid Email Format  ")
             else:  # send to server
-                #here (entry_b.get())
+                # here (entry_b.get())
                 messagebox.showinfo("Success", "        Email sent        ")
                 entry_b.delete(0, 'end')
                 entry_b.insert(0, "Email")
@@ -334,11 +364,11 @@ class MainPage(tk.Frame):
         s.configure('Big.TButton', font=("Verdana", 10), background='white')
 
         button_user = ttk.Button(self, textvariable=worker, width=20,
-                             command=lambda: controller.show_frame(ViewUser))
+                                 command=lambda: controller.show_frame(ViewUser))
         button_user.grid(row=0, column=1, columnspan=5, sticky='W')
 
         button1 = ttk.Button(self, text="Logout",
-                             command=lambda: controller.show_frame(LoginPage))
+                             command=lambda: [logout(), controller.show_frame(LoginPage)])
         button1.grid(row=0, column=9)
 
         label = tk.Label(self, text="Home Page", font=LARGE_FONT, background=BACK_GROUND)
@@ -365,12 +395,11 @@ class ViewUser(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         def new_worker():
-            if newWorker.get_email() != newOldWorker.get_email() or \
-                    newWorker.get_phone() != newOldWorker.get_phone():
+            if newWorker.get_phone() != newOldWorker.get_phone():
                 full_name.set(newWorker.get_full_name())
                 email.set(newWorker.get_email())
-                entry_phone.delete(0,'end')
-                entry_phone.insert(0, newWorker.get_phone())
+                phone = str(newWorker.get_phone())
+                phone_number.set("(" + phone[0:3] + ")" + "-" + phone[3:6] + "-" + phone[6:10])
                 newOldWorker.set_phone(newWorker.get_phone())
             self.after(300, new_worker)
 
@@ -379,10 +408,10 @@ class ViewUser(tk.Frame):
         phone_number = StringVar()
         full_name.set("Full Name")
         email.set("Email@mail.com")
-        phone_number.set("Phone")
+        phone_number.set("0123456789")
 
         button_logout = ttk.Button(self, text="Logout",
-                             command=lambda: controller.show_frame(LoginPage))
+                                   command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_logout.grid(row=0, column=9)
 
         label_tittle = ttk.Label(self, text="Worker Profile:", font=LARGE_FONT, background=BACK_GROUND)
@@ -399,18 +428,17 @@ class ViewUser(tk.Frame):
         label_emailed.grid(row=4, column=5, columnspan=5, sticky='N')
 
         label_phone = ttk.Label(self, text="Phone Number:", font=MEDIUM_FONT, background=BACK_GROUND)
-        label_phone.grid(row=6, columnspan=5, sticky='NE')
-        entry_phone = ttk.Entry(self, font=MEDIUM_FONT, width=13)
-        entry_phone.grid(row=6, column=5, columnspan=5, sticky='NW')
-        entry_phone.insert(0, phone_number.get())
+        label_phone.grid(row=5, columnspan=10)
+        label_phoned = tk.Label(self, textvariable=phone_number, background=BACK_GROUND, font=SMALL_FONT)
+        label_phoned.grid(row=6, columnspan=10, sticky='N')
+
 
         button_scan = ttk.Button(self, text=" Change\nPassword", padding=20,
                                  command=lambda: controller.show_frame(NewPass))
         button_scan.grid(row=7, column=6)
 
-
-        button_send = ttk.Button(self, text="  Edit\nPhone",padding=20,
-                                 command=lambda: controller.show_frame(MainPage))
+        button_send = ttk.Button(self, text="  Edit\nPhone", padding=20,
+                                 command=lambda: controller.show_frame(EditUser))
         button_send.grid(row=7, column=4)
         button_cancel = ttk.Button(self, text="Back",
                                    command=lambda: [controller.show_frame(MainPage)])
@@ -418,12 +446,162 @@ class ViewUser(tk.Frame):
         self.after(300, new_worker)
 
 
+class EditUser(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        def edit_worker():
+            if editWorker.get_phone() != editOldWorker.get_phone():
+
+                entry_phone.delete(0, 'end')
+                entry_phone.insert(0, editWorker.get_phone())
+                editOldWorker.set_phone(editWorker.get_phone())
+
+            self.after(400, edit_worker)
+
+        def onValidate(S):
+
+            if S.isnumeric():
+                return True
+            else:
+                return False
+
+        str_phone = StringVar()
+        def character_limit(str_phone):
+            if len(str_phone.get()) > 0:
+                str_phone.set(str_phone.get()[:10])
+        str_phone.trace("w", lambda *args: character_limit(str_phone))
+
+        def clean():
+            str_phone.set(newWorker.get_phone())
+
+        def validate(event):
+            if len(str_phone.get()) < 10:
+                messagebox.showwarning("Alert", "  Phone number must contain ten digits ")
+            else:
+                if str_phone.get() == newWorker.get_phone():
+                    messagebox.showwarning("Alert", "  No change edits not allowed  ")
+                else: #toserver
+                    print("Phone Changed")
+                    newWorker.set_phone(str_phone.get())
+                    newOldWorker.set_worker("", "", "", "")
+                    label_phone.focus()
+                    controller.show_frame(ViewUser)
+
+        button_logout = ttk.Button(self, text="Logout",
+                                   command=lambda: [logout(), controller.show_frame(LoginPage)])
+        button_logout.grid(row=0, column=9)
+
+        label_tittle = ttk.Label(self, text="Edit Phone Number:", font=LARGE_FONT, background=BACK_GROUND)
+        label_tittle.grid(row=1, columnspan=10)
+
+        # label_full = ttk.Label(self, text="Name:", font=MEDIUM_FONT, background=BACK_GROUND)
+        # label_full.grid(row=3, columnspan=5)
+        # entry_fulled = tk.Entry(self, font=MEDIUM_FONT, width=13)
+        # entry_fulled.grid(row=4, columnspan=5, sticky='N')
+        #
+        # label_email = ttk.Label(self, text="Last:", font=MEDIUM_FONT, background=BACK_GROUND)
+        # label_email.grid(row=3, column=5, columnspan=5)
+        # entry_email = tk.Entry(self, font=MEDIUM_FONT, width=13)
+        # entry_email.grid(row=4, column=5, columnspan=5, sticky='N')
+
+        label_phone = ttk.Label(self, text="Phone Number:", font=MEDIUM_FONT, background=BACK_GROUND)
+        label_phone.grid(row=5, columnspan=5, sticky='NE')
+        vcmd = (self.register(onValidate), '%S')
+        entry_phone = ttk.Entry(self, font=MEDIUM_FONT, textvariable =str_phone,  width=13,validate = "key", validatecommand=vcmd)
+        entry_phone.grid(row=5, column=5, columnspan=5, sticky='NW')
+        entry_phone.bind('<Return>', validate)
+
+
+        button_cancel = ttk.Button(self, text="Edit",
+                                   command=lambda: [validate('<FocusIn>')])
+        button_cancel.grid(row=9, column=4)
+
+        button_cancel = ttk.Button(self, text="Cancel",
+                                   command=lambda: [clean(), controller.show_frame(ViewUser)])
+        button_cancel.grid(row=9, column=6)
+        self.after(400, edit_worker)
+
+
 class NewPass(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        def clean():
+            entry_old.delete(0, 'end')
+            entry_new.delete(0, 'end')
+            entry_ret.delete(0, 'end')
+
+        def validate(event):  # toserver
+            # 8char len(), alphanumeric isalnum(), mayuscula isupper() y minuscula islower()
+
+            if entry_old.get() == entry_new.get():  # Old and New are the same?
+                messagebox.showwarning("Alert", "Same Password not allowed")
+                clean()
+                entry_old.focus()
+            else:
+                new = str(entry_new.get())
+                ver = ""
+                if len(new) <= 7:
+                    ver = ver + "Password must contain at least 8 characters\n"
+                if any(i.isnumeric() for i in new) is False or any(i.isalpha() for i in new) is False:
+                    ver = ver + "Password must contain at least a character and a number\n"
+                if any(i.isupper() for i in new) is False or any(i.islower() for i in new) is False:
+                    ver = ver + "Password must contain upper and lower characters\n"
+                if new != str(entry_ret.get()):
+                    ver = ver + "Password need to match"
+
+                if ver == "":
+                    print("Bingo")
+                    entry_old.focus()
+                    clean()
+                    controller.show_frame(ViewUser)
+                else:
+                    messagebox.showwarning("Alert", ver)
+                    entry_ret.delete(0, 'end')
+                    entry_new.focus()
+
+
+            # if len(new) >= 8:
+            #     if any(i.isnumeric() for i in new) and any(i.isalpha() for i in new):
+            #         if any(i.isupper() for i in new) and any(i.islower() for i in new):
+            #             if new == str(entry_ret.get()):
+            #                 print("Bingo")
+            #                 clean()
+            #                 controller.show_frame(ViewUser)
+            #
+            #                 # try:
+            #                 #     t = ses.put(link + '/updatePassword', json={"oldPassword": str(entry_old.get()),
+            #                 #                                                 "newPassword": str(entry_new.get()),
+            #                 #                                                 "confirmPassword": str(entry_ret.get())})
+            #                 #     print(t.text)
+            #                 #     clean()
+            #                 #     controller.show_frame(ViewUser)
+            #                 # except:
+            #                 #     traceback.print_exc()
+            #                 #     clean()
+            #
+            #
+            #             else:
+            #                 messagebox.showwarning("Alert", "New and confim dont match")
+            #                 clean()
+            #
+            #         else:
+            #             messagebox.showwarning("Alert", "Password must contain upper and lower characters")
+            #             clean()
+            #
+            #
+            #     else:
+            #         messagebox.showwarning("Alert", "Password must contain a character and a number")
+            #         clean()
+            #
+            # else:
+            #     messagebox.showwarning("Alert", "Password must contain at least 8 characters")
+            #     clean()
+
         button_logout = ttk.Button(self, text="Logout",
-                                   command=lambda: controller.show_frame(LoginPage))
+                                   command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_logout.grid(row=0, column=9)
 
         label_reset = ttk.Label(self, text="Reset Password:", font=LARGE_FONT, background=BACK_GROUND)
@@ -443,8 +621,9 @@ class NewPass(tk.Frame):
         label_ret.grid(row=6, columnspan=5, sticky='E')
         entry_ret = ttk.Entry(self, show='*', width=30)
         entry_ret.grid(row=6, column=5, columnspan=4, sticky='W')
+        entry_ret.bind('<Return>', validate)
 
-        button_send = ttk.Button(self, text="Change")
+        button_send = ttk.Button(self, text="Change", command=lambda: validate('<FocusIn>'))
         button_send.grid(row=9, column=4, sticky='E')
 
         button_back = ttk.Button(self, text="Cancel", command=lambda: [controller.show_frame(ViewUser)])
@@ -512,7 +691,7 @@ class ReceivePage(tk.Frame):
                 controller.show_frame(MainPage)
 
         button_log = ttk.Button(rootFrame, text="Logout",
-                             command=lambda: controller.show_frame(LoginPage))
+                                command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_log.pack(side='right')
 
         label = ttk.Label(topFrame, text="Receive Bicycle", font=LARGE_FONT, background=BACK_GROUND)
@@ -588,7 +767,7 @@ class ReleasePage(tk.Frame):
                 controller.show_frame(MainPage)
 
         button_logout = ttk.Button(self, text="Logout",
-                             command=lambda: controller.show_frame(LoginPage))
+                                   command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_logout.grid(row=0, column=9)
 
         label = ttk.Label(self, text="Release a Bicycle", font=LARGE_FONT, background=BACK_GROUND)
@@ -608,7 +787,7 @@ class ReleasePage(tk.Frame):
 
         button_send = ttk.Button(self, text="Send",
                                  command=lambda: [validate()])
-        button_send.grid(row=9, column=1, columnspan =4, sticky='NE')
+        button_send.grid(row=9, column=1, columnspan=4, sticky='NE')
         button_cancel = ttk.Button(self, text="Cancel",
                                    command=lambda: [clean(), controller.show_frame(MainPage)])
         button_cancel.grid(row=9, columnspan=5, column=6, sticky='NW')
@@ -699,14 +878,14 @@ class InventoryPage(tk.Frame):
         def rep_one():
             if repairedBicycle.get_plate() != repairedOldBicycle.get_plate():
                 tree.insert('', tk.END, text=repairedBicycle.get_plate(),
-                            values=(repairedBicycle.get_brand(), repairedBicycle.get_model(), repairedBicycle.get_tag()))
-                #to server bike available
-                repairedBicycle.set_bike("","","","")
+                            values=(
+                            repairedBicycle.get_brand(), repairedBicycle.get_model(), repairedBicycle.get_tag()))
+                # to server bike available
+                repairedBicycle.set_bike("", "", "", "")
                 repairedBicycle.set_service("")
                 repairedBicycle.set_worker("")
 
             self.after(100, rep_one)
-
 
         def search_plate(find, item=''):
             children = tree.get_children(item)
@@ -845,9 +1024,19 @@ class NewBike(tk.Frame):
                 anw = messagebox.askokcancel("Confirm entries", entry_brand.get() + " " + entry_model.get()
                                              + " " + entry_plate.get() + "\n" + tag.get())
                 if anw == True:  # To server
-                    newBicycle.set_bike(entry_brand.get(), entry_model.get(), entry_plate.get(), tag.get())
                     clean()
                     controller.show_frame(InventoryPage)
+
+                    # try:
+                    #     r = ses.post(link + '/bicycle', json={"lp": str(entry_plate.get()), "rfid": str(tag.get()),
+                    #                                           "model": str(entry_model.get()),
+                    #                                           "brand": entry_brand.get()})
+                    #     newBicycle.set_bike(entry_brand.get(), entry_model.get(), entry_plate.get(), tag.get())
+                    #     clean()
+                    #     controller.show_frame(InventoryPage)
+                    #
+                    # except:
+                    #     traceback.print_exc()
 
         label = ttk.Label(self, text="New Bicycle:", font=LARGE_FONT, background=BACK_GROUND)
         label.grid(row=1, columnspan=10)
@@ -1080,7 +1269,7 @@ class MaintenancePage(tk.Frame):
                     repairOldBicycle.set_bike("", "", "", "")
                     repairBicycle.set_service("")
                 else:
-                    #service done to available invetory
+                    # service done to available invetory
                     repairedBicycle.set_bike(repairBicycle.get_brand(), repairBicycle.get_model(),
                                              repairBicycle.get_plate(), repairBicycle.get_tag())
                     repairedBicycle.set_service(repairBicycle.get_service())
@@ -1088,7 +1277,6 @@ class MaintenancePage(tk.Frame):
                     repairBicycle.set_bike("", "", "", "")
                     repairOldBicycle.set_bike("", "", "", "")
                     repairBicycle.set_service("")
-
 
             self.after(100, rep_one)
 
@@ -1123,7 +1311,7 @@ class MaintenancePage(tk.Frame):
                         return True
 
         button_log = ttk.Button(rootFrame, text="Logout",
-                             command=lambda: controller.show_frame(LoginPage))
+                                command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_log.pack(side='right')
 
         label = tk.Label(topFrame, text="Maintenance", font=LARGE_FONT, bg=BACK_GROUND)
@@ -1223,7 +1411,6 @@ class RequestPage(tk.Frame):
             entry_pla.delete(0, 'end')
             entry_pla.insert(0, "Plate")
 
-
         def validate(event):
 
             if service_chosen.get() == "Choose One":
@@ -1237,7 +1424,7 @@ class RequestPage(tk.Frame):
                 controller.show_frame(MaintenancePage)
 
         button_log = ttk.Button(rootFrame, text="Logout",
-                             command=lambda: controller.show_frame(LoginPage))
+                                command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_log.pack(side='right')
 
         label = ttk.Label(topFrame, text="Request Maintenance", font=LARGE_FONT, background=BACK_GROUND)
@@ -1294,7 +1481,7 @@ class ReportPage(tk.Frame):
                 entry_worker.insert(0, "Worker")
 
         def clean():
-            txt.delete(1.0,'end')
+            txt.delete(1.0, 'end')
             entry_worker.delete(0, 'end')
             entry_worker.insert(0, "Worker")
 
