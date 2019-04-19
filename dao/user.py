@@ -1,9 +1,6 @@
 import psycopg2
-from werkzeug.security import gen_salt
-
 from config.dbconfig import pg_config
 import datetime
-
 from handler.newEmail import EmailHandler
 
 
@@ -293,10 +290,8 @@ class UsersDAO:
             query = '''
                 update Users set password = crypt(%s,  gen_salt('bf'))
                 Where Email = %s
-                returning UID
             '''
             cursor.execute(query, (password, email,))
-            result = cursor.fetchone()[0]
             self.conn.commit()
             eHand.resetPassword(email, password)
         except Exception as e:

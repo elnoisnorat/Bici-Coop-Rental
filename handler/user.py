@@ -174,46 +174,6 @@ class UsersHandler:
             user = self.build_user_dict(row)
             return jsonify(user)
 
-    def confirmAccount(self, args):
-        value = args.get('value')
-        print(value)
-        #uID = pickle.loads(value.decode('base64', 'strict'))
-        #code = package['code']
-        uDao = UsersDAO()
-        uDao.confirmAccount(value)
-        return jsonify("Account was successfully activated.")
-
-    def resetPassword(self, args):
-        token = args.get('value')
-
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-            email = data['Email']
-        except:
-            return jsonify(), 404
-
-        uDao = UsersDAO()
-        if not uDao.getUserByEmail(email):
-            return jsonify(Error="User does not exist."), 400
-        else:
-            valid = True
-            while valid:
-                password = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
-                size = len(password)
-                if size >= 8 \
-                    and any(a.islower() for a in password) \
-                    and any(a.isupper() for a in password) \
-                    and any(a.isnumeric() for a in password):
-                    valid = False
-            print(password)
-            try:
-                uDao.updateForgottenPassword(email, password)
-            except Exception as e:
-                return jsonify("An error has occurred.")
-
-            #eHand.resetPassword(email, password)
-            return jsonify("Email has been sent.")
-
     def addToLoginAttempt(self, email):
         uDao = UsersDAO()
         attempts = uDao.getLoginAttempts(email)
@@ -259,6 +219,56 @@ class UsersHandler:
         uDao = UsersDAO()
         user = uDao.getPhoneNumberByUID(reqID)
         return user
+
+    def confirmAccount(self, args):
+        value = args.get('value')
+        print(value)
+        #uID = pickle.loads(value.decode('base64', 'strict'))
+        #code = package['code']
+        uDao = UsersDAO()
+        uDao.confirmAccount(value)
+        return jsonify("Account was successfully activated.")
+
+    def confirmForgotPassword(self, form):
+        email = form['Email']
+        eHand = EmailHandler()
+        # try:
+        eHand.confirmResetPassword(email)
+        return jsonify("Email has been sent.")
+        # except Exception as e:
+        #     return jsonify("An error has occurred.")
+
+    def resetPassword(self, args):
+        # email = form['Email']
+        token = args.get('value')
+        try:
+            data = jwt.decode(token, SECRET_KEY)
+            email = data['Email']
+        except:
+            return jsonify(), 404
+
+        uDao = UsersDAO()
+        if not uDao.getUserByEmail(email):
+            return jsonify(Error="User does not exist."), 400
+        else:
+            valid = True
+            while valid:
+                password = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
+                size = len(password)
+                if size >= 8 \
+                    and any(a.islower() for a in password) \
+                    and any(a.isupper() for a in password) \
+                    and any(a.isnumeric() for a in password):
+                    valid = False
+            print(password)
+            try:
+                uDao.updateForgottenPassword(email, password)
+                return jsonify("Email has been sent.")
+            except Exception as e:
+                return jsonify("An error has occurred.")
+
+            #EmailHandler().resetPassword(email, password)
+            return jsonify("Email has been sent.")
 
 
 

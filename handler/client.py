@@ -2,8 +2,6 @@ from flask_login import current_user
 
 from dao.client import ClientDAO
 from handler.user import UsersHandler
-from dao.user import UsersDAO
-from config.encryption import SECRET_KEY
 from flask import jsonify
 import jwt
 import datetime

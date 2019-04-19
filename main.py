@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify
+#from flask import Flask, request, jsonify
 #from handler.schedule import ScheduleHandler
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify
 from handler.client import ClientHandler
 from handler.maintenance import MaintenanceHandler
+from handler.newEmail import EmailHandler
 from handler.rental import RentalHandler
 from handler.rentalPlan import RentalPlanHandler
 from handler.serviceMaintenance import ServiceMaintenanceHandler
@@ -17,11 +18,11 @@ from config.encryption import SECRET_KEY
 from model.user import User
 
 
-app = Flask(__name__)
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-app.secret_key = SECRET_KEY
+# app = Flask(__name__)
+# login_manager = LoginManager()
+# login_manager.init_app(app)
+#
+# app.secret_key = SECRET_KEY
 
 @login_manager.user_loader
 def load_user(id):
@@ -307,6 +308,8 @@ def updatePhoneNumber():
     Route used to confirm a password reset request.
 '''
 @app.route('/confirmForgotPassword')
+def confirmResetPassword():
+    return UsersHandler().confirmForgotPassword(request.json)
 
 '''
     Route used to reset a user's password and send a new one via email.(The email part is not implemented)
@@ -364,6 +367,7 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
+    return EmailHandler().resetPassword(request.json)
     list = BicycleHandler().getBicycle(request.json)
     newList = list.json["Inventory"]
     for row in newList:
