@@ -17,8 +17,8 @@ class BicycleHandler():
         result['plate'] = row[1]
         result['rfid'] = row[2]
         result['status'] = row[3]
-        result['model'] = row[4]
-        result['brand'] = row[5]
+        result['brand'] = row[4]
+        result['model'] = row[5]
         return result
 
     def build_arg_dict(self, row):
