@@ -5,6 +5,7 @@ from flask_login import current_user
 from config.encryption import SECRET_KEY
 from dao.maintenance import MaintenanceDAO
 from handler.bicycle import BicycleHandler
+from handler.client import ClientHandler
 from handler.rental import RentalHandler
 from handler.user import UsersHandler
 from handler.worker import WorkerHandler
@@ -88,8 +89,20 @@ class MaintenanceHandler:
         service = form['service']
         if wid:
             mDao = MaintenanceDAO()
+            wHand = WorkerHandler()
+            cHand = ClientHandler()
+            reqID = mDao.getRequestedByWithMID(mid)
+            if wHand.getWorkerByUID(reqID):
+                role = 'Worker'
+            elif cHand.getCIDByUID(reqID):
+                role = 'Client'
+                uHand = UsersHandler()
+                pNumber = uHand.getPhoneNumberByUID(reqID)
+            else:
+                return jsonify(Error="Invalid maintenance request.")
+
             try:
-                mDao.provideMaintenance(wid, mid, notes, service)
+                    mDao.provideMaintenance(wid, mid, notes, service, role)
             except Exception as e:
                 raise e
 
@@ -98,6 +111,15 @@ class MaintenanceHandler:
                 return jsonify("No maintenance with those parameters.")
 
             result = self.build_maintenance_dict(row)
-            return jsonify(Maintenance=result)
+            if role == 'Worker':
+                return jsonify(Maintenance=result)
+            elif role == 'Client':
+                cResult = {
+                    "ALERT": "Please call the user at " + str(pNumber),
+                    "Maintenance": result
+                }
+                return jsonify(cResult)
+            else:
+                return jsonify(Error="Invalid maintenance request.")
         else:
             return jsonify(Error="No worker id provided.")

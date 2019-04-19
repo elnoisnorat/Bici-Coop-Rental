@@ -245,6 +245,11 @@ class UsersHandler:
         validation = uDao.checkCurrentPassword(oldPassword)
         return validation
 
+    def getPhoneNumberByUID(self, reqID):
+        uDao = UsersDAO()
+        user = uDao.getPhoneNumberByUID(reqID)
+        return user
+
 
 
 

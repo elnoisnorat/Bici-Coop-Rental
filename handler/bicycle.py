@@ -15,7 +15,7 @@ class BicycleHandler():
         result = {}
         #result['bid'] = row[0]
         result['plate'] = row[1]
-        #result['rfid'] = row[2]
+        result['rfid'] = row[2]
         result['status'] = row[3]
         result['model'] = row[4]
         result['brand'] = row[5]

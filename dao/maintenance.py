@@ -52,7 +52,33 @@ class MaintenanceDAO:
             result.append(row)
         return result
 
-    def provideMaintenance(self, wid, mID, notes, service):
+    def provideMaintenance(self, wid, mID, notes, service, role):
+        try:
+            cursor = self.conn.cursor()
+            query = '''
+            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s, Service = %s
+            Where mID = %s and Status = 'PENDING'
+            Returning BID
+            '''
+            cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
+            bid = cursor.fetchone()[0]
+            if role == 'Worker':
+                query = '''
+                        Update Bike set bikestatus = 'AVAILABLE' 
+                        Where BID = %s  
+                        '''
+            elif role == 'Client':
+                query = '''
+                        Update Bike set bikestatus = 'RENTED' 
+                        Where BID = %s  
+                        '''
+            cursor.execute(query, (bid,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+
+    def provideMaintenanceReturningPNumber(self, wid, mID, notes, service):
         try:
             cursor = self.conn.cursor()
             query = '''
@@ -63,7 +89,7 @@ class MaintenanceDAO:
             cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
             bid = cursor.fetchone()[0]
             query = '''
-                        Update Bike set bikestatus = 'AVAILABLE' 
+                        Update Bike set bikestatus = 'RENTED' 
                         Where BID = %s  
                         '''
             cursor.execute(query, (bid,))
@@ -93,4 +119,14 @@ class MaintenanceDAO:
                 '''
         cursor.execute(query, mid)
         result = cursor.fetchone()
+        return result
+
+    def getRequestedByWithMID(self, mid):
+        cursor = self.conn.cursor()
+        query = '''SELECT requestedby 
+                   FROM Maintenance
+                   Where MID = %s
+                '''
+        cursor.execute(query, mid)
+        result = cursor.fetchone()[0]
         return result

@@ -113,6 +113,20 @@ class ClientDAO:
             result.append(row)
         return result
 
+    def getCIDByUID(self, reqID):
+        cursor = self.conn.cursor()
+        query = '''
+            Select CID
+            From Client
+            Where UID = %s
+        '''
+        cursor.execute(query, (reqID,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        uID = result[0]
+        return uID
+
 
 
 

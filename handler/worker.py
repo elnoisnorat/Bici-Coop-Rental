@@ -140,6 +140,11 @@ class WorkerHandler:
         pHand = PunchCardHandler()
         pHand.outType(wid)                                                          #Make Punch Card Entry
 
+    def getWorkerByUID(self, reqID):
+        wDao = WorkerDAO()
+        result = wDao.getWorkerByUID(reqID)
+        return result
+
 
 
 

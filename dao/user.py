@@ -272,3 +272,16 @@ class UsersDAO:
         if result is None:
             return False
         return True
+
+    def getPhoneNumberByUID(self, reqID):
+        cursor = self.conn.cursor()
+        query = '''
+                Select pnumber
+                From Users
+                Where UID = %s
+                '''
+        cursor.execute(query, (reqID,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]

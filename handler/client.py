@@ -120,3 +120,8 @@ class ClientHandler:
         cDao = ClientDAO()
         cID = cDao.getClientByUID(uID)
 
+    def getCIDByUID(self, reqID):
+        cDao = ClientDAO()
+        cID = cDao.getCIDByUID(reqID)
+        return cID
+

@@ -40,7 +40,10 @@ class WorkerDAO:
         '''
         cursor.execute(query, (uid,))
         result = cursor.fetchone()
-        return result
+        if result is None:
+            return result
+        wID = result[0]
+        return wID
 
     def getWorkerByArguments(self, form):
         argument = ""
