@@ -33,8 +33,8 @@ class UsersDAO:
                 query = "insert into Worker(UID, Status) values (%s, 'ACTIVE')"
 
             cursor.execute(query, (uID,))
-            #cID = cursor.fetchone()
-            #EmailHandler().confirmationEmail(Email, uID)
+            eHand = EmailHandler()
+            eHand.confirmationEmail(Email)
 
             self.conn.commit()
             pass
@@ -134,13 +134,13 @@ class UsersDAO:
         result = cursor.fetchone()
         return result
 
-    def confirmAccount(self, uid):
+    def confirmAccount(self, email):
         cursor = self.conn.cursor()
         query = '''
             update Users set Confirmation = True
-            Where UID = %s
+            Where email = %s
         '''
-        cursor.execute(query, (uid,))
+        cursor.execute(query, (email,))
         self.conn.commit()
 
     def getLoginAttempts(self, email):

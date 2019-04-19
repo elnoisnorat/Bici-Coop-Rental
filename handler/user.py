@@ -47,6 +47,7 @@ class UsersHandler:
         if FName and LName and password and PNumber and Email and Role:
             try:
                 uID = uDao.insert(FName, LName, password, PNumber, Email, Role)   #INSERT #1
+
             except Exception as e:
                 raise e
 
@@ -221,12 +222,14 @@ class UsersHandler:
         return user
 
     def confirmAccount(self, args):
-        value = args.get('value')
-        print(value)
-        #uID = pickle.loads(value.decode('base64', 'strict'))
-        #code = package['code']
+        token = args.get('value')
+        try:
+            data = jwt.decode(token, SECRET_KEY)
+            email = data['Email']
+        except:
+            return jsonify(), 404
         uDao = UsersDAO()
-        uDao.confirmAccount(value)
+        uDao.confirmAccount(email)
         return jsonify("Account was successfully activated.")
 
     def confirmForgotPassword(self, form):
@@ -269,6 +272,29 @@ class UsersHandler:
 
             #EmailHandler().resetPassword(email, password)
             return jsonify("Email has been sent.")
+
+    def newConfirmation(self, form):
+        uHand = UsersHandler()
+        email = form['Email']
+        if not email:
+            return jsonify(Error="Malformed request."), 401
+
+        confirmation = uHand.getConfirmation(email)
+        if confirmation is True:
+            return jsonify(Error="Account is already confirmed."), 401
+        elif confirmation is None:
+            return jsonify(Error="Invalid email.")
+        else:
+            eHand = EmailHandler()
+            try:
+                eHand.confirmationEmail(email)
+                return jsonify("Email has been sent.")
+            except Exception as e:
+                return jsonify(Error="An error has occurred.")
+
+
+
+
 
 
 

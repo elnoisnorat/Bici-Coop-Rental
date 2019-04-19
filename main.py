@@ -327,6 +327,13 @@ def forgotPassword():
 def confirmAccount():
     return UsersHandler().confirmAccount(request.args)
 
+'''
+    Route used to generate a new confirmation token.
+'''
+@app.route('/newConfirmation')
+def newConfirmation():
+    return UsersHandler().newConfirmation(request.json)
+
 #####################################################CLIENT&WORKER######################################################
 '''
     Route used to request maintenace for a rented/stored bicycle.

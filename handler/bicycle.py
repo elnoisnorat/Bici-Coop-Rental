@@ -7,8 +7,8 @@ from config.validation import isDecomissioned
 class BicycleHandler():
 
     def __init__(self):
-        self.orderBy_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand']
-        self.bike_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'orderby']
+        self.orderBy_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'snumber']
+        self.bike_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'snumber', 'orderby']
         self.update_attributes = ['lp', 'bikestatus', 'rfid', 'brand', 'model']
 
     def build_bike_dict(self, row):
@@ -60,10 +60,11 @@ class BicycleHandler():
         rfid = form['rfid']
         model = form['model']
         brand = form['brand']
+        #snumber = form['snumber']
 
-        if plate and rfid and model and brand:
+        if plate and rfid and model and brand: # and snumber:
             bDao = BicycleDAO()
-            bID = bDao.insert(plate, rfid, model, brand)                                    #INSERT #1
+            bID = bDao.insert(plate, rfid, model, brand)#, snumber)                                    #INSERT #1
             result = {"bID": bID}
             return jsonify(result)
         else:
