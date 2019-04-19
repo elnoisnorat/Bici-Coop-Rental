@@ -359,8 +359,11 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    return ""
-
+    list = BicycleHandler().getBicycle(request.json)
+    newList = list.json["Inventory"]
+    for row in newList:
+        print(row["brand"])
+    return list
 '''
     Route used to logout a user.
 '''

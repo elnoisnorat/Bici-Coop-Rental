@@ -13,7 +13,7 @@ class BicycleHandler():
 
     def build_bike_dict(self, row):
         result = {}
-        #result['bid'] = row[0]
+        result['bid'] = row[0]
         result['plate'] = row[1]
         result['rfid'] = row[2]
         result['status'] = row[3]
