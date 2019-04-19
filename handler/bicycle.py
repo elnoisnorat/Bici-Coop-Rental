@@ -64,7 +64,8 @@ class BicycleHandler():
         if plate and rfid and model and brand:
             bDao = BicycleDAO()
             bID = bDao.insert(plate, rfid, model, brand)                                    #INSERT #1
-            return jsonify("Bicycle was successfully added.")
+            result = {"bID": bID}
+            return jsonify(result)
         else:
             return jsonify(Error="Missing attributes of the bicycle."), 401
 

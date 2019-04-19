@@ -4,7 +4,7 @@ from werkzeug.security import gen_salt
 from config.dbconfig import pg_config
 import datetime
 
-from handler.sendEmail import EmailHandler
+from handler.newEmail import EmailHandler
 
 
 class UsersDAO:
@@ -285,3 +285,20 @@ class UsersDAO:
         if result is None:
             return result
         return result[0]
+
+    def updateForgottenPassword(self, email, password):
+        eHand = EmailHandler()
+        try:
+            cursor = self.conn.cursor()
+            query = '''
+                update Users set password = crypt(%s,  gen_salt('bf'))
+                Where Email = %s
+                returning UID
+            '''
+            cursor.execute(query, (password, email,))
+            result = cursor.fetchone()[0]
+            self.conn.commit()
+            eHand.resetPassword(email, password)
+        except Exception as e:
+            self.conn.rollback()
+            raise e

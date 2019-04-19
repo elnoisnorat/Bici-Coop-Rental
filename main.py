@@ -304,13 +304,18 @@ def updatePhoneNumber():
     return UsersHandler().updatePNumber(request.json)
 
 '''
+    Route used to confirm a password reset request.
+'''
+@app.route('/confirmForgotPassword')
+
+'''
     Route used to reset a user's password and send a new one via email.(The email part is not implemented)
 '''
-@app.route('/forgotPassword', methods=["PUT"])                                                  #26
+@app.route('/forgotPassword')                                                                   #26
 def forgotPassword():
     if current_user.is_authenticated:
         return jsonify(), 404
-    return UsersHandler().resetPassword(request.json)
+    return UsersHandler().resetPassword(request.args)
 
 '''
     Route used to confirm a new user account.

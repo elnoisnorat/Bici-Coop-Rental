@@ -11,7 +11,7 @@ from dao.user import UsersDAO
 import pickle
 
 #from handler.client import ClientHandler
-from handler.sendEmail import EmailHandler
+from handler.newEmail import EmailHandler
 
 
 class UsersHandler:
@@ -183,8 +183,15 @@ class UsersHandler:
         uDao.confirmAccount(value)
         return jsonify("Account was successfully activated.")
 
-    def resetPassword(self, form):
-        email = form['Email']
+    def resetPassword(self, args):
+        token = args.get('value')
+
+        try:
+            data = jwt.decode(token, SECRET_KEY)
+            email = data['Email']
+        except:
+            return jsonify(), 404
+
         uDao = UsersDAO()
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User does not exist."), 400
@@ -199,8 +206,11 @@ class UsersHandler:
                     and any(a.isnumeric() for a in password):
                     valid = False
             print(password)
-            eHand = EmailHandler()
-            uDao.updatePassword(email, password)
+            try:
+                uDao.updateForgottenPassword(email, password)
+            except Exception as e:
+                return jsonify("An error has occurred.")
+
             #eHand.resetPassword(email, password)
             return jsonify("Email has been sent.")
 
