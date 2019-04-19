@@ -9,7 +9,7 @@ class BicycleHandler():
     def __init__(self):
         self.orderBy_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand']
         self.bike_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'orderby']
-        self.update_attributes = ['lp', 'bikestatus', 'rfid']
+        self.update_attributes = ['lp', 'bikestatus', 'rfid', 'brand', 'model']
 
     def build_bike_dict(self, row):
         result = {}
