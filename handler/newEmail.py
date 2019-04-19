@@ -17,7 +17,7 @@ app.config['MAILS_DEBUG']= True
 app.config['MAIL_USERNAME']= ''
 app.config['MAIL_PASSWORD']= ''
 app.config['MAIL_DEFAULT_SENDER']= ''
-app.config['MAIL_MAX_EMAIL']= 1
+app.config['MAIL_MAX_EMAIL']= 2
 app.config['MAIL_SUPRESS_SEND']= False
 app.config['MAIL_ASCII_ATTACHMENTS']= False
 
@@ -28,8 +28,8 @@ class EmailHandler():
         token = jwt.encode({'Email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)}, SECRET_KEY)
         content = str(token)
         link = str(content[2:len(content)-1])
-        msg = Message('Account Confirmation', recipients=[email])
-        body = '''Please click localhost:5000/confirm?value=''' + link + '''email to confirm your account.'''
+        msg = Message('Account Confirmation', recipients=[email, 'bbob21308@gmail.com'])
+        body = '''Please click localhost:5000/confirm?value=''' + link + ''' email to confirm your account.'''
         msg.html = body
         try:
             mail.send(msg)

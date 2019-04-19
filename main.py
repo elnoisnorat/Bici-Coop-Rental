@@ -323,7 +323,7 @@ def forgotPassword():
 '''
     Route used to confirm a new user account.
 '''
-@app.route('/confirm', methods=["PUT"])                                                         #27
+@app.route('/confirm')                                                         #27
 def confirmAccount():
     return UsersHandler().confirmAccount(request.args)
 
