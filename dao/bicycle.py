@@ -130,7 +130,7 @@ class BicycleDAO:
     def insert(self, plate, rfid, model, brand, snumber):
         cur = self.conn.cursor()
         query = '''
-                    Insert into Bike(LP, RFID, bikestatus, Model, Brand)
+                    Insert into Bike(LP, RFID, bikestatus, Model, Brand, snumber)
                     values (%s, %s, %s, %s, %s, %s) returning bid
                 '''
         cur.execute(query, (plate, rfid, 'AVAILABLE', model, brand, snumber,))

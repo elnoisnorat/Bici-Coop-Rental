@@ -14,12 +14,12 @@ class BicycleHandler():
     def build_bike_dict(self, row):
         result = {}
         result['bid'] = row[0]
-        result['plate'] = row[1]
-        result['rfid'] = row[2]
-        result['status'] = row[3]
-        result['brand'] = row[4]
-        result['model'] = row[5]
-        result['snumber'] = row[6]
+        result['snumber'] = row[1]
+        result['plate'] = row[2]
+        result['rfid'] = row[3]
+        result['status'] = row[4]
+        result['brand'] = row[5]
+        result['model'] = row[6]
         return result
 
     def build_arg_dict(self, row):
