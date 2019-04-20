@@ -2,31 +2,33 @@
 Create Table Statements
 
  */
-CREATE TABLE IF NOT EXISTS Users(UID SERIAL PRIMARY KEY, FName VARCHAR(50), LName VARCHAR(50), password TEXT, PNumber INTEGER, Email VARCHAR(100) UNIQUE, Confirmation BOOLEAN, LogAttempt INTEGER, Blocked TIMESTAMP);
-CREATE TABLE IF NOT EXISTS Client(CID SERIAL PRIMARY KEY , UID INTEGER REFERENCES Users(UID) CHECK(NOT NULL), DebtorFlag BOOLEAN);
-CREATE TABLE IF NOT EXISTS Worker(WID SERIAL PRIMARY KEY, UID INTEGER REFERENCES Users(UID) CHECK(NOT NULL), Status VARCHAR(15));
-CREATE TABLE IF NOT EXISTS Admin(AID SERIAL PRIMARY KEY, UID INTEGER REFERENCES Users(UID) CHECK(NOT NULL));
-CREATE TABLE IF NOT EXISTS Bike(BID Serial PRIMARY KEY, LP VARCHAR(15), RFID VARCHAR(50) UNIQUE, Status varchar(15), brand TEXT, model TEXT);
-CREATE TABLE IF NOT EXISTS Rental(RID serial PRIMARY KEY, STime TIMESTAMP, ETime TIMESTAMP, Client INTEGER REFERENCES Client (CID), BID INTEGER REFERENCES Bike(BID), DispatchedBy INTEGER REFERENCES Worker(WID), ReceivedBy  INTEGER REFERENCES Worker(WID), dueDate TIMESTAMP);
-CREATE TABLE IF NOT EXISTS Transactions(TID SERIAL PRIMARY KEY, stamp timestamp, Token varchar(50), CID INTEGER REFERENCES Client(CID) CHECK(NOT NULL), Status VARCHAR(15), Cost REAL, SMID INTEGER REFERENCES ServiceMaintenance(SMID));
-CREATE TABLE IF NOT EXISTS RentLink(RID INTEGER REFERENCES Rental(RID), TID INTEGER REFERENCES Transactions(TID), PRIMARY KEY(TID, RID));
-CREATE TABLE IF NOT EXISTS Maintenance(MID SERIAL PRIMARY KEY, StartTime TIMESTAMP, EndTime TIMESTAMP, Status varchar(15), Notes VARCHAR(180), BID INTEGER REFERENCES Bike(BID), RequestedBy INTEGER REFERENCES Users(UID), ServicedBy INTEGER REFERENCES Worker(WID), Service text);
-CREATE TABLE IF NOT EXISTS DecommissionReq( DQID SERIAL PRIMARY KEY , RequestedBy INTEGER REFERENCES Users(UID) CHECK(NOT NULL), AnsweredBy INTEGER REFERENCES Admin(AID), Status VARCHAR(15),  BID INTEGER REFERENCES Bike(BID) CHECK(NOT NULL));
+CREATE TABLE IF NOT EXISTS Users(UID SERIAL PRIMARY KEY, FName VARCHAR(50) NOT NULL, LName VARCHAR(50) NOT NULL, password VARCHAR(60) not null check ( length(password) = 60  ), PNumber bigint CHECK ( PNumber >999999999 AND PNumber <100000000000) NOT NULL , Email VARCHAR(100) UNIQUE CHECK ( Email ~ '^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$' ) not null , Confirmation BOOLEAN CHECK(NOT NULL) , LogAttempt INTEGER check ( LogAttempt >= 0 and LogAttempt<8) not null, Blocked TIMESTAMP NOT NULL );
+CREATE TABLE IF NOT EXISTS Client(CID SERIAL PRIMARY KEY , UID INTEGER REFERENCES Users(UID) NOT NULL unique , DebtorFlag BOOLEAN);
+CREATE TABLE IF NOT EXISTS Worker(WID SERIAL PRIMARY KEY, UID INTEGER REFERENCES Users(UID) NOT NULL unique , Status VARCHAR(15) NOT NULL);
+CREATE TABLE IF NOT EXISTS Admin(AID SERIAL PRIMARY KEY, UID INTEGER REFERENCES Users(UID) NOT NULL unique);
+CREATE TABLE IF NOT EXISTS Bike(BID Serial PRIMARY KEY, SNumber VARCHAR(12) not null, LP VARCHAR(10) unique not null , RFID VARCHAR(18) UNIQUE not null , bikestatus varchar(15) not null , brand VARCHAR(15) not null , model varchar(15) not null );
+CREATE TABLE IF NOT EXISTS Rental(RID serial PRIMARY KEY, STime TIMESTAMP not null , ETime TIMESTAMP check ( ETime > STime), Client INTEGER REFERENCES Client (CID) not null , BID INTEGER REFERENCES Bike(BID), DispatchedBy INTEGER REFERENCES Worker(WID), ReceivedBy  INTEGER REFERENCES Worker(WID), dueDate TIMESTAMP check ( dueDate > STime ));
+CREATE TABLE IF NOT EXISTS Transactions(TID SERIAL PRIMARY KEY, stamp timestamp not null , Token varchar(50), CID INTEGER REFERENCES Client(CID) NOT NULL, Status VARCHAR(15) not null , Cost integer check ( Cost >0 ));
 CREATE TABLE IF NOT EXISTS ServiceMaintenance(SMID SERIAL PRIMARY KEY, FName varchar(50), LName varchar(50), Bike varchar(50), Service varchar(100), WorkedBy INTEGER REFERENCES Worker(WID), WorkStatus varchar(15), Notes VARCHAR(180), STime TIMESTAMP, ETime TIMESTAMP, TID INTEGER REFERENCES Transactions(TID));
-CREATE TABLE IF NOT EXISTS PunchCard(PCID serial primary key, stampType varchar(5), stamp timestamp, WID INTEGER REFERENCES Worker(WID));
+CREATE TABLE IF NOT EXISTS RentLink(RID INTEGER REFERENCES Rental(RID) not null , TID INTEGER REFERENCES Transactions(TID) not null , PRIMARY KEY(TID, RID));
+CREATE TABLE IF NOT EXISTS Maintenance(MID SERIAL PRIMARY KEY, StartTime TIMESTAMP not null , EndTime TIMESTAMP check ( EndTime>StartTime ), Status varchar(15) not null , Notes VARCHAR(180), BID INTEGER REFERENCES Bike(BID) not null , RequestedBy INTEGER REFERENCES Users(UID) not null , ServicedBy INTEGER REFERENCES Worker(WID), Service text);
+CREATE TABLE IF NOT EXISTS DecommissionReq( DQID SERIAL PRIMARY KEY , RequestedBy INTEGER REFERENCES Users(UID) NOT NULL, AnsweredBy INTEGER REFERENCES Admin(AID), Status VARCHAR(15) not null ,  BID INTEGER REFERENCES Bike(BID) NOT NULL);
+CREATE TABLE IF NOT EXISTS PunchCard(PCID serial primary key, stampType varchar(5) not null , stamp timestamp not null , WID INTEGER REFERENCES Worker(WID) not null );
 CREATE TABLE IF NOT EXISTS Plans(PID INTEGER primary key, name varchar(15), amount integer);
 
 /*
 Create User
  */
+
 INSERT INTO USERS( FName, LName, password, PNumber, Email, Confirmation) VALUES ('I', 'Couver', crypt('password', gen_salt('bf')), '5555555555', 'i@ece.com', true) RETURNING uid;
+insert into Users(FName, LName, password, PNumber, Email, Confirmation, LogAttempt, Blocked) values ('E', 'River',crypt('password', gen_salt('bf')), 1234567892,'e@r.com', true, 0, now() );
+insert into Users(FName, LName, password, PNumber, Email, Confirmation, LogAttempt, Blocked) values ('E', 'River',crypt('password', gen_salt('bf')), 1234567892,'e@r.com', true, 0, now() );
 SELECT * FROM USERS WHERE Email= 'e@r.com';
 /*
 Create Admin, Create Worker, Client
  */
 INSERT INTO Admin (UID )VALUES ((Select  UID FROM Users where Email = 'e@mail.com') );
-Select  UID FROM Users where Email = 'e@f.com';
-INSERT INTO Client (UID )VALUES ((Select  UID FROM Users where Email = 'fgfgf') ) RETURNING CID;
+INSERT INTO Client (UID )VALUES ((Select  UID FROM Users where Email = 'i@ece.com') ) RETURNING CID;
 SELECT * FROM Client NATURAL INNER JOIN Users WHERE Email = 'e@r.com';
 INSERT INTO Worker (UID )VALUES ((Select  UID FROM Users where Email = 'e@mail.com') );
 
