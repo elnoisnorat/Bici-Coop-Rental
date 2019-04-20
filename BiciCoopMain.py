@@ -17,9 +17,10 @@
 
 import tkinter as tk
 from tkinter import ttk, StringVar, font, IntVar, messagebox
-# import requests
-# from RFID_test import RFID_Handler
-# import traceback
+import requests
+from RFID_test import RFID_Handler
+import traceback
+import urllib
 
 # Font setup
 LARGE_FONT = ("Verdana", 18)
@@ -29,13 +30,13 @@ SMALL_FONT = ("Verdana", 10)
 BACK_GROUND = '#F2E68F'
 
 # RFID Setup
-# tes = RFID_Handler()
-# tes.initRFID()
+tes = RFID_Handler()
+tes.initRFID()
 ##test rfid here
 
 # Network setup
-# ses = requests.Session()
-# link = 'http://e2f00ed0.ngrok.io'
+ses = requests.Session()
+link = 'http://e2f00ed0.ngrok.io'
 
 
 def popupmsg(msg):
@@ -49,9 +50,8 @@ def popupmsg(msg):
 
 
 def logout():
-    # r = ses.post(link + '/logout')
-    # print(r.text)
-    print('dummy')
+    r = ses.post(link + '/logout')
+    print(r.text)
 
 
 class Worker:
@@ -90,19 +90,23 @@ class Worker:
 
 
 class Bicycle:
-    def __init__(mybicycle, brand, model, plate, tag):
+    def __init__(mybicycle, brand, model, plate, tag, serial):
         mybicycle.plate = plate
         mybicycle.brand = brand
         mybicycle.model = model
         mybicycle.tag = tag
+        mybicycle.serial = serial
         mybicycle.service = ""
+        mybicycle.uid = ""
         mybicycle.worker = ""
+        mybicycle.serial = ""
 
-    def set_bike(mybicycle, brand, model, plate, tag):
+    def set_bike(mybicycle, brand, model, plate, tag, serial):
         mybicycle.plate = plate
         mybicycle.brand = brand
         mybicycle.model = model
         mybicycle.tag = tag
+        mybicycle.serial = serial
 
     def get_plate(mybicycle):
         return mybicycle.plate
@@ -116,31 +120,40 @@ class Bicycle:
     def get_tag(mybicycle):
         return mybicycle.tag
 
+    def get_serial(mybicycle):
+        return mybicycle.serial
+
     def get_service(mybicycle):
         return mybicycle.service
 
     def set_service(mybicycle, service):
         mybicycle.service = service
 
+    def get_uid(mybicycle):
+        return mybicycle.uid
+
+    def set_uid(mybicycle, uid):
+        mybicycle.uid = uid
+
     def get_worker(mybicycle):
         return mybicycle.worker
 
     def set_worker(mybicycle, worker):
-        mybicycle.worker = worker
+        mybicycle.uid = worker
 
 
-newBicycle = Bicycle("", "", "", "")
-newOldBicycle = Bicycle("", "", "", "")
-editBicycle = Bicycle("", "", "", "")
-editOldBicycle = Bicycle("", "", "", "")
-editedBicycle = Bicycle("", "", "", "")
-editedOldBicycle = Bicycle("", "", "", "")
-mainBicycle = Bicycle("", "", "", "")
-mainOldBicycle = Bicycle("", "", "", "")
-repairBicycle = Bicycle("", "", "", "")
-repairOldBicycle = Bicycle("", "", "", "")
-repairedBicycle = Bicycle("", "", "", "")
-repairedOldBicycle = Bicycle("", "", "", "")
+newBicycle = Bicycle("", "", "", "", "")
+newOldBicycle = Bicycle("", "", "", "", "")
+editBicycle = Bicycle("", "", "", "", "")
+editOldBicycle = Bicycle("", "", "", "", "")
+editedBicycle = Bicycle("", "", "", "", "")
+editedOldBicycle = Bicycle("", "", "", "", "")
+mainBicycle = Bicycle("", "", "", "", "")
+mainOldBicycle = Bicycle("", "", "", "", "")
+repairBicycle = Bicycle("", "", "", "", "")
+repairOldBicycle = Bicycle("", "", "", "", "")
+repairedBicycle = Bicycle("", "", "", "", "")
+repairedOldBicycle = Bicycle("", "", "", "", "")
 
 newWorker = Worker("", "", "", "")
 newOldWorker = Worker("", "", "", "")
@@ -194,7 +207,7 @@ class BiciCoopRentalapp(tk.Tk):
                 frame.rowconfigure(rows, weight=1)
                 frame.columnconfigure(rows, weight=1)
                 rows += 1
-        self.show_frame(MainPage)
+        self.show_frame(InventoryPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -221,6 +234,13 @@ class LoginPage(tk.Frame):
             entry_user.insert(0, "Enter Email")
             entry_pass.delete(0, 'end')
 
+        def active():
+            entry_user.configure(state='enable')
+            entry_pass.configure(state='enable')
+            entry_pass.delete(0, 'end')
+            button1.configure(state='enable')
+            button_forgot.configure(state='active')
+
         def validate(event):  # toserver
 
             val = str(entry_user.get())
@@ -234,29 +254,39 @@ class LoginPage(tk.Frame):
                 messagebox.showwarning("Alert", "Invalid Entry")
                 entry_pass.focus()
             else:  # send to server
-                newWorker.set_worker("Angel", "Rodriguez", entry_user.get(), "7876015466")
-                editWorker.set_phone("7876015466")
-                clean()
-                #loading
-                controller.show_frame(MainPage)
+                entry_user.configure(state='disable')
+                entry_pass.configure(state='disable')
+                button1.configure(state='disable')
+                button_forgot.configure(state='disable')
+                label_pass.focus()
 
-                # try:
-                #     r = ses.get(link + '/workerLogin', json={"Email": entry_user.get(), "password": entry_pass.get()})
-                #     # in tunnel not found????
-                #     print(r.text)
-                #
-                #     if 'Error' in r.json():
-                #         mese = r.json()["Error"]
-                #         messagebox.showwarning("Alert", mese)
-                #     else:
-                #         t = r.json()["info"]
-                #         newWorker.set_worker(t["Name"], t["Last Name"], t["Email"], t["Phone Number"])
-                #         clean()
-                #         controller.show_frame(MainPage)
-                #
-                # except:
-                #
-                #     traceback.print_exc()
+                try:
+                    urllib.request.urlopen(link + "/home")
+                    r = ses.get(link + '/workerLogin', json={"Email": entry_user.get(), "password": entry_pass.get()})
+                    print(r.text)
+
+                    if 'Error' in r.json():
+                        mese = r.json()["Error"]
+                        messagebox.showwarning("Alert", mese)
+                        active()
+
+                    else:
+                        t = r.json()["info"]
+                        newWorker.set_worker(t["Name"], t["Last Name"], t["Email"], t["Phone Number"])
+                        editWorker.set_phone(t["Phone Number"])
+                        clean()
+                        active()
+                        controller.show_frame(MainPage)
+
+                except urllib.error.URLError:
+                    print('Connection Error')
+                    active()
+                except Exception as e:
+
+                    traceback.print_exc()
+                    # print(e.reason)
+                    print('error')
+                    active()
 
         label_login = tk.Label(self, text="Login Page", font=LARGE_FONT, bg=BACK_GROUND)
         label_login.grid(row=0, columnspan=10)
@@ -323,6 +353,10 @@ class ForgotPage(tk.Frame):
                 entry_b.delete(0, 'end')
                 entry_b.insert(0, "Email")
                 controller.show_frame(LoginPage)
+
+        button_back = ttk.Button(self, text="Back",
+                                 command=lambda: [clean(), controller.show_frame(LoginPage)])
+        button_back.grid(row=0, column=1, sticky='W')
 
         label_b = ttk.Label(self, text="Recover an account:", font=LARGE_FONT, background=BACK_GROUND)
         label_b.grid(row=1, columnspan=10)
@@ -410,6 +444,10 @@ class ViewUser(tk.Frame):
         email.set("Email@mail.com")
         phone_number.set("0123456789")
 
+        button_back = ttk.Button(self, text="Back",
+                                 command=lambda: [controller.show_frame(MainPage)])
+        button_back.grid(row=0, column=1, sticky='W')
+
         button_logout = ttk.Button(self, text="Logout",
                                    command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_logout.grid(row=0, column=9)
@@ -432,7 +470,6 @@ class ViewUser(tk.Frame):
         label_phoned = tk.Label(self, textvariable=phone_number, background=BACK_GROUND, font=SMALL_FONT)
         label_phoned.grid(row=6, columnspan=10, sticky='N')
 
-
         button_scan = ttk.Button(self, text=" Change\nPassword", padding=20,
                                  command=lambda: controller.show_frame(NewPass))
         button_scan.grid(row=7, column=6)
@@ -440,9 +477,7 @@ class ViewUser(tk.Frame):
         button_send = ttk.Button(self, text="  Edit\nPhone", padding=20,
                                  command=lambda: controller.show_frame(EditUser))
         button_send.grid(row=7, column=4)
-        button_cancel = ttk.Button(self, text="Back",
-                                   command=lambda: [controller.show_frame(MainPage)])
-        button_cancel.grid(row=9, columnspan=10)
+
         self.after(300, new_worker)
 
 
@@ -453,7 +488,6 @@ class EditUser(tk.Frame):
 
         def edit_worker():
             if editWorker.get_phone() != editOldWorker.get_phone():
-
                 entry_phone.delete(0, 'end')
                 entry_phone.insert(0, editWorker.get_phone())
                 editOldWorker.set_phone(editWorker.get_phone())
@@ -468,9 +502,11 @@ class EditUser(tk.Frame):
                 return False
 
         str_phone = StringVar()
+
         def character_limit(str_phone):
             if len(str_phone.get()) > 0:
                 str_phone.set(str_phone.get()[:10])
+
         str_phone.trace("w", lambda *args: character_limit(str_phone))
 
         def clean():
@@ -482,12 +518,26 @@ class EditUser(tk.Frame):
             else:
                 if str_phone.get() == newWorker.get_phone():
                     messagebox.showwarning("Alert", "  No change edits not allowed  ")
-                else: #toserver
-                    print("Phone Changed")
-                    newWorker.set_phone(str_phone.get())
-                    newOldWorker.set_worker("", "", "", "")
-                    label_phone.focus()
-                    controller.show_frame(ViewUser)
+                else:  # toserver
+
+                    try:
+                        t = ses.put(link + '/updatePhoneNumber', json={"PNumber": str_phone.get()})
+                        print(t.text)
+                        if 'Error' in t.json():
+                            mese = t.json()["Error"]
+                            messagebox.showwarning("Alert", mese)
+                        else:
+                            newWorker.set_phone(str_phone.get())
+                            newOldWorker.set_worker("", "", "", "")
+                            label_phone.focus()
+                            controller.show_frame(ViewUser)
+                    except:
+                        traceback.print_exc()
+                        clean()
+
+        button_back = ttk.Button(self, text="Back",
+                                 command=lambda: [clean(), controller.show_frame(ViewUser)])
+        button_back.grid(row=0, column=1, sticky='W')
 
         button_logout = ttk.Button(self, text="Logout",
                                    command=lambda: [logout(), controller.show_frame(LoginPage)])
@@ -509,10 +559,10 @@ class EditUser(tk.Frame):
         label_phone = ttk.Label(self, text="Phone Number:", font=MEDIUM_FONT, background=BACK_GROUND)
         label_phone.grid(row=5, columnspan=5, sticky='NE')
         vcmd = (self.register(onValidate), '%S')
-        entry_phone = ttk.Entry(self, font=MEDIUM_FONT, textvariable =str_phone,  width=13,validate = "key", validatecommand=vcmd)
+        entry_phone = ttk.Entry(self, font=MEDIUM_FONT, textvariable=str_phone, width=13, validate="key",
+                                validatecommand=vcmd)
         entry_phone.grid(row=5, column=5, columnspan=5, sticky='NW')
         entry_phone.bind('<Return>', validate)
-
 
         button_cancel = ttk.Button(self, text="Edit",
                                    command=lambda: [validate('<FocusIn>')])
@@ -553,52 +603,32 @@ class NewPass(tk.Frame):
                     ver = ver + "Password need to match"
 
                 if ver == "":
-                    print("Bingo")
-                    entry_old.focus()
-                    clean()
-                    controller.show_frame(ViewUser)
+                    try:
+                        t = ses.put(link + '/updatePassword',
+                                    json={"oldPassword": str(entry_old.get()), "newPassword": str(entry_new.get()),
+                                          "confirmPassword": str(entry_ret.get())})
+                        print(t.text)
+                        if 'Error' in t.json():
+                            mese = t.json()["Error"]
+                            messagebox.showwarning("Alert", mese)
+                            entry_old.delete(0, 'end')
+                            entry_old.focus()
+
+                        else:
+                            entry_old.focus()
+                            clean()
+                            controller.show_frame(ViewUser)
+                    except:
+                        traceback.print_exc()
+                        clean()
                 else:
                     messagebox.showwarning("Alert", ver)
                     entry_ret.delete(0, 'end')
                     entry_new.focus()
 
-
-            # if len(new) >= 8:
-            #     if any(i.isnumeric() for i in new) and any(i.isalpha() for i in new):
-            #         if any(i.isupper() for i in new) and any(i.islower() for i in new):
-            #             if new == str(entry_ret.get()):
-            #                 print("Bingo")
-            #                 clean()
-            #                 controller.show_frame(ViewUser)
-            #
-            #                 # try:
-            #                 #     t = ses.put(link + '/updatePassword', json={"oldPassword": str(entry_old.get()),
-            #                 #                                                 "newPassword": str(entry_new.get()),
-            #                 #                                                 "confirmPassword": str(entry_ret.get())})
-            #                 #     print(t.text)
-            #                 #     clean()
-            #                 #     controller.show_frame(ViewUser)
-            #                 # except:
-            #                 #     traceback.print_exc()
-            #                 #     clean()
-            #
-            #
-            #             else:
-            #                 messagebox.showwarning("Alert", "New and confim dont match")
-            #                 clean()
-            #
-            #         else:
-            #             messagebox.showwarning("Alert", "Password must contain upper and lower characters")
-            #             clean()
-            #
-            #
-            #     else:
-            #         messagebox.showwarning("Alert", "Password must contain a character and a number")
-            #         clean()
-            #
-            # else:
-            #     messagebox.showwarning("Alert", "Password must contain at least 8 characters")
-            #     clean()
+        button_back = ttk.Button(self, text="Back",
+                                 command=lambda: [clean(), controller.show_frame(ViewUser)])
+        button_back.grid(row=0, column=1, sticky='W')
 
         button_logout = ttk.Button(self, text="Logout",
                                    command=lambda: [logout(), controller.show_frame(LoginPage)])
@@ -626,7 +656,7 @@ class NewPass(tk.Frame):
         button_send = ttk.Button(self, text="Change", command=lambda: validate('<FocusIn>'))
         button_send.grid(row=9, column=4, sticky='E')
 
-        button_back = ttk.Button(self, text="Cancel", command=lambda: [controller.show_frame(ViewUser)])
+        button_back = ttk.Button(self, text="Cancel", command=lambda: [clean(), controller.show_frame(ViewUser)])
         button_back.grid(row=9, column=6, sticky='E')
 
 
@@ -689,6 +719,10 @@ class ReceivePage(tk.Frame):
             else:  # send to server
                 clean()
                 controller.show_frame(MainPage)
+
+        button_back = ttk.Button(rootFrame, text="Back", width=10,
+                                 command=lambda: [clean(), controller.show_frame(MainPage)])
+        button_back.pack(side='left')
 
         button_log = ttk.Button(rootFrame, text="Logout",
                                 command=lambda: [logout(), controller.show_frame(LoginPage)])
@@ -766,6 +800,10 @@ class ReleasePage(tk.Frame):
                 clean()
                 controller.show_frame(MainPage)
 
+        button_back = ttk.Button(self, text="Back",
+                                 command=lambda: [clean(), controller.show_frame(MainPage)])
+        button_back.grid(row=0, column=1, sticky='W')
+
         button_logout = ttk.Button(self, text="Logout",
                                    command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_logout.grid(row=0, column=9)
@@ -800,10 +838,10 @@ class InventoryPage(tk.Frame):
 
         val = StringVar()
 
-        rootFrame = tk.Frame(self, bg="blue")
-        rootFrame.pack(side='top')
+        rootFrame = tk.Frame(self, bg=BACK_GROUND)
+        rootFrame.pack(side='top', fill='both', pady=10, padx=31)
         topFrame = tk.Frame(self, bg="red")
-        topFrame.pack(pady=20)
+        topFrame.pack(pady=5)
         midrFrame = tk.Frame(self, bg="brown")
         midrFrame.pack(side='right', padx=50)
         midlFrame = tk.Frame(self, bg="purple")
@@ -833,15 +871,21 @@ class InventoryPage(tk.Frame):
         def populate():
             val.set(tree.selection()[0])
             editBicycle.set_bike(tree.item(val.get())['values'][0], tree.item(val.get())['values'][1],
-                                 tree.item(val.get())['text'], tree.item(val.get())['values'][2])
+                                 tree.item(val.get())['text'], tree.item(val.get())['values'][4],
+                                 tree.item(val.get())['values'][2])
+            editBicycle.set_uid(tree.item(val.get())['values'][3])
             controller.show_frame(EditBike)
 
         def new_one():
             if newBicycle.get_plate() != newOldBicycle.get_plate():
-                tree.insert('', tk.END, text=newBicycle.get_plate(),
-                            values=(newBicycle.get_brand(), newBicycle.get_model(), newBicycle.get_tag()))
+                # new_list()
+
+                tree.insert('', tk.END, text=newBicycle.get_plate(), values=(
+                newBicycle.get_brand(), newBicycle.get_model(), newBicycle.get_serial(), newBicycle.get_uid(),
+                newBicycle.get_tag()))
                 newOldBicycle.set_bike(newBicycle.get_brand(), newBicycle.get_model(),
-                                       newBicycle.get_plate(), newBicycle.get_tag())
+                                       newBicycle.get_plate(), newBicycle.get_tag(), newBicycle.get_serial())
+                newOldBicycle.set_uid(newBicycle.get_uid())
 
             self.after(100, new_one)
 
@@ -851,9 +895,12 @@ class InventoryPage(tk.Frame):
                     editedBicycle.get_model() != editedOldBicycle.get_model() or \
                     editedBicycle.get_tag() != editedOldBicycle.get_tag():
                 tree.item(val.get(), text=editedBicycle.get_plate(),
-                          values=(editedBicycle.get_brand(), editedBicycle.get_model(), editedBicycle.get_tag()))
+                          values=(editedBicycle.get_brand(), editedBicycle.get_model(), editedBicycle.get_serial(),
+                                  editedBicycle.get_uid(), editedBicycle.get_tag()))
+
                 editedOldBicycle.set_bike(editedBicycle.get_brand(), editedBicycle.get_model(),
-                                          editedBicycle.get_plate(), editedBicycle.get_tag())
+                                          editedBicycle.get_plate(), editedBicycle.get_tag(),
+                                          editedBicycle.get_serial())
 
             self.after(100, edit_one)
 
@@ -863,14 +910,16 @@ class InventoryPage(tk.Frame):
                 if search_plate(str(mainBicycle.get_plate())) == None and \
                         search_tag(str(mainBicycle.get_tag())) == None:
                     print('None search')
-                    mainBicycle.set_bike("None", "", mainBicycle.get_plate(), mainBicycle.get_tag())
-                    mainOldBicycle.set_bike("None", "", mainBicycle.get_plate(), mainBicycle.get_tag())
+                    mainBicycle.set_bike("None", "", mainBicycle.get_plate(), mainBicycle.get_tag(), "")
+                    mainOldBicycle.set_bike("None", "", mainBicycle.get_plate(), mainBicycle.get_tag(), "")
                 else:
                     print('Find search')
                     mainBicycle.set_bike(tree.item(val.get())['values'][0], tree.item(val.get())['values'][1],
-                                         tree.item(val.get())['text'], tree.item(val.get())['values'][2])
+                                         tree.item(val.get())['text'], tree.item(val.get())['values'][4],
+                                         tree.item(val.get())['values'][2])
                     mainOldBicycle.set_bike(tree.item(val.get())['values'][0], tree.item(val.get())['values'][1],
-                                            tree.item(val.get())['text'], tree.item(val.get())['values'][2])
+                                            tree.item(val.get())['text'], tree.item(val.get())['values'][4],
+                                            tree.item(val.get())['values'][2])
                     tree.delete(val.get())
 
             self.after(10, main_one)
@@ -879,9 +928,10 @@ class InventoryPage(tk.Frame):
             if repairedBicycle.get_plate() != repairedOldBicycle.get_plate():
                 tree.insert('', tk.END, text=repairedBicycle.get_plate(),
                             values=(
-                            repairedBicycle.get_brand(), repairedBicycle.get_model(), repairedBicycle.get_tag()))
+                                repairedBicycle.get_brand(), repairedBicycle.get_model(), repairedBicycle.get_serial(),
+                                repairedBicycle.get_uid(), repairedBicycle.get_tag()))
                 # to server bike available
-                repairedBicycle.set_bike("", "", "", "")
+                repairedBicycle.set_bike("", "", "", "", "")
                 repairedBicycle.set_service("")
                 repairedBicycle.set_worker("")
 
@@ -906,7 +956,7 @@ class InventoryPage(tk.Frame):
             children = tree.get_children(item)
             for child in children:
                 value = tree.item(child, 'values')
-                if value[2].lower() == find.lower():
+                if value[4].lower() == find.lower():
                     tree.selection_set(child)
                     tree.see(child)
                     posi = tree.selection()[0]
@@ -917,27 +967,63 @@ class InventoryPage(tk.Frame):
                     if res:
                         return True
 
+        def refresh_list():
+            disable()
+            try:
+                t = ses.get(link + '/bicycle', json={"bikestatus": "AVAILABLE"})
+                print(t.text)
+                if 'Error' in t.json():
+                    mese = t.json()["Error"]
+                    messagebox.showwarning("Alert", mese)
+                else:
+                    tree.delete(*tree.get_children())
+                    for row in t.json()["Inventory"]:
+                        tree.insert('', tk.END, text=row["plate"],
+                                    values=(row["brand"], row["model"], row["snumber"], row["bid"], row["rfid"]))
+                    print(t.text)
+
+            except:
+                traceback.print_exc()
+
+        def disableEvent(event):
+            if tree.identify_region(event.x, event.y) == "separator":
+                return "break"
+
+        button_back = ttk.Button(rootFrame, text="Back", width=10,
+                                 command=lambda: [disable(), controller.show_frame(MainPage)])
+        button_back.pack(side='left')
+
+        button_log = ttk.Button(rootFrame, text="Logout", width=10,
+                                command=lambda: [logout(), controller.show_frame(LoginPage)])
+        button_log.pack(side='right')
+
         label = tk.Label(topFrame, text="Inventory", font=LARGE_FONT, bg=BACK_GROUND)
         label.pack()
 
         label_aval = tk.Label(midFrame, text="Available", font=SMALL_FONT)
         label_aval.pack(side='top', fill='both')
 
-        tree = ttk.Treeview(midFrame, columns=('Plate', 'Brand', 'Model', 'Tag'), height=8, selectmode='browse')
+        tree = ttk.Treeview(midFrame, columns=('Plate', 'Brand', 'Model', 'Serial', 'UID', 'Tag'), height=8,
+                            selectmode='browse')
         tree.heading('#0', text='Plate')
         tree.heading('#1', text='Brand')
         tree.heading('#2', text='Model')
-        tree.heading('#3', text='Tag')
+        tree.heading('#3', text='Serial')
+        tree.heading('#4', text='UID')
+        tree.heading('#5', text='Tag')
         tree.column('#0', stretch=tk.NO, width=80)
         tree.column('#1', stretch=tk.NO, width=135)
         tree.column('#2', stretch=tk.NO, width=135)
         tree.column('#3', stretch=tk.NO, width=235)
+        tree.column('#4', stretch=tk.NO, width=80)
+        tree.column('#5', stretch=tk.NO, width=235)
+        # tree.bind("<Button-1>",disableEvent)
 
-        tree.insert('', tk.END, text="7949", values=("OFO", "YELLOW", "045CA0703A6C5E8189"))
+        tree.insert('', tk.END, text="7949", values=("OFO", "YELLOW", "17C001333", "-1", "045CA0703A6C5E8189"))
 
         tree.pack(side='left', fill='both')
         scrollbar = ttk.Scrollbar(midFrame, orient="vertical", command=tree.yview)
-        scrollbar.place(x=584, y=0, height=210)
+        scrollbar.place(x=584, y=0, height=198)
         tree.configure(yscrollcommand=scrollbar.set)
         tree.bind('<FocusIn>', active)
 
@@ -948,13 +1034,12 @@ class InventoryPage(tk.Frame):
                              command=lambda: [populate(), disable()])
         button2.pack(side='right', padx=90)
 
-        button_back = ttk.Button(lowFrame, text="Back", width=10,
-                                 command=lambda: [disable(), controller.show_frame(MainPage)])
-        button_back.pack()
-
         # button_find = ttk.Button(lowFrame, text="FIND", width=10,
         #                          command=lambda: print(search_tag("045CA0703A6C5E8189")))
-        # button_find.pack()
+        #  button_find.pack()
+        button_find = ttk.Button(lowFrame, text="Refresh", width=10, command=lambda: refresh_list())
+        button_find.pack()
+
         self.after(500, new_one)
         self.after(500, edit_one)
         self.after(10, main_one)
@@ -967,7 +1052,15 @@ class NewBike(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         tag = StringVar()
+        brand = StringVar()
+        model = StringVar()
+        plate = StringVar()
+        serial = StringVar()
         tries = IntVar()
+        plate.set("Plate")
+        brand.set("Brand")
+        model.set("Model")
+        serial.set("Serial")
         tag.set("RFID TAG")
         tries.set(0)
 
@@ -991,6 +1084,8 @@ class NewBike(tk.Frame):
                 entry_model.delete(0, 'end')
             elif entry_plate == self.focus_get() and entry_plate.get() == "Plate":
                 entry_plate.delete(0, 'end')
+            elif entry_serial == self.focus_get() and entry_serial.get() == "Serial":
+                entry_serial.delete(0, 'end')
 
         def repopulate_defaults(event):
 
@@ -1000,6 +1095,8 @@ class NewBike(tk.Frame):
                 entry_model.insert(0, "Model")
             elif entry_plate != self.focus_get() and entry_plate.get() == "":
                 entry_plate.insert(0, "Plate")
+            elif entry_serial != self.focus_get() and entry_serial.get() == "":
+                entry_serial.insert(0, "Serial")
 
         def clean():
             entry_brand.delete(0, 'end')
@@ -1008,62 +1105,102 @@ class NewBike(tk.Frame):
             entry_model.insert(0, "Model")
             entry_plate.delete(0, 'end')
             entry_plate.insert(0, "Plate")
+            entry_serial.delete(0, 'end')
+            entry_serial.insert(0, "Serial")
             tag.set("RFID TAG")
 
         def validate():
-
+            ver = ""
             if entry_brand.get() == "Brand":
-                messagebox.showwarning("Alert", "Insert Brand")
-            elif entry_model.get() == "Model":
-                messagebox.showwarning("Alert", "Insert Model")
-            elif entry_plate.get() == "Plate":
-                messagebox.showwarning("Alert", "Insert Plate")
-            elif tag.get() == "RFID TAG" or tag.get().startswith("Verify"):
-                messagebox.showwarning("Alert", "Identify a Bicicle")
-            else:  # Send to server
-                anw = messagebox.askokcancel("Confirm entries", entry_brand.get() + " " + entry_model.get()
-                                             + " " + entry_plate.get() + "\n" + tag.get())
-                if anw == True:  # To server
-                    clean()
-                    controller.show_frame(InventoryPage)
+                ver = ver + "Insert Brand\n"
+            if entry_model.get() == "Model":
+                ver = ver + "Insert Model\n"
+            if entry_plate.get() == "Plate":
+                ver = ver + "Insert Plate\n"
+            if tag.get() == "RFID TAG" or tag.get().startswith("Verify"):
+                ver = ver + "Scan RFID tag\n"
+            if serial.get() == "Serial":
+                ver = ver + "Insert Serial\n"
 
-                    # try:
-                    #     r = ses.post(link + '/bicycle', json={"lp": str(entry_plate.get()), "rfid": str(tag.get()),
-                    #                                           "model": str(entry_model.get()),
-                    #                                           "brand": entry_brand.get()})
-                    #     newBicycle.set_bike(entry_brand.get(), entry_model.get(), entry_plate.get(), tag.get())
-                    #     clean()
-                    #     controller.show_frame(InventoryPage)
-                    #
-                    # except:
-                    #     traceback.print_exc()
+            if ver == "":
+                anw = messagebox.askokcancel("Confirm entries", "Serial: " + entry_serial.get() + "\n"
+                                             + "Brand:" + entry_brand.get() + "\n"
+                                             + "Model:" + entry_model.get() + "\n"
+                                             + "Plate" + entry_plate.get())
+                if anw == True:  # To server
+                    try:
+                        r = ses.post(link + '/bicycle', json={"lp": str(entry_plate.get()), "rfid": str(tag.get()),
+                                                              "model": str(entry_model.get()),
+                                                              "brand": str(entry_brand.get()),
+                                                              "snumber": str(entry_serial.get())})
+                        print(r.text)
+                        t = r.json()
+                        newBicycle.set_bike(entry_brand.get(), entry_model.get(), entry_plate.get(), tag.get(),
+                                            serial.get())
+                        newBicycle.set_uid(t["bID"])
+                        clean()
+                        controller.show_frame(InventoryPage)
+
+                    except:
+                        traceback.print_exc()
+            else:
+                messagebox.showwarning("Alert", ver)
+
+        def ten_limit(limited):
+            if len(limited.get()) > 0:
+                limited.set(limited.get()[:10])
+
+        def twelve_limit(limited):
+            if len(limited.get()) > 0:
+                limited.set(limited.get()[:12])
+
+        def twenty_limit(limited):
+            if len(limited.get()) > 0:
+                limited.set(limited.get()[:20])
+
+        brand.trace("w", lambda *args: twenty_limit(brand))
+        model.trace("w", lambda *args: twenty_limit(model))
+        serial.trace("w", lambda *args: twelve_limit(serial))
+        plate.trace("w", lambda *args: ten_limit(plate))
+
+        button_back = ttk.Button(self, text="Back", width=10,
+                                 command=lambda: [clean(), controller.show_frame(InventoryPage)])
+        button_back.grid(row=0, column=1, sticky='E')
+
+        button_logout = ttk.Button(self, text="Logout",
+                                   command=lambda: [logout(), controller.show_frame(LoginPage)])
+        button_logout.grid(row=0, column=8, sticky='E')
 
         label = ttk.Label(self, text="New Bicycle:", font=LARGE_FONT, background=BACK_GROUND)
         label.grid(row=1, columnspan=10)
 
         label_brand = ttk.Label(self, text="Brand:", font=MEDIUM_FONT, background=BACK_GROUND)
         label_brand.grid(row=3, column=3, sticky='E')
-        entry_brand = ttk.Entry(self)
+        entry_brand = ttk.Entry(self, textvariable=brand, justify='center', font=SMALL_FONT)
         entry_brand.grid(row=3, column=4, sticky='W')
-        entry_brand.insert(0, "Brand")
         entry_brand.bind('<FocusIn>', clear_widget)
         entry_brand.bind('<FocusOut>', repopulate_defaults)
 
         label_model = ttk.Label(self, text="Model:", font=MEDIUM_FONT, background=BACK_GROUND)
         label_model.grid(row=3, column=5, sticky='E')
-        entry_model = ttk.Entry(self)
+        entry_model = ttk.Entry(self, textvariable=model, justify='center', font=SMALL_FONT)
         entry_model.grid(row=3, column=6, sticky='W')
-        entry_model.insert(0, "Model")
         entry_model.bind('<FocusIn>', clear_widget)
         entry_model.bind('<FocusOut>', repopulate_defaults)
 
         label_plate = ttk.Label(self, text="Plate:", font=MEDIUM_FONT, background=BACK_GROUND)
-        label_plate.grid(row=4, column=4, sticky='E')
-        entry_plate = ttk.Entry(self)
-        entry_plate.grid(row=4, column=5, sticky='W')
-        entry_plate.insert(0, "Plate")
+        label_plate.grid(row=4, column=3, sticky='E')
+        entry_plate = ttk.Entry(self, textvariable=plate, justify='center', font=SMALL_FONT)
+        entry_plate.grid(row=4, column=4, sticky='W')
         entry_plate.bind('<FocusIn>', clear_widget)
         entry_plate.bind('<FocusOut>', repopulate_defaults)
+
+        label_serial = ttk.Label(self, text="Serial:", font=MEDIUM_FONT, background=BACK_GROUND)
+        label_serial.grid(row=4, column=5, sticky='E')
+        entry_serial = ttk.Entry(self, textvariable=serial, justify='center', font=SMALL_FONT)
+        entry_serial.grid(row=4, column=6, sticky='W')
+        entry_serial.bind('<FocusIn>', clear_widget)
+        entry_serial.bind('<FocusOut>', repopulate_defaults)
 
         button_scan = ttk.Button(self, text="Scan", padding=20,
                                  command=lambda: identify())
@@ -1074,10 +1211,10 @@ class NewBike(tk.Frame):
 
         button_send = ttk.Button(self, text="Add",
                                  command=lambda: validate())
-        button_send.grid(row=9, column=4, sticky='E')
+        button_send.grid(row=9, columnspan=5, sticky='E', padx=60)
         button_cancel = ttk.Button(self, text="Cancel",
                                    command=lambda: [clean(), controller.show_frame(InventoryPage)])
-        button_cancel.grid(row=9, column=5, sticky='E')
+        button_cancel.grid(row=9, column=5, columnspan=5, sticky='W', padx=50)
 
 
 class EditBike(tk.Frame):
@@ -1085,9 +1222,14 @@ class EditBike(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        brand = StringVar()
+        model = StringVar()
         tag = StringVar()
+        serial = StringVar()
+        plate = StringVar()
         tries = IntVar()
         tag.set("RFID TAG")
+        serial.set("Serial Number: ABCDEFGHIJ12")
         tries.set(0)
 
         def identify():
@@ -1102,6 +1244,15 @@ class EditBike(tk.Frame):
             else:
                 tag.set("NPI")
 
+        def repopulate_defaults(event):
+
+            if entry_brand != self.focus_get() and entry_brand.get() == "":
+                entry_brand.insert(0, editBicycle.get_brand())
+            elif entry_model != self.focus_get() and entry_model.get() == "":
+                entry_model.insert(0, editBicycle.get_model())
+            elif entry_plate != self.focus_get() and entry_plate.get() == "":
+                entry_plate.insert(0, editBicycle.get_plate())
+
         def validate():
             if entry_brand.get() != editBicycle.get_brand() or entry_model.get() != editBicycle.get_model() or \
                     entry_plate.get() != editBicycle.get_plate() or tag.get() != editBicycle.get_tag():
@@ -1109,8 +1260,23 @@ class EditBike(tk.Frame):
                 if tag.get().startswith("Verify"):
                     messagebox.showwarning("Alert", "Identify a Bicicle")
                 else:
-                    editedBicycle.set_bike(entry_brand.get(), entry_model.get(), entry_plate.get(), tag.get())
-                    controller.show_frame(InventoryPage)
+
+                    try:
+                        t = ses.put(link + '/bicycle', json={"brand": entry_brand.get(), "model": entry_model.get(),
+                                                             "lp": entry_plate.get(), "rfid": tag.get(),
+                                                             "bid": editBicycle.get_uid()})
+                        print(t.text)
+                        if 'Error' in t.json():
+                            mese = t.json()["Error"]
+                            messagebox.showwarning("Alert", mese)
+                        else:
+                            editedBicycle.set_bike(entry_brand.get(), entry_model.get(), entry_plate.get(), tag.get(),
+                                                   serial.get())
+                            editedBicycle.set_uid(editBicycle.get_uid())
+                            controller.show_frame(InventoryPage)
+                    except:
+                        traceback.print_exc()
+
 
             else:
                 controller.show_frame(InventoryPage)
@@ -1124,13 +1290,15 @@ class EditBike(tk.Frame):
                 entry_brand.insert(0, editBicycle.get_brand())
                 entry_plate.insert(0, editBicycle.get_plate())
                 entry_model.insert(0, editBicycle.get_model())
+                serial.set("Serial Number: " + editBicycle.get_serial())
                 tag.set(editBicycle.get_tag())
                 editOldBicycle.set_bike(editBicycle.get_brand(), editBicycle.get_model(),
-                                        editBicycle.get_plate(), editBicycle.get_tag())
+                                        editBicycle.get_plate(), editBicycle.get_tag(), editBicycle.get_serial())
 
             self.after(100, update_label)
 
-        def back():
+        def clean():
+
             entry_brand.delete(0, 'end')
             entry_model.delete(0, 'end')
             entry_plate.delete(0, 'end')
@@ -1139,26 +1307,49 @@ class EditBike(tk.Frame):
             entry_plate.insert(0, editBicycle.get_plate())
             tag.set(editBicycle.get_tag())
 
-        label = ttk.Label(self, text="Edit Bicycle:", font=LARGE_FONT, background=BACK_GROUND)
+        def ten_limit(limited):
+            if len(limited.get()) > 0:
+                limited.set(limited.get()[:10])
+
+        def twenty_limit(limited):
+            if len(limited.get()) > 0:
+                limited.set(limited.get()[:20])
+
+        brand.trace("w", lambda *args: twenty_limit(brand))
+        model.trace("w", lambda *args: twenty_limit(model))
+        plate.trace("w", lambda *args: ten_limit(plate))
+
+        button_back = ttk.Button(self, text="Back", width=10,
+                                 command=lambda: [clean(), controller.show_frame(InventoryPage)])
+        button_back.grid(row=0, columnspan=10, sticky='W', padx=30)
+
+        button_logout = ttk.Button(self, text="Logout", width=10,
+                                   command=lambda: [logout(), controller.show_frame(LoginPage)])
+        button_logout.grid(row=0, columnspan=10, sticky='E', padx=30)
+
+        label = tk.Label(self, text="Edit Bicycle:", font=LARGE_FONT, background=BACK_GROUND)
         label.grid(row=1, columnspan=10)
 
+        label_serial = tk.Label(self, textvariable=serial, font=MEDIUM_FONT, background=BACK_GROUND)
+        label_serial.grid(row=2, columnspan=10)
+
         label_brand = ttk.Label(self, text="Brand:", font=MEDIUM_FONT, background=BACK_GROUND)
-        label_brand.grid(row=3, column=3, sticky='E')
-        entry_brand = ttk.Entry(self)
-        entry_brand.grid(row=3, column=4, sticky='W')
-        entry_brand.insert(0, "Brand")
+        label_brand.grid(row=4, column=3, sticky='E')
+        entry_brand = ttk.Entry(self, textvariable=brand, width=22, justify='center', font=SMALL_FONT)
+        entry_brand.grid(row=4, column=4, sticky='W')
+        entry_brand.bind('<FocusOut>', repopulate_defaults)
 
         label_model = ttk.Label(self, text="Model:", font=MEDIUM_FONT, background=BACK_GROUND)
-        label_model.grid(row=3, column=5, sticky='E')
-        entry_model = ttk.Entry(self)
-        entry_model.grid(row=3, column=6, sticky='W')
-        entry_model.insert(0, "Model")
+        label_model.grid(row=4, column=5, sticky='E')
+        entry_model = ttk.Entry(self, textvariable=model, width=22, justify='center', font=SMALL_FONT)
+        entry_model.grid(row=4, column=6, sticky='W')
+        entry_model.bind('<FocusOut>', repopulate_defaults)
 
         label_plate = ttk.Label(self, text="Plate:", font=MEDIUM_FONT, background=BACK_GROUND)
-        label_plate.grid(row=4, column=4, sticky='E')
-        entry_plate = ttk.Entry(self)
-        entry_plate.grid(row=4, column=5, sticky='W')
-        entry_plate.insert(0, "Plate")
+        label_plate.grid(row=5, column=4, sticky='E')
+        entry_plate = ttk.Entry(self, textvariable=plate, width=10, justify='center', font=SMALL_FONT)
+        entry_plate.grid(row=5, column=5, sticky='W')
+        entry_plate.bind('<FocusOut>', repopulate_defaults)
 
         button_scan = ttk.Button(self, text="Scan", padding=20,
                                  command=lambda: identify())
@@ -1171,7 +1362,7 @@ class EditBike(tk.Frame):
                                  command=lambda: validate())
         button_send.grid(row=9, column=4, sticky='E')
         button_cancel = ttk.Button(self, text="Cancel",
-                                   command=lambda: [back(), controller.show_frame(InventoryPage)])
+                                   command=lambda: [clean(), controller.show_frame(InventoryPage)])
         button_cancel.grid(row=9, column=5, sticky='E')
         self.after(500, update_label)
 
@@ -1310,6 +1501,10 @@ class MaintenancePage(tk.Frame):
                     if res:
                         return True
 
+        button_back = ttk.Button(rootFrame, text="Back", width=10,
+                                 command=lambda: [disable(), controller.show_frame(MainPage)])
+        button_back.pack(side='left')
+
         button_log = ttk.Button(rootFrame, text="Logout",
                                 command=lambda: [logout(), controller.show_frame(LoginPage)])
         button_log.pack(side='right')
@@ -1351,10 +1546,6 @@ class MaintenancePage(tk.Frame):
         button2 = ttk.Button(self, text="Report", width=10, padding=15, state='disable',
                              command=lambda: [populate(), disable()])
         button2.pack(side='right', padx=90)
-
-        button_back = ttk.Button(lowFrame, text="Back", width=10,
-                                 command=lambda: [disable(), controller.show_frame(MainPage)])
-        button_back.pack()
 
         # button_find = ttk.Button(lowFrame, text="FIND", width=10,
         #                          command=lambda: print(search_plate("7949")))
@@ -1422,6 +1613,10 @@ class RequestPage(tk.Frame):
                 mainBicycle.set_service(service_chosen.get())
                 clean()
                 controller.show_frame(MaintenancePage)
+
+        button_back = ttk.Button(rootFrame, text="Back", width=10,
+                                 command=lambda: [clean(), controller.show_frame(MaintenancePage)])
+        button_back.pack(side='left')
 
         button_log = ttk.Button(rootFrame, text="Logout",
                                 command=lambda: [logout(), controller.show_frame(LoginPage)])
@@ -1539,6 +1734,7 @@ class ReportPage(tk.Frame):
         button_send = ttk.Button(self, text="Report",
                                  command=lambda: [validate('<FocusIn>')])
         button_send.grid(row=9, column=4, sticky='N')
+
         button_cancel = ttk.Button(self, text="Cancel",
                                    command=lambda: [clean(), back(), controller.show_frame(MaintenancePage)])
         button_cancel.grid(row=9, column=5, sticky='N')
