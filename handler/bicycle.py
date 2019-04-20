@@ -19,6 +19,7 @@ class BicycleHandler():
         result['status'] = row[3]
         result['brand'] = row[4]
         result['model'] = row[5]
+        result['snumber'] = row[6]
         return result
 
     def build_arg_dict(self, row):
@@ -60,11 +61,11 @@ class BicycleHandler():
         rfid = form['rfid']
         model = form['model']
         brand = form['brand']
-        #snumber = form['snumber']
+        snumber = form['snumber']
 
         if plate and rfid and model and brand: # and snumber:
             bDao = BicycleDAO()
-            bID = bDao.insert(plate, rfid, model, brand)#, snumber)                                    #INSERT #1
+            bID = bDao.insert(plate, rfid, model, brand, snumber)                                    #INSERT #1
             result = {"bID": bID}
             return jsonify(result)
         else:
