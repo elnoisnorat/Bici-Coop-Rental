@@ -26,6 +26,16 @@ class BicycleHandler():
         result = {}
         result[row] = row[row]
 
+    def getAllBicyclesInPhysicalInventory(self):
+        bDao = BicycleDAO()
+        result_list = bDao.getAllBicyclesInPhysicalInventory()
+        bicycle_list = []
+        for row in result_list:
+            result = self.build_bike_dict(row)
+            bicycle_list.append(result)
+        return jsonify(Inventory=bicycle_list)
+
+
     def getBicycle(self, form):
         bDao = BicycleDAO()
 
@@ -63,11 +73,14 @@ class BicycleHandler():
         brand = form['brand']
         snumber = form['snumber']
 
-        if plate and rfid and model and brand: # and snumber:
+        if plate and rfid and model and brand and snumber:
             bDao = BicycleDAO()
-            bID = bDao.insert(plate, rfid, model, brand, snumber)                                    #INSERT #1
-            result = {"bID": bID}
-            return jsonify(result)
+            try:
+                bID = bDao.insert(plate, rfid, model, brand, snumber)                                    #INSERT #1
+                result = {"bID": bID}
+                return jsonify(result)
+            except Exception as e:
+                return jsonify(Error="An error has occurred."), 400
         else:
             return jsonify(Error="Missing attributes of the bicycle."), 401
 
@@ -106,7 +119,10 @@ class BicycleHandler():
         if not bDao.getBikeByID(bid):
             return jsonify(Error="Bicycle not found in inventory."), 401
 
-        bDao.updateBicycle(filteredArgs, bid)                                               #UPDATE #1
+        try:
+            bDao.updateBicycle(filteredArgs, bid)                                               #UPDATE #1
+        except Exception as e:
+            return jsonify(Error="Invalid arguments.")
 
         row = bDao.getBikeByID(bid)
         result = self.build_bike_dict(row)
@@ -115,12 +131,18 @@ class BicycleHandler():
     @isDecomissioned
     def updateStatusIsAvailable(self, bid, wid, rid):
         bDao = BicycleDAO()
-        bDao.freeBicyle(bid, 'RENTED', wid, rid)                                                      #UPDATE #1
+        try:
+            bDao.freeBicyle(bid, 'RENTED', wid, rid)                                                      #UPDATE #1
+        except Exception as e:
+            raise e
 
     @isDecomissioned
     def updateStatusIsReserved(self, bid, wid, rid):
         bDao = BicycleDAO()
-        bDao.updateStatusCheckOut(bid, 'RENTED', wid, rid)                                                    #UPDATE #1
+        try:
+            bDao.updateStatusCheckOut(bid, 'RENTED', wid, rid)                                                    #UPDATE #1
+        except Exception as e:
+            raise e
 
     def getBIDByPlate(self, plate):
         bDao = BicycleDAO()

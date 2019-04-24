@@ -1,4 +1,3 @@
-from flask_rbac import UserMixin, RoleMixin
 from flask_login import UserMixin as logMix
 
 class User(logMix):

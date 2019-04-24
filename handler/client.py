@@ -29,9 +29,7 @@ class ClientHandler:
         password = form['password']
         if email and password:                                                  #No null arguments
             confirmation = uHand.getConfirmation(email)
-            if confirmation is False:                                           #User has not confirmed account
-                return -4
-            elif confirmation is None:                                          #User does not exist
+            if confirmation is False or confirmation is None:                                          #User does not exist
                 return -2
 
             attempts = uHand.getLoginAttempts(email)                            #Get current number of attempts
@@ -89,7 +87,7 @@ class ClientHandler:
         if len(filteredArgs) == 0:                                              #No arguments given getAll()
             client_list = cDao.getAllClients()
 
-        if not 'orderby' in filteredArgs:                                       #If no order by give list without order
+        elif not 'orderby' in filteredArgs:                                       #If no order by give list without order
             client_list = cDao.getClientByArguments(filteredArgs)
 
         elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:          #If order by with no other arguments getAll() ordered

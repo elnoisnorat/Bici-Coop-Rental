@@ -9,7 +9,7 @@ def isWorker(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if current_user.role != "Worker":
-            return jsonify(Error="Not a worker."), 403
+            return jsonify(Error="Unauthorized access."), 403
 
         return f(*args, **kwargs)
     return decorated
@@ -18,7 +18,7 @@ def isAdmin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if current_user.role != "Admin":
-            return jsonify(Error="Not an admin."), 403
+            return jsonify(Error="Unauthorized access."), 403
         return f(*args, **kwargs)
     return decorated
 
@@ -26,7 +26,7 @@ def isClient(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if current_user.role != "Client":
-            return jsonify(Error="Not a client."), 403
+            return jsonify(Error="Unauthorized access."), 403
         return f(*args, **kwargs)
     return decorated
 
@@ -34,7 +34,7 @@ def isWorkerOrAdmin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if current_user.role != "Worker" and current_user.role != "Admin":
-            return jsonify(Error="Not a valid user."), 403
+            return jsonify(Error="Unauthorized access."), 403
         return f(*args, **kwargs)
     return decorated
 
@@ -42,15 +42,17 @@ def isWorkerOrClient(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if current_user.role != "Worker" and current_user.role != "Client":
-            return jsonify(Error="Not a valid user."), 403
+            return jsonify(Error="Unauthorized access."), 403
         return f(*args, **kwargs)
     return decorated
+
+
 
 def hasRole(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if current_user.role != "Worker" and current_user.role != "Admin" and current_user.role != "Client":
-            return jsonify(Error="Not a valid user."), 403
+            return jsonify(Error="Unauthorized access."), 403
         return f(*args, **kwargs)
     return decorated
 
@@ -75,7 +77,7 @@ def validPassword(f):
                 and any(a.isnumeric() for a in password):
                 pass
         else:
-            return jsonify(Error="Malformed password."), 400
+            return jsonify(Error="Password does not meet our standards."), 400
         return f(*args, **kwargs)
     return decorated
 
@@ -83,11 +85,13 @@ def validUpdatePassword(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         try:
+            email = current_user.email
             uHand = UsersHandler()
+            uid = uHand.getUserIDByEmail(email)
             password_list = []
             oldPassword = request.json['oldPassword']
-            if not uHand.checkCurrentPassword(oldPassword):
-                return jsonify(Error="Malformed update request."), 400
+            if not uHand.checkCurrentPassword(email, oldPassword):
+                return jsonify(Error="Incorrect arguments."), 400 #############################
 
             newPassword = request.json['newPassword']
             confirmPassword = request.json['confirmPassword']
@@ -102,11 +106,45 @@ def validUpdatePassword(f):
                             and any(a.isnumeric() for a in password):
                         pass
                     else:
-                        return jsonify(Error="Malformed password."), 400
+                        return jsonify(Error="Password does not meet our standards."), 400
             else:
-                return jsonify(Error="Malformed update request."), 400
+                return jsonify(Error="Incorrect arguments."), 400
         except:
-            return jsonify(Error="Malformed update request."), 400
+            return jsonify(Error="Incorrect arguments."), 400
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+def validPhoneNumber(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        pnumber = request.json['PNumber']
+        size = len(pnumber)
+        if size >= 10 and size <= 12 and pnumber.isnumeric():
+                pass
+        else:
+            return jsonify(Error="Phone number does not meet our standards."), 400
+        return f(*args, **kwargs)
+    return decorated
+
+def validUpdatePhoneNumber(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            oldPNumber = current_user.pNumber
+            newPNumber = request.json['newPNumber']
+
+            if oldPNumber != newPNumber:
+                size = len(newPNumber)
+                if size >= 10 and size <= 12 and newPNumber.isnumeric():
+                    pass
+                else:
+                    return jsonify(Error="Phone number does not meet our standards."), 400
+            else:
+                return jsonify(Error="Incorrect arguments."), 400
+        except:
+            return jsonify(Error="Incorrect arguments."), 400
 
         return f(*args, **kwargs)
 

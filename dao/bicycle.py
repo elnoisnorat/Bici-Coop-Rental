@@ -16,6 +16,19 @@ class BicycleDAO:
             result.append(row)
         return result
 
+    def getAllBicyclesInPhysicalInventory(self):
+        cursor = self.conn.cursor()
+        query = '''Select * 
+                    From Bike
+                    Where bikestatus != %s and bikestatus != %s
+                    Order by bikestatus
+                    '''
+        cursor.execute(query, ('RENTED', 'DECOMMISSIONED'))
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
     def getBikeByArguments(self, form):
         argument = ""
         values = []
@@ -265,5 +278,8 @@ class BicycleDAO:
                     Where lp = %s
                 '''
         cur.execute(query, (plate,))
-        plate = cur.fetchone()[0]
-        return plate
+        row = cur.fetchone()
+        if row is None:
+            return row
+        bid = row[0]
+        return bid

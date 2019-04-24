@@ -12,6 +12,9 @@ from handler.worker import WorkerHandler
 
 
 class MaintenanceHandler:
+    def __init__(self):
+        self.valid_services = ["Clean Up", "Pedal Adjustment", "New Plate", "Tune Up", "Transmission Adjustment", "Flat Tire", "New Tire", "Break Adjustment", "New Break", "Maneuver Adjustment", "New RFID Tag"]
+
     def build_maintenance_dict(self, row):
         result = {}
         result['Maintenance ID'] = row[0]
@@ -32,6 +35,72 @@ class MaintenanceHandler:
         result['Bicycle Status'] = row[5]
         return result
 
+    def requestMaintenance(self, form):
+        mDao = MaintenanceDAO()
+        uHand = UsersHandler()
+        rHand = RentalHandler()
+
+        uid = uHand.getUserIDByEmail(current_user.email)
+
+        if current_user.role == 'Client':
+            cid = current_user.roleID
+            try:
+                plate = form['lp']
+            except:
+                return jsonify(Error='An error has occurred. Please verify the submitted arguments.'), 400
+            bid = rHand.getBIDByCIDAndPlate(cid, plate)
+            if not bid:
+                return jsonify("You have no current bicycle rental at this time.") #Pending
+
+        elif current_user.role == 'Worker':
+            bHand = BicycleHandler()
+            try:
+                rfid = form['rfid']
+            except Exception as e:
+                return jsonify("An error has occurred. Please verify the submitted arguments."), 400
+            if rfid:
+                bid = bHand.getBIDByRFID(rfid)
+            else:
+                bid = None
+
+            if not bid:
+                try:
+                    plate = form['lp']
+                except Exception as e:
+                    return jsonify("An error has occurred. Please verify the submitted arguments."), 400
+                if plate:
+                    bid = bHand.getBIDByPlate(plate)
+                else:
+                    bid = None
+                if not bid:
+                    return jsonify("An error has occurred. Please verify the submitted arguments."), 400
+        try:
+            service_list = form["Services"]
+            filteredArgs = []
+            active_service_list = mDao.getRequestByBID(bid)
+            for service in service_list:  # Filter arguments received using a dictionary
+                if service and service in self.valid_services and service not in active_service_list:
+                    filteredArgs.append(service)
+        except Exception as e:
+            return jsonify(Error="An error has occurred."), 400
+
+        try:
+            other = form['Other']
+            if other:
+                filteredArgs.append(other)
+        except Exception as e:
+            pass
+
+        if len(filteredArgs) == 0:
+            return jsonify(Error="An error has occurred. Please check the submitted arguments."), 400
+
+        try:
+            mDao.requestMaintenance(uid, bid, filteredArgs)  # Insert #1
+        except Exception as e:
+            return jsonify("An error has occurred."), 400
+
+
+    '''
     def requestMaintenance(self, form):
         mDao = MaintenanceDAO()
         uHand = UsersHandler()
@@ -68,13 +137,13 @@ class MaintenanceHandler:
             raise e
 
         return jsonify("Maintenance request #" + str(mID) + " has been created.")
-
+    '''
 
     def getMaintenance(self, form):
         mDao = MaintenanceDAO()
         row = mDao.getMaintenance()
         if not row:
-            return jsonify("There are no current maintenance requests.")
+            return jsonify("There are no maintenance requests at this time.")
 
         result_list = []
         for row in row:
@@ -83,15 +152,19 @@ class MaintenanceHandler:
         return jsonify(Details=result)
 
     def provideMaintenance(self, form):
-        notes = form['Notes']
-        wid = form['wID']
-        mid = form['mID']
-        service = form['service']
-        if wid:
+        try:
+            notes = form['Notes']
+            wid = form['wID']
+            mid = form['mID']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        if wid and mid:
             mDao = MaintenanceDAO()
             wHand = WorkerHandler()
             cHand = ClientHandler()
             reqID = mDao.getRequestedByWithMID(mid)
+
             if wHand.getWorkerByUID(reqID):
                 role = 'Worker'
             elif cHand.getCIDByUID(reqID):
@@ -99,27 +172,24 @@ class MaintenanceHandler:
                 uHand = UsersHandler()
                 pNumber = uHand.getPhoneNumberByUID(reqID)
             else:
-                return jsonify(Error="Invalid maintenance request.")
+                return jsonify(Error="Unauthorized access."), 403
 
             try:
-                    mDao.provideMaintenance(wid, mid, notes, service, role)
+                check = mDao.provideMaintenance(wid, mid, notes, role)
+                if not check:
+                    return jsonify(Error="An error has occurred."), 403
+                elif check > 0:
+                    return jsonify("Maintenance has been completed.")
+                elif check == 0:
+                    if role == 'Worker':
+                        return jsonify("Maintenance has been completed.")
+                    elif role == 'Client':
+                        cResult = {
+                            "ALERT": "Please call the user at " + str(pNumber),
+                            "Maintenance": "Maintenance has been completed."
+                        }
+                        return jsonify(cResult)
             except Exception as e:
-                raise e
-
-            row = mDao.getRequestByMID(mid)
-            if not row:
-                return jsonify("No maintenance with those parameters.")
-
-            result = self.build_maintenance_dict(row)
-            if role == 'Worker':
-                return jsonify(Maintenance=result)
-            elif role == 'Client':
-                cResult = {
-                    "ALERT": "Please call the user at " + str(pNumber),
-                    "Maintenance": result
-                }
-                return jsonify(cResult)
-            else:
-                return jsonify(Error="Invalid maintenance request.")
+                return jsonify(Error="An error has occurred."), 400
         else:
-            return jsonify(Error="No worker id provided.")
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400

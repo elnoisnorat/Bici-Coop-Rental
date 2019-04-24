@@ -4,7 +4,7 @@ import jwt
 # from flask import current_app as app
 from app import app
 from flask_mail import Mail, Message
-
+from config.account import EMAIL, PASSWORD
 from config.encryption import SECRET_KEY
 
 app.config['DEBUG']= True
@@ -14,9 +14,9 @@ app.config['MAIL_PORT']= 465
 app.config['MAIL_USE_TLS']= False
 app.config['MAIL_USE_SSL']= True
 app.config['MAILS_DEBUG']= True
-app.config['MAIL_USERNAME']= ''
-app.config['MAIL_PASSWORD']= ''
-app.config['MAIL_DEFAULT_SENDER']= ''
+app.config['MAIL_USERNAME']= EMAIL
+app.config['MAIL_PASSWORD']= PASSWORD
+app.config['MAIL_DEFAULT_SENDER']= EMAIL
 app.config['MAIL_MAX_EMAIL']= 2
 app.config['MAIL_SUPRESS_SEND']= False
 app.config['MAIL_ASCII_ATTACHMENTS']= False
@@ -24,16 +24,15 @@ app.config['MAIL_ASCII_ATTACHMENTS']= False
 mail = Mail(app)
 class EmailHandler():
     def confirmationEmail(self, email):
-        #link = "http://localhost:5000/confirm?value=" +  email
         token = jwt.encode({'Email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)}, SECRET_KEY)
         content = str(token)
         link = str(content[2:len(content)-1])
-        msg = Message('Account Confirmation', recipients=[email, 'bbob21308@gmail.com'])
+        msg = Message('Account Confirmation', recipients=[email, EMAIL])
         body = '''Please click localhost:5000/confirm?value=''' + link + ''' email to confirm your account.'''
         msg.html = body
         try:
             mail.send(msg)
-            return "TEST COMPLETED"
+            return "Confirmation email has been sent to the provided email."
         except Exception as e:
             raise e
 

@@ -37,7 +37,6 @@ class UsersDAO:
             eHand.confirmationEmail(Email)
 
             self.conn.commit()
-            pass
         except Exception as e:
             self.conn.rollback()
             raise e
@@ -121,7 +120,10 @@ class UsersDAO:
         '''
         cursor.execute(query, (Email,))
         result = cursor.fetchone()
-        return result
+        if result is None:
+            return result
+        uid = result[0]
+        return uid
 
     def getUserWithWID(self, wid):
         cursor = self.conn.cursor()
@@ -138,10 +140,16 @@ class UsersDAO:
         cursor = self.conn.cursor()
         query = '''
             update Users set Confirmation = True
-            Where email = %s
+            Where email = %s and Confirmation = False
+            Returning UID
         '''
         cursor.execute(query, (email,))
+        row = cursor.fetchone()
         self.conn.commit()
+        if row is None:
+            return row
+        return row[0]
+
 
     def getLoginAttempts(self, email):
         cursor = self.conn.cursor()
@@ -257,14 +265,14 @@ class UsersDAO:
         result = cursor.fetchone()
         return result
 
-    def checkCurrentPassword(self, oldPassword):
+    def checkCurrentPassword(self, email, oldPassword):
         cursor = self.conn.cursor()
         query = '''
                     Select *
                     From Users
-                    Where password = crypt(%s, password)
+                    Where email = %s and password = crypt(%s, password)
                 '''
-        cursor.execute(query, (oldPassword,))
+        cursor.execute(query, (email, oldPassword,))
         result = cursor.fetchone()
         if result is None:
             return False

@@ -13,7 +13,8 @@ from handler.worker import WorkerHandler
 from handler.admin import AdminHandler
 from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
-from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword
+from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword, \
+    validUpdatePhoneNumber, isWorkerOrClient
 from config.encryption import SECRET_KEY
 from model.user import User
 
@@ -23,6 +24,7 @@ from model.user import User
 # login_manager.init_app(app)
 #
 # app.secret_key = SECRET_KEY
+app.secret_key = SECRET_KEY
 
 @login_manager.user_loader
 def load_user(id):
@@ -53,19 +55,24 @@ def home():
     Route used for the worker's login
 '''
 @app.route('/workerLogin', methods=["GET"])                                                     #1
-@validPassword
 def workerLogin():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+
     if current_user.is_authenticated:
-        return jsonify(Error="Invalid/Missing username or password."), 401
+        return jsonify(Error="Incorrect username or password."), 400
+
     token = WorkerHandler().workerLogin(request.json)
-    if token is -2:
-        return jsonify(Error="Invalid/Missing username or password"), 401
-    elif token is -1:
-        return jsonify(Error="This account is currently locked."), 401
+
+    if token is -1:
+        return jsonify(Error="An error has occurred. Please contact an administrator."), 403
+
+    elif token is -2:
+        return jsonify(Error="Incorrect username or password"), 403
+
     elif token is -3:
-        return jsonify(Error="This account is disabled."), 403
-    elif token is -4:
-        return jsonify(Error="Awaiting confirmation."), 403
+        return jsonify(Error="An error has occurred. Please contact an administrator."), 403
+
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "W")
         user = User(info, "W")
@@ -80,10 +87,24 @@ def workerLogin():
 @login_required
 @isWorkerOrAdmin
 def bicycle():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     if request.method == "POST":
         return BicycleHandler().insert(request.json)
     elif request.method == "PUT":
         return BicycleHandler().update(request.json)
+
+'''
+    Route used for the creation and modifications done to a bicycle.
+'''
+@app.route('/bicyclesInInventory', methods=["GET"])                                                 #2, 3
+@login_required
+@isWorkerOrAdmin
+def bicycleInInventory():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+    return BicycleHandler().getAllBicyclesInPhysicalInventory()
+
 
 '''
     Route used for the check in process of a bicycle that is about to be returned.
@@ -92,6 +113,8 @@ def bicycle():
 @login_required
 @isWorker
 def checkIn():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return RentalHandler().checkInBicycle(request.json)
 
 '''
@@ -101,20 +124,28 @@ def checkIn():
 @login_required
 @isWorker
 def checkOut():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return RentalHandler().checkOutBicycle(request.json)
 
 '''
     Route used to receive the list of pending maintenance requests for the bicycles in the system.
 '''
 @app.route('/getMaintenance', methods=["GET"])                                                  #6
+@isWorker
 def bicycleDetails():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return MaintenanceHandler().getMaintenance(request.json)
 
 '''
     Route used to provide the maintenance that was requested for a bicycle .
 '''
 @app.route('/provideMaintenance', methods=["PUT"])                                              #7
+@isWorker
 def provideMaintenance():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return MaintenanceHandler().provideMaintenance(request.json)
 
 ##########################################################Admin#########################################################
@@ -122,17 +153,20 @@ def provideMaintenance():
     Route used for the login of an administrator.
 '''
 @app.route('/adminLogin', methods=["GET"])                                                      #8
-@validPassword
 def adminLogin():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+
     if current_user.is_authenticated:
-        return jsonify(Error="Invalid/Missing username or password."), 401
+        return jsonify(Error="Incorrect username or password."), 400
     token = AdminHandler().adminLogin(request.json)
-    if token is -2:
-        return jsonify(Error="Invalid/Missing username or password"), 401
-    elif token is -1:
-        return jsonify(Error="This account is currently locked."), 403
-    elif token is -4:
-        return jsonify(Error="Awaiting confirmation."), 403
+
+    if token is -1:
+        return jsonify(Error="An error has occurred. Please contact an administrator."), 403
+
+    elif token is -2:
+        return jsonify(Error="Incorrect username or password"), 403
+
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "A")
         user = User(info, "A")
@@ -146,7 +180,10 @@ def adminLogin():
 @app.route('/createAdmin', methods=["POST"])                                                    #9
 @login_required
 @isAdmin
+@validPassword
 def createAdmin():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return AdminHandler().insert(request.json)
 
 '''
@@ -155,7 +192,10 @@ def createAdmin():
 @app.route('/createWorker', methods=["POST"])                                                   #10
 @login_required
 @isAdmin
+@validPassword
 def createWorker():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().insert(request.json)
 
 '''
@@ -165,6 +205,8 @@ def createWorker():
 @login_required
 @isAdmin
 def getWorker():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().getWorker(request.json)
 
 '''
@@ -174,6 +216,8 @@ def getWorker():
 @login_required
 @isAdmin
 def updateWorkerStatus():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().updateStatus(request.json)
 
 '''
@@ -183,6 +227,8 @@ def updateWorkerStatus():
 @login_required
 @isAdmin
 def editPlan():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return RentalPlanHandler().editPlan(request.json)
 
 @app.route('/getDecommissionRequest', methods=["GET"])                                          #14
@@ -198,23 +244,30 @@ def resolveDecommission():
     Route used for the creation of a user.
 '''
 @app.route('/client', methods=["POST"])                                                         #16
+@validPassword
 def createClient():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return ClientHandler().insert(request.json)
 '''
     Route used for the login process of a client.
 '''
 @app.route('/clientLogin', methods=["GET"])                                                     #17
-@validPassword
 def clientLogin():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+
     if current_user.is_authenticated:
-        return jsonify(Error="Invalid/Missing username or password."), 401
+        return jsonify(Error="Incorrect username or password."), 400
+
     token = ClientHandler().clientLogin(request.json)
-    if token is -2:
-        return jsonify(Error="Invalid/Missing username or password"), 401
-    elif token is -1:
-        return jsonify(Error="This account is currently locked."), 403
-    elif token is -4:
-        return jsonify(Error="Awaiting confirmation."), 403
+
+    if token is -1:
+        return jsonify(Error="An error has occurred. Please contact an administrator."), 403
+
+    elif token is -2:
+        return jsonify(Error="Incorrect username or password"), 403
+
     else:
         info = UsersHandler().getUserInfo(request.json['Email'], "C")
         user = User(info, "C")
@@ -229,6 +282,8 @@ def clientLogin():
 @login_required
 @isClient
 def rentBicycle():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return TransactionHandler().newTransaction(request.json)
 
 
@@ -248,6 +303,8 @@ def getRentalPlan():
 @login_required
 @isClient
 def viewCurrentRental():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return RentalHandler().getRentalByCID(request.json)
 
 '''
@@ -257,6 +314,8 @@ def viewCurrentRental():
 @login_required
 @isClient
 def requestPersonalMaintenance():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return ServiceMaintenanceHandler().requestServiceMaintenance(request.json)
 
 #########################################################Everyone#########################################################
@@ -268,6 +327,8 @@ def requestPersonalMaintenance():
 @hasRole
 @login_required
 def updateName():   #Requires token (All)
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updateName(request.json)
 
 '''
@@ -281,8 +342,8 @@ def profile():
     profile["Last Name"] = current_user.lName
     profile["Email"] = current_user.email
     profile["Phone Number"] = current_user.pNumber
-    profile["Role"] = current_user.role
-    profile["Role ID"] = current_user.roleID
+    #profile["Role"] = current_user.role
+    #profile["Role ID"] = current_user.roleID
     return jsonify(Profile=profile)
 
 '''
@@ -293,15 +354,20 @@ def profile():
 @hasRole
 @validUpdatePassword
 def updatePassword():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updatePassword(request.json)
 
 '''
     Route used to modify a user's phone number.
 '''
 @app.route('/updatePhoneNumber', methods=["PUT"])                                               #25
-#@login_required
-#@hasRole
+@login_required
+@hasRole
+@validUpdatePhoneNumber
 def updatePhoneNumber():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updatePNumber(request.json)
 
 '''
@@ -309,6 +375,8 @@ def updatePhoneNumber():
 '''
 @app.route('/confirmForgotPassword')
 def confirmResetPassword():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().confirmForgotPassword(request.json)
 
 '''
@@ -316,8 +384,10 @@ def confirmResetPassword():
 '''
 @app.route('/forgotPassword')                                                                   #26
 def forgotPassword():
+    if request.args is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     if current_user.is_authenticated:
-        return jsonify(), 404
+        return jsonify(Error="An error has occurred."), 400
     return UsersHandler().resetPassword(request.args)
 
 '''
@@ -325,13 +395,17 @@ def forgotPassword():
 '''
 @app.route('/confirm')                                                         #27
 def confirmAccount():
+    if request.args is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().confirmAccount(request.args)
 
 '''
     Route used to generate a new confirmation token.
 '''
-@app.route('/newConfirmation')
+@app.route('/newConfirmation', methods=['POST'])
 def newConfirmation():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().newConfirmation(request.json)
 
 #####################################################CLIENT&WORKER######################################################
@@ -340,7 +414,10 @@ def newConfirmation():
 '''
 @app.route('/requestRentalMaintenance', methods=["POST"]) #Client and Worker                    #28
 @login_required
+@isWorkerOrClient
 def requestRentalMaintenance():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return MaintenanceHandler().requestMaintenance(request.json)
 
 #####################################################ADMIN&WORKER#######################################################
@@ -351,6 +428,8 @@ def requestRentalMaintenance():
 @login_required
 @isWorkerOrAdmin
 def getbicycle():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return BicycleHandler().getBicycle(request.json)
 
 '''
@@ -360,6 +439,8 @@ def getbicycle():
 @app.route('/client', methods=['GET'])                                                          #30
 #@login_required
 def getClient():
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return ClientHandler().getClient(request.json)
 
 '''
@@ -374,12 +455,11 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    return EmailHandler().resetPassword(request.json)
-    list = BicycleHandler().getBicycle(request.json)
-    newList = list.json["Inventory"]
-    for row in newList:
-        print(row["brand"])
-    return list
+    array = [5, 4, 3]
+    dict = {}
+    dict["Array"] = array
+    return jsonify(dict)
+
 '''
     Route used to logout a user.
 '''
@@ -393,4 +473,4 @@ def logout():
     return jsonify('You are now logged out')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)#, ssl_context=('cert.pem', 'key.pem'))

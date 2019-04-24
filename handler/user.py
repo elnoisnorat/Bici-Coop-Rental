@@ -211,9 +211,9 @@ class UsersHandler:
         user = uDao.getUserInfo(email, role)
         return user
 
-    def checkCurrentPassword(self, oldPassword):
+    def checkCurrentPassword(self, email, oldPassword):
         uDao = UsersDAO()
-        validation = uDao.checkCurrentPassword(oldPassword)
+        validation = uDao.checkCurrentPassword(email, oldPassword)
         return validation
 
     def getPhoneNumberByUID(self, reqID):
@@ -227,22 +227,39 @@ class UsersHandler:
             data = jwt.decode(token, SECRET_KEY)
             email = data['Email']
         except:
-            return jsonify(), 404
+            return jsonify(Error="Malformed request."), 404
+
+        if not email:
+            return jsonify("An error has occurred."), 400
+
         uDao = UsersDAO()
-        uDao.confirmAccount(email)
+        uid = uDao.confirmAccount(email)
+        if uid is None:
+            return jsonify("An error has occurred."), 400
         return jsonify("Account was successfully activated.")
 
     def confirmForgotPassword(self, form):
-        email = form['Email']
-        eHand = EmailHandler()
-        # try:
-        eHand.confirmResetPassword(email)
+        try:
+            email = form['Email']
+        except Exception as e:
+            return jsonify("An error has occurred."), 400
+
+        if not email:
+            return jsonify("An error has occurred."), 400
+
+        uid = self.getUserIDByEmail(email)
+
+        if not uid:
+            return jsonify("An error has occurred."), 400
+        try:
+            eHand = EmailHandler()
+            eHand.confirmResetPassword(email)
+        except Exception as e:
+            return jsonify("An error has occurred."), 400
+
         return jsonify("Email has been sent.")
-        # except Exception as e:
-        #     return jsonify("An error has occurred.")
 
     def resetPassword(self, args):
-        # email = form['Email']
         token = args.get('value')
         try:
             data = jwt.decode(token, SECRET_KEY)

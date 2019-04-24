@@ -14,9 +14,7 @@ class AdminHandler:
         password = form['password']
         if email and password:                                              #No null arguments
             confirmation = uHand.getConfirmation(email)
-            if confirmation is False:                                       #User has not confirmed account
-                return -4
-            elif confirmation is None:                                      #User does not exist
+            if confirmation is False or confirmation is None:                                      #User does not exist
                 return -2
 
             attempts = uHand.getLoginAttempts(email)                        #Get current number of attempts
@@ -52,7 +50,7 @@ class AdminHandler:
         try:
             uID = uHandler.insert(form, "Admin")                             #Try to insert a new user with role admin
         except Exception as e:
-            raise e
+            return jsonify(Error="An error has occurred."), 400
         aDao = AdminDAO()
         aID = aDao.getAdminByUID(uID)
         return jsonify("Admin #: " + str(aID) + " was successfully added.")

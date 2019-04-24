@@ -8,16 +8,16 @@ class MaintenanceDAO:
         pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
         self.conn = psycopg2._connect(connection_url)
 
-    def requestMaintenance(self, uid, bid):
+    def requestMaintenance(self, uid, bid, service_list):
         try:
             cursor = self.conn.cursor()
-            query = '''
-            INSERT INTO Maintenance(starttime, status, bid, requestedby) 
-            VALUES (now(), 'PENDING', %s, %s) 
-            returning MID;
-            '''
-            cursor.execute(query, (bid, uid,))
-            mID = cursor.fetchone()[0]
+            for service in service_list:
+                query = '''
+                  INSERT INTO Maintenance(starttime, status, bid, requestedby, service) 
+                  VALUES (now(), 'PENDING', %s, %s, %s) 
+                  returning MID;
+                  '''
+                cursor.execute(query, (bid, uid, service,))
 
             query = '''
             Update Bike set bikestatus = 'MAINTENANCE' 
@@ -26,7 +26,6 @@ class MaintenanceDAO:
             cursor.execute(query, (bid,))
 
             self.conn.commit()
-            return mID
         except Exception as e:
             self.conn.rollback()
             raise e
@@ -52,28 +51,37 @@ class MaintenanceDAO:
             result.append(row)
         return result
 
-    def provideMaintenance(self, wid, mID, notes, service, role):
+    def provideMaintenance(self, wid, mID, notes, role):
         try:
             cursor = self.conn.cursor()
             query = '''
-            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s, Service = %s
+            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s,
             Where mID = %s and Status = 'PENDING'
             Returning BID
             '''
-            cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
-            bid = cursor.fetchone()[0]
-            if role == 'Worker':
-                query = '''
-                        Update Bike set bikestatus = 'AVAILABLE' 
-                        Where BID = %s  
-                        '''
-            elif role == 'Client':
-                query = '''
-                        Update Bike set bikestatus = 'RENTED' 
-                        Where BID = %s  
-                        '''
-            cursor.execute(query, (bid,))
-            self.conn.commit()
+            cursor.execute(query, (wid, notes, 'FINISHED', mID))
+            expected_bid = cursor.fetchone()
+            if expected_bid is None:
+                return expected_bid
+
+            bid = expected_bid[0]
+
+            size = len(self.getRequestByBID(bid))
+
+            if size == 0:
+                if role == 'Worker':
+                    query = '''
+                          Update Bike set bikestatus = 'AVAILABLE' 
+                          Where BID = %s  
+                          '''
+                elif role == 'Client':
+                    query = '''
+                          Update Bike set bikestatus = 'RENTED' 
+                          Where BID = %s  
+                          '''
+                cursor.execute(query, (bid,))
+                self.conn.commit()
+            return size
         except Exception as e:
             self.conn.rollback()
             raise e
@@ -100,16 +108,15 @@ class MaintenanceDAO:
 
     def getRequestByBID(self, bid):
         cursor = self.conn.cursor()
-        query = '''SELECT MID 
+        query = '''SELECT Service
                    FROM Maintenance NATURAL INNER JOIN Bike 
                    Where BID = %s AND EndTime IS NULL
                 '''
         cursor.execute(query, str(bid))
-        result = cursor.fetchone()
-        if result is None:
-            return result
-        mID = result[0]
-        return mID
+        service_list = []
+        for row in cursor:
+            service_list.append(row)
+        return service_list
 
     def getRequestByMID(self, mid):
         cursor = self.conn.cursor()

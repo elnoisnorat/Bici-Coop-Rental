@@ -148,9 +148,15 @@ class RentalHandler:
         bStatus = bHand.getStatusByID(bid)
         print(bStatus)
         if bStatus == 'AVAILABLE':
-            bHand.updateStatusIsAvailable(bid, wID, rid)
+            try:
+                bHand.updateStatusIsAvailable(bid, wID, rid)
+            except Exception as e:
+                return jsonify(Error="An error has occurred.")
         elif bStatus == 'RESERVED':
-            bHand.updateStatusIsReserved(bid, wID, rid)
+            try:
+                bHand.updateStatusIsReserved(bid, wID, rid)
+            except Exception as e:
+                return jsonify(Error="An error has occurred.")
         else:
             return jsonify(Error="Bicycle is not in a condition to be rented.")
 

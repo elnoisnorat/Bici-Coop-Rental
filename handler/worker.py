@@ -94,9 +94,7 @@ class WorkerHandler:
 
         if email and password:                                                      #No null arguments
             confirmation = uHand.getConfirmation(email)
-            if confirmation is False:
-                return -4                                                             #User has not confirmed account
-            elif confirmation is None:
+            if confirmation is False or confirmation is None:
                 return -2
             elif confirmation is True:
                 attempts = uHand.getLoginAttempts(email)                                #Get current number of attempts
