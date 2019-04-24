@@ -418,6 +418,7 @@ def newConfirmation():
 def requestRentalMaintenance():
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
     return MaintenanceHandler().requestMaintenance(request.json)
 
 #####################################################ADMIN&WORKER#######################################################

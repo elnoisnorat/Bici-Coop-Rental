@@ -96,6 +96,7 @@ class MaintenanceHandler:
 
         try:
             mDao.requestMaintenance(uid, bid, filteredArgs)  # Insert #1
+            return jsonify("Maintenance request was successfully created.")
         except Exception as e:
             return jsonify("An error has occurred."), 400
 
