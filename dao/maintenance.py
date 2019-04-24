@@ -84,7 +84,7 @@ class MaintenanceDAO:
                           Where BID = %s  
                           '''
                 cursor.execute(query, (bid,))
-                self.conn.commit()
+            self.conn.commit()
             return size
         except Exception as e:
             self.conn.rollback()
