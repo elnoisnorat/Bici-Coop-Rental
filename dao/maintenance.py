@@ -138,6 +138,6 @@ class MaintenanceDAO:
                    FROM Maintenance
                    Where MID = %s
                 '''
-        cursor.execute(query, mid)
+        cursor.execute(query, (mid,))
         result = cursor.fetchone()[0]
         return result
