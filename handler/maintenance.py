@@ -33,6 +33,7 @@ class MaintenanceHandler:
         result['Bicycle ID'] = row[3]
         result['Plate'] = row[4]
         result['Bicycle Status'] = row[5]
+        result['Service'] = row[6]
         return result
 
     def requestMaintenance(self, form):
