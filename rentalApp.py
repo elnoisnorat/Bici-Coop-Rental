@@ -132,7 +132,7 @@ def checkOut():
     Route used to receive the list of pending maintenance requests for the bicycles in the system.
 '''
 @app.route('/getMaintenance', methods=["GET"])                                                  #6
-@isWorker
+#@isWorker
 def bicycleDetails():
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
@@ -456,10 +456,17 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    array = [5, 4, 3]
+    array = {"test": "test123", "test2": "test234"}
+    array2 = {"test": "test"}
     dict = {}
     dict["Array"] = array
-    return jsonify(dict)
+    dict["Array2"] = array2
+    test = jsonify(dict)
+    testArray = test.json
+    for row in testArray["Array"]:
+        print(testArray["Array"][row])
+    return jsonify("DONE")
+
 
 '''
     Route used to logout a user.

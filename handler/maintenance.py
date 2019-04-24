@@ -143,15 +143,15 @@ class MaintenanceHandler:
 
     def getMaintenance(self, form):
         mDao = MaintenanceDAO()
-        row = mDao.getMaintenance()
-        if not row:
+        maintenance_list = mDao.getMaintenance()
+        if not maintenance_list:
             return jsonify("There are no maintenance requests at this time.")
 
         result_list = []
-        for row in row:
+        for row in maintenance_list:
             result = self.build_getMaintenance_dict(row)
             result_list.append(result)
-        return jsonify(Details=result)
+        return jsonify(Details=result_list)
 
     def provideMaintenance(self, form):
         try:
