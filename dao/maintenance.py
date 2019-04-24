@@ -60,10 +60,10 @@ class MaintenanceDAO:
             cursor = self.conn.cursor()
             query = '''
             update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s,
-            Where mID = %s and Status = 'PENDING'
+            Where mID = %s and Status = %s
             Returning BID
             '''
-            cursor.execute(query, (wid, notes, 'FINISHED', mID))
+            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
             expected_bid = cursor.fetchone()
             if expected_bid is None:
                 return expected_bid
