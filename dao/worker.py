@@ -118,10 +118,15 @@ class WorkerDAO:
 
     def getWIDByEmail(self, email):
         cursor = self.conn.cursor()
-        query = '''SELECT WID FROM Worker NATURAL INNER JOIN Users'''
-        cursor.execute(query)
-        wid = cursor.fetchone()[0]
-        return wid
+        query = '''SELECT WID 
+                    FROM Worker NATURAL INNER JOIN Users
+                    Where email = %s
+                    '''
+        cursor.execute(query, email,)
+        row = cursor.fetchone()
+        if row is None:
+            return row
+        return row[0]
 
 
 

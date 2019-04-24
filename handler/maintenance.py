@@ -156,11 +156,12 @@ class MaintenanceHandler:
     def provideMaintenance(self, form):
         try:
             notes = form['Notes']
-            wid = form['wID']
+            email = form['Email']
             mid = form['mID']
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-
+        wHand = WorkerHandler()
+        wid = wHand.getWIDByEmail(email)
         if wid and mid:
             mDao = MaintenanceDAO()
             wHand = WorkerHandler()

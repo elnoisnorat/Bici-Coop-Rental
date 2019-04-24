@@ -143,6 +143,11 @@ class WorkerHandler:
         result = wDao.getWorkerByUID(reqID)
         return result
 
+    def getWIDByEmail(self, email):
+        wDao = WorkerDAO()
+        result = wDao.getWIDByEmail(email)
+        return result
+
 
 
 
