@@ -96,7 +96,7 @@ class MaintenanceHandler:
             pass
 
         if len(filteredArgs) == 0:
-            return jsonify(Error="An error has occurred. Please check the submitted arguments."), 400
+            return jsonify(Error="Services have already been requested."), 400
 
         try:
             mDao.requestMaintenance(uid, bid, filteredArgs)  # Insert #1
