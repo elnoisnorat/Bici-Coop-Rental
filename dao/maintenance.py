@@ -59,7 +59,7 @@ class MaintenanceDAO:
         try:
             cursor = self.conn.cursor()
             query = '''
-            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s,
+            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
             Where mID = %s and Status = %s
             Returning BID
             '''
