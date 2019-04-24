@@ -119,7 +119,7 @@ class MaintenanceDAO:
         cursor.execute(query, str(bid))
         service_list = []
         for row in cursor:
-            service_list.append(row)
+            service_list.append(row[0])
         return service_list
 
     def getRequestByMID(self, mid):
