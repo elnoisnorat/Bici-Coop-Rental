@@ -81,6 +81,7 @@ class MaintenanceHandler:
             service_list = form["Services"]
             filteredArgs = []
             active_service_list = mDao.getRequestByBID(bid)
+            print(active_service_list)
             for service in service_list:  # Filter arguments received using a dictionary
                 if service and service in self.valid_services and service not in active_service_list:
                     filteredArgs.append(service)
@@ -89,7 +90,7 @@ class MaintenanceHandler:
 
         try:
             other = form['Other']
-            if other:
+            if other and other not in active_service_list:
                 filteredArgs.append(other)
         except Exception as e:
             pass
