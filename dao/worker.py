@@ -122,7 +122,7 @@ class WorkerDAO:
                     FROM Worker NATURAL INNER JOIN Users
                     Where email = %s
                     '''
-        cursor.execute(query, email,)
+        cursor.execute(query, email)
         row = cursor.fetchone()
         if row is None:
             return row
