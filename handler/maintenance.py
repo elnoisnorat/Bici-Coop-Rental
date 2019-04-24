@@ -181,7 +181,7 @@ class MaintenanceHandler:
 
             try:
                 check = mDao.provideMaintenance(wid, mid, notes, role)
-                if not check:
+                if check is None:
                     return jsonify(Error="An error has occurred."), 403
                 elif check > 0:
                     return jsonify("Maintenance has been completed.")
