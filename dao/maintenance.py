@@ -44,7 +44,7 @@ class MaintenanceDAO:
 
     def getMaintenance(self):
         cursor = self.conn.cursor()
-        query = '''SELECT MID, starttime, Status, bid, lp, bikestatus, service
+        query = '''SELECT MID, starttime, Status, bid, lp, bikestatus, service, brand, model
                     FROM Maintenance Natural Inner join Bike 
                     Where endtime is Null
                     Order by starttime

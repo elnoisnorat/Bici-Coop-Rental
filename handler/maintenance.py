@@ -34,6 +34,8 @@ class MaintenanceHandler:
         result['Plate'] = row[4]
         result['Bicycle Status'] = row[5]
         result['Service'] = row[6]
+        result['Brand'] = row[7]
+        result['Model'] = row[8]
         return result
 
     def requestMaintenance(self, form):
