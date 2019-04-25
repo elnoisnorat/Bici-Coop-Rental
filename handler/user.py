@@ -127,15 +127,18 @@ class UsersHandler:
     def updatePNumber(self, form):
         uDao = UsersDAO()
         email = current_user.email
-        pNumber = form['PNumber']
+        try:
+            pNumber = form['PNumber']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. please verify the submitted arguments.")
 
         if not uDao.getUserByEmail(email):
-            return jsonify(Error="User not found."), 400
+            return jsonify(Error="An error has occurred."), 400
 
         if pNumber:
             uDao.updatePNumber(email, pNumber)
         else:
-            return jsonify(Error="No attributes in update request"), 400
+            return jsonify(Error="An error has occurred. please verify the submitted arguments."), 400
 
         row = uDao.getUserByEmail(email)
         result = self.build_user_dict(row)

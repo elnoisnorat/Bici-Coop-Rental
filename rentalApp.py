@@ -37,13 +37,14 @@ def load_user(id):
     user = User(info, role)
     return user
 
-'''
-    Route that returns the current user's name.
-    Used for testing.
-'''
 @app.route('/currentUser')
 @login_required
-def hello_world():
+def currentUser():
+    '''
+    Route that returns the current user's name.
+    Used for testing.
+    :return:
+    '''
     return 'Your name is ' + current_user.name
 
 @app.route('/home')
@@ -456,16 +457,11 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    array = {"test": "test123", "test2": "test234"}
-    array2 = {"test": "test"}
-    dict = {}
-    dict["Array"] = array
-    dict["Array2"] = array2
-    test = jsonify(dict)
-    testArray = test.json
-    for row in testArray["Array"]:
-        print(testArray["Array"][row])
-    return jsonify("DONE")
+    pnumber = request.json['PNumber']
+    size = len(pnumber)
+    if size >= 10 and size <= 12 and pnumber.isnumeric():
+        return "Success"
+    return "DONE"
 
 
 '''

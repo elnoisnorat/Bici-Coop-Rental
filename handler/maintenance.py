@@ -104,46 +104,6 @@ class MaintenanceHandler:
         except Exception as e:
             return jsonify("An error has occurred."), 400
 
-
-    '''
-    def requestMaintenance(self, form):
-        mDao = MaintenanceDAO()
-        uHand = UsersHandler()
-        rHand = RentalHandler()
-
-        if current_user.role == 'Client':
-            cid = current_user.roleID
-            try:
-                plate = form['lp']
-            except:
-                return jsonify(Error='No plate given.')
-            uid = uHand.getUserWithCID(cid)
-            bid = rHand.getBIDByCIDAndPlate(cid, plate)
-            if not bid:
-                return jsonify("You have no current rental with the bicycle provided.")
-
-
-        elif current_user.role == 'Worker':
-            bHand = BicycleHandler()
-            wid = current_user.roleID
-            rfid = form['rfid']
-            uid = uHand.getUserIDByEmail(current_user.email)
-            bid = bHand.getBIDByRFID(rfid)
-            if not bid:
-                return jsonify("The bicycle is not registered in the inventory.")
-        print(bid)
-        noRep = mDao.getRequestByBID(bid)
-
-        if noRep:
-            return jsonify(Error="Bicycle already has a maintenance request.")
-        try:
-            mID = mDao.requestMaintenance(uid, bid)                                  #Insert #1
-        except Exception as e:
-            raise e
-
-        return jsonify("Maintenance request #" + str(mID) + " has been created.")
-    '''
-
     def getMaintenance(self, form):
         mDao = MaintenanceDAO()
         maintenance_list = mDao.getMaintenance()

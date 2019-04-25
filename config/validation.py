@@ -122,7 +122,7 @@ def validPhoneNumber(f):
         pnumber = request.json['PNumber']
         size = len(pnumber)
         if size >= 10 and size <= 12 and pnumber.isnumeric():
-                pass
+            valid = True
         else:
             return jsonify(Error="Phone number does not meet our standards."), 400
         return f(*args, **kwargs)
@@ -138,7 +138,7 @@ def validUpdatePhoneNumber(f):
             if oldPNumber != newPNumber:
                 size = len(newPNumber)
                 if size >= 10 and size <= 12 and newPNumber.isnumeric():
-                    pass
+                    valid = True
                 else:
                     return jsonify(Error="Phone number does not meet our standards."), 400
             else:
