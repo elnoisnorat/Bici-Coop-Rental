@@ -133,7 +133,7 @@ def validUpdatePhoneNumber(f):
     def decorated(*args, **kwargs):
         try:
             oldPNumber = current_user.pNumber
-            newPNumber = request.json['newPNumber']
+            newPNumber = request.json['PNumber']
 
             if oldPNumber != newPNumber:
                 size = len(newPNumber)
