@@ -45,8 +45,7 @@ class EmailHandler():
         link = AWS_LINK + "/forgotPassword?value=" + str(content[2:len(content)-1])
         msg = Message('Password Recovery Confirmation', recipients=[email])
         msg.body = '''
-        Please click <a href="''' + link + '''"> here</a> to reset your password. If you did not issue this request, please ignore this message.
-        '''
+        Please click <a href="''' + link + '''"> here</a> to reset your password.'''
 
         try:
             mail.send(msg)
