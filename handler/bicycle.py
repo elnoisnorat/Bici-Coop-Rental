@@ -148,3 +148,8 @@ class BicycleHandler():
         bDao = BicycleDAO()
         bid = bDao.getBIDByPlate(plate)
         return bid
+
+    def swapStatusIsAvailable(self, oldValid, newValid, rid):
+        bDao = BicycleDAO()
+        bid = bDao.swapStatusIsAvailable(oldValid, newValid, rid)
+        return bid

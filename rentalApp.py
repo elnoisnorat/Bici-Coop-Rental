@@ -149,6 +149,13 @@ def provideMaintenance():
         return jsonify(Error="An error has occurred."), 400
     return MaintenanceHandler().provideMaintenance(request.json)
 
+@app.route('/swapBicycle', methods=["PUT"])
+@isWorker
+def swapBicycle():
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+    return RentalHandler().swapBicycle(request.json)
+
 ##########################################################Admin#########################################################
 '''
     Route used for the login of an administrator.

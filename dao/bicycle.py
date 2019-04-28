@@ -214,8 +214,10 @@ class BicycleDAO:
                     Where RFID = %s and bikestatus != %s
                 '''
         cur.execute(query, (rfid, 'DECOMMISSIONED'))
-        bid = cur.fetchone()[0]
-        return bid
+        result = cur.fetchone()
+        if result is None:
+            return result
+        return result[0]
 
     def getAvailableBicycleCount(self):
         cur = self.conn.cursor()
@@ -283,3 +285,29 @@ class BicycleDAO:
             return row
         bid = row[0]
         return bid
+
+    def swapStatusIsAvailable(self, oldValid, newValid, rid):
+        try:
+            cur = self.conn.cursor()
+            query = '''
+                    Update Bike set bikestatus = %s Where bid = %s 
+                '''
+            cur.execute(query, (status, bid,))
+
+            query = '''
+                    UPDATE Bike set bikestatus = 'AVAILABLE' 
+                    where bid = (SELECT BID from bike 
+                                  where bikestatus= 'RESERVED' LIMIT 1);
+                '''
+            cur.execute(query)
+
+            query = '''
+                    Update Rental 
+                    set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE 
+                    Where RID = %s
+                     '''
+            cur.execute(query, (wid, bid, rid,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e

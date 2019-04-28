@@ -239,7 +239,7 @@ class UsersHandler:
         uid = uDao.confirmAccount(email)
         if uid is None:
             return jsonify("An error has occurred."), 400
-        return jsonify("Account was successfully activated.")
+        return jsonify("Account was successfully confirmed.")
 
     def confirmForgotPassword(self, form):
         try:
@@ -260,7 +260,7 @@ class UsersHandler:
         except Exception as e:
             return jsonify("An error has occurred."), 400
 
-        return jsonify("Email has been sent.")
+        return jsonify("An email has been sent to the provided address.")
 
     def resetPassword(self, args):
         token = args.get('value')
@@ -268,11 +268,11 @@ class UsersHandler:
             data = jwt.decode(token, SECRET_KEY)
             email = data['Email']
         except:
-            return jsonify(), 404
+            return jsonify(Error="An error has occurred."), 404
 
         uDao = UsersDAO()
         if not uDao.getUserByEmail(email):
-            return jsonify(Error="User does not exist."), 400
+            return jsonify(Error="An error has occurred."), 400
         else:
             valid = True
             while valid:
@@ -286,37 +286,25 @@ class UsersHandler:
             print(password)
             try:
                 uDao.updateForgottenPassword(email, password)
-                return jsonify("Email has been sent.")
+                return jsonify("An email has been sent to the provided address.")
             except Exception as e:
                 return jsonify("An error has occurred.")
-
-            #EmailHandler().resetPassword(email, password)
-            return jsonify("Email has been sent.")
 
     def newConfirmation(self, form):
         uHand = UsersHandler()
         email = form['Email']
         if not email:
-            return jsonify(Error="Malformed request."), 401
+            return jsonify(Error="An error has occurred."), 401
 
         confirmation = uHand.getConfirmation(email)
         if confirmation is True:
-            return jsonify(Error="Account is already confirmed."), 401
+            return jsonify(Error="An error has occured."), 401
         elif confirmation is None:
-            return jsonify(Error="Invalid email.")
+            return jsonify(Error="An error has occurred."), 403
         else:
             eHand = EmailHandler()
             try:
                 eHand.confirmationEmail(email)
-                return jsonify("Email has been sent.")
+                return jsonify("An email has been sent to the provided address.")
             except Exception as e:
                 return jsonify(Error="An error has occurred.")
-
-
-
-
-
-
-
-
-

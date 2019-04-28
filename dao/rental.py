@@ -161,3 +161,15 @@ class RentalDAO:
 
         return result
 
+    def get_rental_by_rid_and_rfid(self, rid, oldRFID):
+        cursor = self.conn.cursor()
+        query = '''
+                    Select BID
+                    From Rental NATURAL INNER JOIN Bike
+                    Where RID = %s and RFID = %s
+                '''
+        cursor.execute(query, (rid, oldRFID,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]

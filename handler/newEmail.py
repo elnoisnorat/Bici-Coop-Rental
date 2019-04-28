@@ -4,7 +4,7 @@ import jwt
 # from flask import current_app as app
 from app import app
 from flask_mail import Mail, Message
-from config.account import EMAIL, PASSWORD
+from config.account import EMAIL, PASSWORD, AWS_LINK
 from config.encryption import SECRET_KEY
 
 app.config['DEBUG']= True
@@ -20,19 +20,20 @@ app.config['MAIL_DEFAULT_SENDER']= EMAIL
 app.config['MAIL_MAX_EMAIL']= 2
 app.config['MAIL_SUPRESS_SEND']= False
 app.config['MAIL_ASCII_ATTACHMENTS']= False
+web_link = AWS_LINK
 
 mail = Mail(app)
 class EmailHandler():
     def confirmationEmail(self, email):
         token = jwt.encode({'Email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)}, SECRET_KEY)
         content = str(token)
-        link = str(content[2:len(content)-1])
+        link = AWS_LINK + "/confirm?value=" +str(content[2:len(content)-1])
         msg = Message('Account Confirmation', recipients=[email, EMAIL])
-        body = '''Please click localhost:5000/confirm?value=''' + link + ''' email to confirm your account.'''
+        body = '''Please click <a href="''' + link + '''"> here</a> to confirm your account.'''
         msg.html = body
         try:
             mail.send(msg)
-            return "Confirmation email has been sent to the provided email."
+            return "Confirmation email has been sent to the provided email. Please confirm your email within 24 hours."
         except Exception as e:
             raise e
 
@@ -41,16 +42,15 @@ class EmailHandler():
         print(email)
         print(token)
         content = str(token)
-        link = str(content[2:len(content)-1])
-        '''A request for a new password has been made for this account. 
-            Click to receive a new password. If you did not issue this request please ignore this message.
+        link = AWS_LINK + "/forgotPassword?value=" + str(content[2:len(content)-1])
+        msg = Message('Password Recovery Confirmation', recipients=[email])
+        msg.body = '''A request for a new password has been made for this account. 
+            Click <a href="''' + link + '''"> here</a> to receive a new password. 
+            If you did not issue this request, please ignore this message.
         '''
-        msg = Message('Password Recovery', recipients=[email])
-        msg.body = "localhost:5000/forgotPassword?value=" + link
 
         try:
             mail.send(msg)
-            return "TEST COMPLETED"
         except Exception as e:
             raise e
 

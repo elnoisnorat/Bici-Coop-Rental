@@ -116,7 +116,7 @@ class MaintenanceDAO:
                    FROM Maintenance NATURAL INNER JOIN Bike 
                    Where BID = %s AND EndTime IS NULL
                 '''
-        cursor.execute(query, str(bid))
+        cursor.execute(query, (str(bid),))
         service_list = []
         for row in cursor:
             service_list.append(row[0])
