@@ -26,7 +26,6 @@ class RentalDAO:
 
         self.conn.commit()
         return rID
-        #return 1
 
     def getRentalByCID(self, cID): #ReceivedBy typo
         cursor = self.conn.cursor()
@@ -66,8 +65,9 @@ class RentalDAO:
         cursor.execute(query, (cID,))
 
         bid = cursor.fetchone()
-
-        return bid
+        if bid is None:
+            return bid
+        return bid[0]
 
     def getRIDByBID(self, bid):
         cursor = self.conn.cursor()
@@ -78,7 +78,9 @@ class RentalDAO:
                 '''
         cursor.execute(query, (bid,))
         rid = cursor.fetchone()
-        return rid
+        if rid is None:
+            return rid
+        return rid[0]
 
     def checkIn(self, wID, rid):
         debt = False
@@ -143,9 +145,7 @@ class RentalDAO:
         result = cursor.fetchone()
         if result is None:
             return result
-        bid = result[0]
-
-        return bid
+        return result[0]
 
     def getNewRentals(self, tid):
         cursor = self.conn.cursor()

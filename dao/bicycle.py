@@ -94,7 +94,9 @@ class BicycleDAO:
                 '''
         cur.execute(query, (bid,))
         plate = cur.fetchone()
-        return plate
+        if plate is None:
+            return plate
+        return plate[0]
 
     def getRFIDByID(self, bid):
         cur = self.conn.cursor()
@@ -104,8 +106,10 @@ class BicycleDAO:
                     Where bid = %s and bikestatus != %s
                 '''
         cur.execute(query, (bid, 'DECOMMISSIONED'))
-        rfid = cur.fetchone()[0]
-        return rfid
+        rfid = cur.fetchone()
+        if rfid is None:
+            return rfid
+        return rfid[0]
 
     def getStatusByID(self, bid):
         cur = self.conn.cursor()
@@ -115,8 +119,10 @@ class BicycleDAO:
                     Where bid = %s
                 '''
         cur.execute(query, (bid,))
-        status = cur.fetchone()[0]
-        return status
+        status = cur.fetchone()
+        if status is None:
+            return status
+        return status[0]
 
     def getModelByID(self, bid):
         cur = self.conn.cursor()
@@ -127,7 +133,9 @@ class BicycleDAO:
                 '''
         cur.execute(query, (bid,))
         model = cur.fetchone()
-        return model
+        if model is None:
+            return model
+        return model[0]
 
     def getBrandByID(self, bid):
         cur = self.conn.cursor()
@@ -138,7 +146,9 @@ class BicycleDAO:
                 '''
         cur.execute(query, (bid,))
         brand = cur.fetchone()
-        return brand
+        if brand is None:
+            return brand
+        return brand[0]
 
     def insert(self, plate, rfid, model, brand, snumber):
         cur = self.conn.cursor()
@@ -147,9 +157,11 @@ class BicycleDAO:
                     values (%s, %s, %s, %s, %s, %s) returning bid
                 '''
         cur.execute(query, (plate, rfid, 'AVAILABLE', model, brand, snumber,))
-        bID = cur.fetchone()[0]
+        bID = cur.fetchone()
         self.conn.commit()
-        return bID
+        if bID is None:
+            return bID
+        return bID[0]
 
     def updateBicycle(self, form, bid):
         argument = ""
@@ -227,8 +239,10 @@ class BicycleDAO:
                     Where bikestatus = %s
                 '''
         cur.execute(query, ('AVAILABLE',))
-        count = cur.fetchone()[0]
-        return count
+        count = cur.fetchone()
+        if count is None:
+            return count
+        return count[0]
 
     def updateStatusCheckOut(self, bid, status, wid, rid):
         try:
@@ -283,8 +297,7 @@ class BicycleDAO:
         row = cur.fetchone()
         if row is None:
             return row
-        bid = row[0]
-        return bid
+        return row[0]
 
     def swapStatusIsAvailable(self, oldValid, newValid, rid):
         try:

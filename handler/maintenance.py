@@ -130,6 +130,8 @@ class MaintenanceHandler:
             wHand = WorkerHandler()
             cHand = ClientHandler()
             reqID = mDao.getRequestedByWithMID(mid)
+            if reqID is None:
+                return jsonify(Error="An error has occurred."), 400
 
             if wHand.getWorkerByUID(reqID):
                 role = 'Worker'

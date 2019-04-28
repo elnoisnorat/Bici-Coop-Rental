@@ -22,10 +22,7 @@ class ClientDAO:
         row = cur.fetchone()
         if row is None:
             return row
-
-        else:
-            cID = row[0]
-        return cID
+        return row[0]
 
     def insert(self, uID):
         cursor = self.conn.cursor()
@@ -33,7 +30,9 @@ class ClientDAO:
         cursor.execute(query, (uID,))
         cID = cursor.fetchone()
         self.conn.commit()
-        return cID
+        if cID is None:
+            return cID
+        return cID[0]
 
     def getClientByUID(self, uid):
         cursor = self.conn.cursor()
@@ -43,8 +42,8 @@ class ClientDAO:
             Where UID = %s
         '''
         cursor.execute(query, (uid,))
-        uID = cursor.fetchone()
-        return uID
+        result = cursor.fetchone()
+        return result
 
     def getClientByArguments(self, form):
         argument = ""
@@ -124,8 +123,7 @@ class ClientDAO:
         result = cursor.fetchone()
         if result is None:
             return result
-        uID = result[0]
-        return uID
+        return result[0]
 
 
 

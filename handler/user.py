@@ -117,11 +117,9 @@ class UsersHandler:
         if not uDao.getUserByEmail(email):
             return jsonify(Error="User not found."), 404
         else:
-            if password:
-                uDao.updatePassword(email, password)
-                return jsonify("Password has been updated")
-            else:
-                return jsonify(Error="No attributes in update request"), 400
+            uDao.updatePassword(email, password)
+            return jsonify("Password has been updated")
+
 
 
     def updatePNumber(self, form):
@@ -135,10 +133,7 @@ class UsersHandler:
         if not uDao.getUserByEmail(email):
             return jsonify(Error="An error has occurred."), 400
 
-        if pNumber:
-            uDao.updatePNumber(email, pNumber)
-        else:
-            return jsonify(Error="An error has occurred. please verify the submitted arguments."), 400
+        uDao.updatePNumber(email, pNumber)
 
         row = uDao.getUserByEmail(email)
         result = self.build_user_dict(row)

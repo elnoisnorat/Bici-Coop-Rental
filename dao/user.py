@@ -21,8 +21,7 @@ class UsersDAO:
             cursor.execute(query,
                        (FName, LName, password, PNumber, Email, False, datetime.datetime.now(), 0))
             uID = cursor.fetchone()[0]
-            # self.conn.commit()
-            # return uID
+
             if Role == "Client":
                 query = "insert into Client(UID, debtorflag) values (%s, FALSE)"
 
@@ -73,32 +72,24 @@ class UsersDAO:
             Where Email = %s
         '''
         cursor.execute(query, (fName, lName, email,))
-        result = cursor.fetchone()
-        return result
 
     def updatePassword(self, email, password):
         cursor = self.conn.cursor()
         query = '''
             update Users set password = crypt(%s,  gen_salt('bf'))
             Where Email = %s
-            returning UID
         '''
         cursor.execute(query, (password, email,))
-        result = cursor.fetchone()[0]
         self.conn.commit()
-        return result
 
     def updatePNumber(self, email, pNumber):
         cursor = self.conn.cursor()
         query = '''
             update Users set PNumber = %s
             Where Email = %s
-            returning Email
         '''
         cursor.execute(query, (pNumber, email,))
-        result = cursor.fetchone()[0]
         self.conn.commit()
-        return result
 
     def getUserWithCID(self, cid):
         cursor = self.conn.cursor()
@@ -122,8 +113,7 @@ class UsersDAO:
         result = cursor.fetchone()
         if result is None:
             return result
-        uid = result[0]
-        return uid
+        return result[0]
 
     def getUserWithWID(self, wid):
         cursor = self.conn.cursor()
@@ -236,8 +226,7 @@ class UsersDAO:
         result = cursor.fetchone()
         if result is None:
             return result
-        confirmation = result[0]
-        return confirmation
+        return result[0]
 
     def getUserInfo(self, email, Role):
         cursor = self.conn.cursor()

@@ -87,7 +87,6 @@ def validUpdatePassword(f):
         try:
             email = current_user.email
             uHand = UsersHandler()
-            uid = uHand.getUserIDByEmail(email)
             password_list = []
             oldPassword = request.json['oldPassword']
             if not uHand.checkCurrentPassword(email, oldPassword):
@@ -95,6 +94,9 @@ def validUpdatePassword(f):
 
             newPassword = request.json['newPassword']
             confirmPassword = request.json['confirmPassword']
+            if newPassword is None or confirmPassword is None:
+                return jsonify(Error="Incorrect arguments."), 400
+
             if oldPassword != newPassword and newPassword == confirmPassword:
                 password_list.append(oldPassword)
                 password_list.append(newPassword)
@@ -134,6 +136,9 @@ def validUpdatePhoneNumber(f):
         try:
             oldPNumber = current_user.pNumber
             newPNumber = request.json['PNumber']
+
+            if newPNumber is None:
+                return jsonify(Error="Incorrect arguments."), 400
 
             if oldPNumber != newPNumber:
                 size = len(newPNumber)

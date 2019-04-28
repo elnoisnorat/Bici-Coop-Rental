@@ -55,7 +55,7 @@ class TransactionDAO:
               UPDATE bike SET bikestatus = 'RESERVED' 
               WHERE BID in (SELECT bid from bike 
                             where bikestatus = 'AVAILABLE' limit %s) 
-                            returning bid;bike
+                            returning bid
                     '''
             cursor.execute(query, (amount,))
 
@@ -64,7 +64,7 @@ class TransactionDAO:
             query = '''
                 INSERT INTO transactions(stamp, token, cid, status, cost) 
                 VALUES (now(), %s, %s, 'COMPLETED', %s) 
-                returning TID;
+                returning TID
             '''
             cursor.execute(query, (token, cid, cost))
             tID = cursor.fetchone()[0]

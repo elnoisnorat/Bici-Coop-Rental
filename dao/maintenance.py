@@ -90,25 +90,25 @@ class MaintenanceDAO:
             self.conn.rollback()
             raise e
 
-    def provideMaintenanceReturningPNumber(self, wid, mID, notes, service):
-        try:
-            cursor = self.conn.cursor()
-            query = '''
-            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s, Service = %s
-            Where mID = %s and Status = 'PENDING'
-            Returning BID
-            '''
-            cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
-            bid = cursor.fetchone()[0]
-            query = '''
-                        Update Bike set bikestatus = 'RENTED' 
-                        Where BID = %s  
-                        '''
-            cursor.execute(query, (bid,))
-            self.conn.commit()
-        except Exception as e:
-            self.conn.rollback()
-            raise e
+    # def provideMaintenanceReturningPNumber(self, wid, mID, notes, service):
+    #     try:
+    #         cursor = self.conn.cursor()
+    #         query = '''
+    #         update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s, Service = %s
+    #         Where mID = %s and Status = 'PENDING'
+    #         Returning BID
+    #         '''
+    #         cursor.execute(query, (wid, notes, 'FINISHED', service, mID))
+    #         bid = cursor.fetchone()[0]
+    #         query = '''
+    #                     Update Bike set bikestatus = 'RENTED'
+    #                     Where BID = %s
+    #                     '''
+    #         cursor.execute(query, (bid,))
+    #         self.conn.commit()
+    #     except Exception as e:
+    #         self.conn.rollback()
+    #         raise e
 
     def getRequestByBID(self, bid):
         cursor = self.conn.cursor()
@@ -139,5 +139,7 @@ class MaintenanceDAO:
                    Where MID = %s
                 '''
         cursor.execute(query, (mid,))
-        result = cursor.fetchone()[0]
-        return result
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]

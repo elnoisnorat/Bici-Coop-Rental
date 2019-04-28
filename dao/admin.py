@@ -36,8 +36,10 @@ class AdminDAO:
         '''
         cur.execute(query, (uid,))
 
-        aID = cur.fetchone()[0]
-        return aID
+        aID = cur.fetchone()
+        if aID is None:
+            return aID
+        return aID[0]
 
 
 

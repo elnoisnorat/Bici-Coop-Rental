@@ -15,9 +15,11 @@ class ServiceMaintenanceDAO:
           values (%s, %s, %s, %s, %s, Null, Queued, %s, Null, Null) returning SMID;
         '''
         cursor.execute(query, (uid, uName, uLName, service, price, notes))
-        mID = cursor.fetchone()[0]
+        mID = cursor.fetchone()
         self.conn.commit()
-        return mID
+        if mID is None:
+            return mID
+        return mID[0]
 
     '''
         SMID SERIAL PRIMARY KEY, 
