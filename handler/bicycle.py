@@ -158,3 +158,8 @@ class BicycleHandler():
         bDao = BicycleDAO()
         bid = bDao.getBIDByRFIDForMaintenance(rfid)
         return bid
+
+    def getBIDByPlateForMaintenance(self, plate):
+        bDao = BicycleDAO()
+        bid = bDao.getBIDByPlateForMaintenance(plate)
+        return bid

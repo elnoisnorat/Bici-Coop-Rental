@@ -72,7 +72,7 @@ class MaintenanceHandler:
                 except Exception as e:
                     return jsonify("An error has occurred. Please verify the submitted arguments."), 400
                 if plate:
-                    bid = bHand.getBIDByPlate(plate)
+                    bid = bHand.getBIDByPlateForMaintenance(plate)
                 else:
                     bid = None
                 if not bid:

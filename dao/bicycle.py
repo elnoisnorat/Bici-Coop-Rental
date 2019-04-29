@@ -337,3 +337,16 @@ class BicycleDAO:
         if result is None:
             return result
         return result[0]
+
+    def getBIDByPlateForMaintenance(self, plate):
+        cur = self.conn.cursor()
+        query = '''
+                                 Select BID
+                                 From Bike
+                                 Where lp = %s and bikestatus = %s and bikestatus = %s
+                             '''
+        cur.execute(query, (plate, 'AVAILABLE', 'MAINTENANCE',))
+        result = cur.fetchone()
+        if result is None:
+            return result
+        return result[0]
