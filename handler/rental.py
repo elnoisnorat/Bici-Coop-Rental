@@ -84,13 +84,7 @@ class RentalHandler:
                 return jsonify(Error="Bicycle was not scanned.")
         else:
             bid = bHand.getBIDByRFID(rfid)
-        '''
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-            wID = data['wID']
-        except:
-            return jsonify("Invalid token at check in")
-        '''
+
         if not bid:
             return jsonify(Error="Bicycle does not exist.")
         rid = rDao.getRIDByBID(bid)
@@ -112,19 +106,16 @@ class RentalHandler:
 
 
     def checkOutBicycle(self, form):
-        rid = form['rid']
-        rfid = form['rfid']
-        #token = form['token']
+        try:
+            rid = form['rid']
+            rfid = form['rfid']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
         wID = current_user.roleID
         if not rfid:
             return jsonify(Error="Bicycle was not scanned.")
-        '''
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-            wID = data['wID']
-        except:
-            return jsonify("Invalid token at check out")
-        '''
+
         rDao = RentalDAO()
         bHand = BicycleHandler()
         bid = bHand.getBIDByRFID(rfid)

@@ -324,3 +324,16 @@ class BicycleDAO:
         except Exception as e:
             self.conn.rollback()
             raise e
+
+    def getBIDByRFIDForMaintenance(self, rfid):
+        cur = self.conn.cursor()
+        query = '''
+                            Select BID
+                            From Bike
+                            Where RFID = %s and bikestatus = %s and bikestatus = %s
+                        '''
+        cur.execute(query, (rfid, 'AVAILABLE', 'MAINTENANCE',))
+        result = cur.fetchone()
+        if result is None:
+            return result
+        return result[0]

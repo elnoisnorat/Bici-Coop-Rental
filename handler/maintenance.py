@@ -62,7 +62,7 @@ class MaintenanceHandler:
             except Exception as e:
                 return jsonify("An error has occurred. Please verify the submitted arguments."), 400
             if rfid:
-                bid = bHand.getBIDByRFID(rfid)
+                bid = bHand.getBIDByRFIDForMaintenance(rfid)
             else:
                 bid = None
 

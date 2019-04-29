@@ -153,3 +153,8 @@ class BicycleHandler():
         bDao = BicycleDAO()
         bid = bDao.swapStatusIsAvailable(oldValid, newValid, rid)
         return bid
+
+    def getBIDByRFIDForMaintenance(self, rfid):
+        bDao = BicycleDAO()
+        bid = bDao.getBIDByRFIDForMaintenance(rfid)
+        return bid
