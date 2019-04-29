@@ -252,7 +252,7 @@ class BicycleDAO:
                 '''
             cur.execute(query, (status, bid,))
             query = '''
-                    Update Rental set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE Where RID = %s
+                    Update Rental set DispatchedBy = %s, BID = %s, STime = now() Where RID = %s
                     '''
             cur.execute(query, (wid, bid, rid,))
             self.conn.commit()
@@ -277,7 +277,7 @@ class BicycleDAO:
 
             query = '''
                     Update Rental 
-                    set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE 
+                    set DispatchedBy = %s, BID = %s, STime = now() 
                     Where RID = %s
                      '''
             cur.execute(query, (wid, bid, rid,))
@@ -316,7 +316,7 @@ class BicycleDAO:
 
             query = '''
                     Update Rental 
-                    set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE 
+                    set DispatchedBy = %s, BID = %s, STime = now() 
                     Where RID = %s
                      '''
             cur.execute(query, (wid, bid, rid,))
@@ -343,7 +343,7 @@ class BicycleDAO:
         query = '''
                                  Select BID
                                  From Bike
-                                 Where lp = %s and bikestatus = %s and bikestatus = %s
+                                 Where lp = %s and (bikestatus = %s or bikestatus = %s)
                              '''
         cur.execute(query, (plate, 'AVAILABLE', 'MAINTENANCE',))
         result = cur.fetchone()
