@@ -20,6 +20,10 @@ class RentalPlanHandler:
         return jsonify(RentalPlan=result_list)
 
     def editPlan(self, json):
+        try:
+            # Json entries
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         rDao = RentalPlanDAO().editPlan()
         return jsonify('Rental Plan update was successful.')

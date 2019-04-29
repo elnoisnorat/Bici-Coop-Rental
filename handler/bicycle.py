@@ -67,11 +67,14 @@ class BicycleHandler():
         return jsonify(Inventory=result_list)
 
     def insert(self, form):
-        plate = form['lp']
-        rfid = form['rfid']
-        model = form['model']
-        brand = form['brand']
-        snumber = form['snumber']
+        try:
+            plate = form['lp']
+            rfid = form['rfid']
+            model = form['model']
+            brand = form['brand']
+            snumber = form['snumber']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         if plate and rfid and model and brand and snumber:
             bDao = BicycleDAO()
@@ -82,7 +85,7 @@ class BicycleHandler():
             except Exception as e:
                 return jsonify(Error="An error has occurred."), 400
         else:
-            return jsonify(Error="Missing attributes of the bicycle."), 401
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
     def getBIDByRFID(self, rfid):
         bDao = BicycleDAO()
@@ -102,8 +105,13 @@ class BicycleHandler():
     #@isDecomissioned
     def update(self, form):
         bDao = BicycleDAO()
+        try:
+            bid = form['bid']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-        bid = form['bid']
+        if not bid:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         filteredArgs = {}
         for arg in form:
@@ -111,22 +119,20 @@ class BicycleHandler():
                 filteredArgs[arg] = form[arg]
 
         if len(filteredArgs) == 0:
-            return jsonify(Error="No values given for update"), 400
-
-        if not bid:
-            return jsonify(Error="No bicycle id given")
+            return jsonify(Error="No values given for update request."), 400
 
         if not bDao.getBikeByID(bid):
-            return jsonify(Error="Bicycle not found in inventory."), 401
+            return jsonify(Error="A bicycle with the given arguments does not exist. "
+                                 "Please verify the submitted arguments."), 400
 
         try:
             bDao.updateBicycle(filteredArgs, bid)                                               #UPDATE #1
         except Exception as e:
-            return jsonify(Error="Invalid arguments.")
+            return jsonify(Error="An error has occurred."), 400
 
         row = bDao.getBikeByID(bid)
         result = self.build_bike_dict(row)
-        return jsonify(Bicycle=result), 200
+        return jsonify(Bicycle=result)
 
     @isDecomissioned
     def updateStatusIsAvailable(self, bid, wid, rid):

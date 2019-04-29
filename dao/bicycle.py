@@ -330,7 +330,7 @@ class BicycleDAO:
         query = '''
                             Select BID
                             From Bike
-                            Where RFID = %s and bikestatus = %s and bikestatus = %s
+                            Where RFID = %s and (bikestatus = %s or bikestatus = %s)
                         '''
         cur.execute(query, (rfid, 'AVAILABLE', 'MAINTENANCE',))
         result = cur.fetchone()

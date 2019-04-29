@@ -40,18 +40,9 @@ class RentalHandler:
         return rDao.rentBicycle(cid, tid)
 
     def getRentalByCID(self, form):
-        #token = form['token']
-
         cHandler = ClientHandler()
         rDao = RentalDAO()
         cID = current_user.roleID
-        '''
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-            cID = data['cID']
-        except:
-            return jsonify(Error="Invalid token.")
-        '''
 
         if not cHandler.getClientByCID(cID):
                return jsonify(Error="Client does not exist."), 401
@@ -71,8 +62,11 @@ class RentalHandler:
         return bid
 
     def checkInBicycle(self, form):
-        rfid = form['rfid']
-        #token = form['token']
+        try:
+            rfid = form['rfid']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
         bHand = BicycleHandler()
         rDao = RentalDAO()
         wID = current_user.roleID
@@ -81,15 +75,16 @@ class RentalHandler:
                 plate = form['lp']
                 bid = bHand.getBIDByPlate(plate)
             except Exception as e:
-                return jsonify(Error="Bicycle was not scanned.")
+                return jsonify(Error="No arguments given to identify the bicycle."), 400
         else:
             bid = bHand.getBIDByRFID(rfid)
 
         if not bid:
-            return jsonify(Error="Bicycle does not exist.")
+            return jsonify(Error="A bicycle with the given arguments does not exist. "
+                                 "Please verify the submitted arguments."), 400
         rid = rDao.getRIDByBID(bid)
         if not rid:
-            return jsonify(Error="Rental does not exist.")
+            return jsonify(Error="There is no current rental for this bicycle."), 400
 
         debt = rDao.checkIn(wID, rid)
 
@@ -114,16 +109,20 @@ class RentalHandler:
 
         wID = current_user.roleID
         if not rfid:
-            return jsonify(Error="Bicycle was not scanned.")
+            return jsonify(Error="Bicycle was not scanned."), 400
 
         rDao = RentalDAO()
         bHand = BicycleHandler()
         bid = bHand.getBIDByRFID(rfid)
         if not bid:
-            return jsonify(Error="Bicycle does not exist.")
+            return jsonify(Error="A bicycle with the given arguments does not exist. "
+                                 "Please verify the submitted arguments."), 400
 
         if not rid:
-            email = form['email']
+            try:
+                email = form['email']
+            except Exception as e:
+                return jsonify(Error="No arguments given to identify the rental."), 400
             if email:
                 uHand = UsersHandler()
                 cHand = ClientHandler()
@@ -131,32 +130,27 @@ class RentalHandler:
                 cID = cHand.getClientByUID(uID)
                 rid = rDao.getRentalByCIDCheckOut(cID)
             else:
-                return jsonify(Error="No valid method to identify ")
+                return jsonify(Error="No arguments given to identify the rental."), 400
 
         if not rid:
-            return jsonify(Error="Rental does not exist.")
-
+            return jsonify(Error="A rental with the given arguments does not exist. "
+                                 "Please verify the submitted arguments."), 400
         bStatus = bHand.getStatusByID(bid)
         print(bStatus)
         if bStatus == 'AVAILABLE':
             try:
                 bHand.updateStatusIsAvailable(bid, wID, rid)
             except Exception as e:
-                return jsonify(Error="An error has occurred.")
+                return jsonify(Error="An error has occurred during bicycle reallocation."), 400
         elif bStatus == 'RESERVED':
             try:
                 bHand.updateStatusIsReserved(bid, wID, rid)
             except Exception as e:
-                return jsonify(Error="An error has occurred.")
+                return jsonify(Error="An error has occurred during bicycle reallocation."), 400
         else:
-            return jsonify(Error="Bicycle is not in a condition to be rented.")
-
-        #rDao.checkOut(wID, bid, rid)
+            return jsonify(Error="Bicycle is not in a condition to be rented."), 400
 
         row = rDao.getRentalByID(rid)
-        if not row:
-            #RollBack
-            return jsonify(Error="Rental was not created correctly.")
         rental = self.build_checkIn_dict(row)
         return jsonify(Rental=rental)
 
