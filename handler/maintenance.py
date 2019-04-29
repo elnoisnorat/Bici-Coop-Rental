@@ -155,6 +155,7 @@ class MaintenanceHandler:
                     check = mDao.provideMaintenancePlate(wid, mid, notes, role, plate)
                 elif mService == "New RFID Tag":
                     rfid = form['rfid']
+                    print(rfid)
                     if rfid is None:
                         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
                     check = mDao.provideMaintenanceRFID(wid, mid, notes, role, rfid)
