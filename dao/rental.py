@@ -86,23 +86,24 @@ class RentalDAO:
         debt = False
         try:
             cursor = self.conn.cursor()
-            currenTime = datetime.datetime.now()
+            #currentTime = datetime.datetime.now()
             query = '''
-                    Update Rental set ReceivedBy = %s, ETime = %s Where RID = %s
-                    returning duedate, client, bid
+                    Update Rental set ReceivedBy = %s, ETime = now() Where RID = %s
+                    returning duedate, client, bid, ETime
                 '''
-            cursor.execute(query, (wID, currenTime, rid,))
+            cursor.execute(query, (wID, rid,))
             row = cursor.fetchone()
             dueDate = row[0]
             client = row[1]
             bid = row[2]
+            eTime = row[3]
 
             query = '''
                     Update Bike set bikestatus = %s Where BID = %s
                     '''
             cursor.execute(query, ('AVAILABLE', bid,))
 
-            if currenTime > dueDate:
+            if eTime > dueDate:
                 debt = True
                 query = '''
                 Update Client set debtorflag = %s Where CID = %s
@@ -129,7 +130,7 @@ class RentalDAO:
     def checkOut(self, wID, bid, rid):
         cur = self.conn.cursor()
         query = '''
-                    Update Rental set DispatchedBy = %s, BID = %s, STime = CURRENT_DATE Where RID = %s
+                    Update Rental set DispatchedBy = %s, BID = %s, STime = now() Where RID = %s
                 '''
         cur.execute(query, (wID, bid, rid,))
         self.conn.commit()
