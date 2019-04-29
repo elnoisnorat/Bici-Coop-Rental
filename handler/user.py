@@ -37,11 +37,14 @@ class UsersHandler:
         return result
 
     def insert(self, form, Role):
-        FName = form['FName']
-        LName = form['LName']
-        password = form['password']
-        PNumber = form['PNumber']
-        Email = form['Email']
+        try:
+            FName = form['FName']
+            LName = form['LName']
+            password = form['password']
+            PNumber = form['PNumber']
+            Email = form['Email']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         uDao = UsersDAO()
 
         if FName and LName and password and PNumber and Email and Role:

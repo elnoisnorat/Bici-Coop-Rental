@@ -52,7 +52,6 @@ class TransactionHandler:
     def newTransaction(self, form):
         tDao = TransactionDAO()
         bHand = BicycleHandler()
-        #token = form['token']
         amount = form['amount']
         card = form['card']
         cid = current_user.roleID
@@ -63,19 +62,11 @@ class TransactionHandler:
         #Integration with the strip API static values for testing
         stripeToken = 'token'
         cost = 9.99
-        '''
-        try:
-            data = jwt.decode(token, SECRET_KEY)
-            cid = data['cID']
-        except:
-            return jsonify(Error="Invalid token."), 401
-        if not cid:
-            return jsonify(Error="Client does not exist."), 401
-        '''
+
         try:
             tid = tDao.newTransaction(stripeToken, cid, amount, cost)                    #Insert #1A
         except Exception as e:
-            return jsonify(Error="An error has occurred during the transaction process."), 401
+            return jsonify(Error="An error has occurred."), 400
 
         rHand = RentalHandler()
         rental_list = rHand.getNewRentals(tid)

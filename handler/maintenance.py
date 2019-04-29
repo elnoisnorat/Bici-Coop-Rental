@@ -145,22 +145,33 @@ class MaintenanceHandler:
             else:
                 return jsonify(Error="Unauthorized access."), 403
 
+            mService = mDao.getService(mid)
+
             try:
-                check = mDao.provideMaintenance(wid, mid, notes, role)
-                if check is None:
-                    return jsonify(Error="An error has occurred."), 403
-                elif check > 0:
-                    return jsonify("Maintenance has been completed.")
-                elif check == 0:
-                    if role == 'Worker':
-                        return jsonify("Maintenance has been completed.")
-                    elif role == 'Client':
-                        cResult = {
-                            "ALERT": "Please call the user at " + str(pNumber),
-                            "Maintenance": "Maintenance has been completed."
-                        }
-                        return jsonify(cResult)
+                if mService == "New Plate":
+                    plate = form['lp']
+                    check = mDao.provideMaintenancePlate(wid, mid, notes, role, plate)
+                elif mService == "New RFID Tag":
+                    rfid = form['rfid']
+                    check = mDao.provideMaintenanceRFID(wid, mid, notes, role, rfid)
+                else:
+                    check = mDao.provideMaintenance(wid, mid, notes, role, mService)
+
             except Exception as e:
                 return jsonify(Error="An error has occurred."), 400
+
+            if check is None:
+                return jsonify(Error="An error has occurred."), 403
+            elif check > 0:
+                return jsonify("Maintenance has been completed.")
+            elif check == 0:
+                if role == 'Worker':
+                    return jsonify("Maintenance has been completed.")
+                elif role == 'Client':
+                    cResult = {
+                        "ALERT": "Please call the user at " + str(pNumber),
+                        "Maintenance": "Maintenance has been completed."
+                    }
+                    return jsonify(cResult)
         else:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
