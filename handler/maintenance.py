@@ -159,7 +159,7 @@ class MaintenanceHandler:
                         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
                     check = mDao.provideMaintenanceRFID(wid, mid, notes, role, rfid)
                 else:
-                    check = mDao.provideMaintenance(wid, mid, notes, role, mService)
+                    check = mDao.provideMaintenance(wid, mid, notes, role)
 
             except Exception as e:
                 return jsonify(Error="An error has occurred."), 400
