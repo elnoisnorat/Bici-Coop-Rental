@@ -21,6 +21,7 @@ class RentalPlanHandler:
 
     def editPlan(self, json):
         try:
+            str = "asd"
             # Json entries
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
