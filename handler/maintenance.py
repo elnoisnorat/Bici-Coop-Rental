@@ -60,7 +60,7 @@ class MaintenanceHandler:
             try:
                 rfid = form['rfid']
             except Exception as e:
-                return jsonify("An error has occurred. Please verify the submitted arguments."), 400
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
             if rfid:
                 bid = bHand.getBIDByRFIDForMaintenance(rfid)
             else:
@@ -70,13 +70,13 @@ class MaintenanceHandler:
                 try:
                     plate = form['lp']
                 except Exception as e:
-                    return jsonify("An error has occurred. Please verify the submitted arguments."), 400
+                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
                 if plate:
                     bid = bHand.getBIDByPlateForMaintenance(plate)
                 else:
                     bid = None
                 if not bid:
-                    return jsonify("An error has occurred. Please verify the submitted arguments."), 400
+                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         try:
             service_list = form["Services"]
             filteredArgs = []
@@ -102,7 +102,7 @@ class MaintenanceHandler:
             mDao.requestMaintenance(uid, bid, filteredArgs)  # Insert #1
             return jsonify("Maintenance request was successfully created.")
         except Exception as e:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
 
     def getMaintenance(self, form):
         mDao = MaintenanceDAO()
