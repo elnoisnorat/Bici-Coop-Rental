@@ -97,20 +97,23 @@ class UsersHandler:
     def updateName(self, form):
         uDao = UsersDAO()
         email = current_user.email
-        uName = form['FName']
-        uLName = form['LName']
+        try:
+            uName = form['FName']
+            uLName = form['LName']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submmited arguments."), 400
 
-        if len(form) != 3:
-            return jsonify(Error="Malformed update request."), 400
-        else:
-            if uName and uLName:
+        # if len(form) != 3:
+        #     return jsonify(Error="Malformed update request."), 400
+        # else:
+        if uName and uLName:
                 uDao.updateName(email, uName, uLName)
-            else:
-                return jsonify(Error="No attributes in update request"), 400
-
-            row = uDao.getUserByEmail(email)
-            result = self.build_worker_dict(row)
-            return jsonify(User=result)
+        else:
+            return jsonify(Error="No attributes in update request"), 400
+        row = uDao.getUserByEmail(email)
+        result = self.build_worker_dict(row)
+        # return jsonify(User=result)
+        return jsonify("Update was successful.")
 
     def updatePassword(self, form):     #When User is logged in
         uDao = UsersDAO()
@@ -118,10 +121,10 @@ class UsersHandler:
         email = current_user.email
 
         if not uDao.getUserByEmail(email):
-            return jsonify(Error="User not found."), 404
+            return jsonify(Error="An error has occurred. Please verify the submmited arguments."), 400
         else:
             uDao.updatePassword(email, password)
-            return jsonify("Password has been updated")
+            return jsonify("Update was successsful.")
 
 
 
@@ -131,16 +134,13 @@ class UsersHandler:
         try:
             pNumber = form['PNumber']
         except Exception as e:
-            return jsonify(Error="An error has occurred. please verify the submitted arguments.")
+            return jsonify(Error="An error has occurred. please verify the submitted arguments."), 400
 
         if not uDao.getUserByEmail(email):
             return jsonify(Error="An error has occurred."), 400
 
         uDao.updatePNumber(email, pNumber)
-
-        row = uDao.getUserByEmail(email)
-        result = self.build_user_dict(row)
-        return jsonify(User=result)
+        return jsonify("Update was successsful.")
 
     def getUserWithCID(self, cid):
         uDao = UsersDAO()
@@ -171,7 +171,7 @@ class UsersHandler:
         uDao = UsersDAO()
         row = uDao.getUserWithWID(wid)
         if not row:
-            return jsonify(Error="User not found."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         else:
             user = self.build_user_dict(row)
             return jsonify(user)
@@ -228,7 +228,7 @@ class UsersHandler:
             data = jwt.decode(token, SECRET_KEY)
             email = data['Email']
         except:
-            return jsonify(Error="Malformed request."), 404
+            return jsonify(Error="This link has already expired."), 403
 
         if not email:
             return jsonify("An error has occurred."), 400
@@ -266,7 +266,7 @@ class UsersHandler:
             data = jwt.decode(token, SECRET_KEY)
             email = data['Email']
         except:
-            return jsonify(Error="An error has occurred."), 404
+            return jsonify(Error="This link has already expired."), 403
 
         uDao = UsersDAO()
         if not uDao.getUserByEmail(email):
@@ -286,17 +286,21 @@ class UsersHandler:
                 uDao.updateForgottenPassword(email, password)
                 return jsonify("An email has been sent to the provided address.")
             except Exception as e:
-                return jsonify("An error has occurred.")
+                return jsonify("An error has occurred."), 400
 
     def newConfirmation(self, form):
         uHand = UsersHandler()
-        email = form['Email']
+        try:
+            email = form['Email']
+        except Exception as e:
+            return jsonify(Error="An error has occurred."), 400
+
         if not email:
-            return jsonify(Error="An error has occurred."), 401
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         confirmation = uHand.getConfirmation(email)
         if confirmation is True:
-            return jsonify(Error="An error has occured."), 401
+            return jsonify(Error="An error has occurred."), 401
         elif confirmation is None:
             return jsonify(Error="An error has occurred."), 403
         else:
@@ -305,4 +309,4 @@ class UsersHandler:
                 eHand.confirmationEmail(email)
                 return jsonify("An email has been sent to the provided address.")
             except Exception as e:
-                return jsonify(Error="An error has occurred.")
+                return jsonify(Error="An error has occurred."), 400

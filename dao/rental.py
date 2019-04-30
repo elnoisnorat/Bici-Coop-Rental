@@ -158,8 +158,7 @@ class RentalDAO:
         cursor.execute(query, (tid,))
         result = []
         for row in cursor:
-            result.append(row)
-
+            result.append(row[0])
         return result
 
     def get_rental_by_rid_and_rfid(self, rid, oldRFID):

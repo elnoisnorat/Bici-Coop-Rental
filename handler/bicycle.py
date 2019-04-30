@@ -80,8 +80,7 @@ class BicycleHandler():
             bDao = BicycleDAO()
             try:
                 bID = bDao.insert(plate, rfid, model, brand, snumber)                                    #INSERT #1
-                result = {"bID": bID}
-                return jsonify(result)
+                return jsonify("Bicycle was successfully added.")
             except Exception as e:
                 return jsonify(Error="An error has occurred."), 400
         else:
@@ -132,7 +131,8 @@ class BicycleHandler():
 
         row = bDao.getBikeByID(bid)
         result = self.build_bike_dict(row)
-        return jsonify(Bicycle=result)
+        #return jsonify(Bicycle=result)
+        return jsonify("Update was successful.")
 
     @isDecomissioned
     def updateStatusIsAvailable(self, bid, wid, rid):

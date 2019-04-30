@@ -49,8 +49,6 @@ class ClientHandler:
 
                 uHand.resetLoginAttempt(email)                                  #Set login attempt to 0
 
-                #token = jwt.encode({'Role': 'Client', 'cID': cID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes = 30)}, SECRET_KEY)
-
                 userInfo = uHand.getProfile(email)                              #Get User information
 
                 response = {
@@ -68,10 +66,8 @@ class ClientHandler:
         try:
             uID = uHandler.insert(form, 'Client')                               #Try to insert a new user with role admin
         except Exception as e:
-            raise e
-        cDao = ClientDAO()
-        cID = cDao.getClientByUID(uID)
-        return jsonify("Client #: " + str(cID) + " was successfully added.")
+            return jsonify(Error="An error has occurred."), 400
+        return jsonify("Account was successfully created.")
 
     def getClient(self, form):
         cDao = ClientDAO()
@@ -114,7 +110,8 @@ class ClientHandler:
 
     def getClientByUID(self, uID):
         cDao = ClientDAO()
-        cID = cDao.getClientByUID(uID)
+        client = cDao.getClientByUID(uID)
+        return client
 
     def getCIDByUID(self, reqID):
         cDao = ClientDAO()

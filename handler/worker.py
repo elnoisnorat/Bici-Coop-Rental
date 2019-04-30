@@ -62,10 +62,8 @@ class WorkerHandler:
         try:
             uID = uHandler.insert(form, "Worker")
         except Exception as e:
-            raise e
-        wDao = WorkerDAO()
-        wID = wDao.getWorkerByUID(uID)
-        return jsonify("Worker #: " + str(wID) + " was successfully added.")
+            return jsonify(Error="An error has occurred."), 400
+        return jsonify("Account was successfully created.")
 
     def updateStatus(self, form):
         wDao = WorkerDAO()
@@ -74,18 +72,19 @@ class WorkerHandler:
         status = form['Status']
 
         if not wid:                                                                 #Check for null value
-            return jsonify(Error="No worker id given")
+            return jsonify(Error="An error has occured. Please verify the submmited arguments."), 400
 
         if not wDao.getWorkerByID(wid):
-            return jsonify(Error="Worker not found."), 404                          #Check if worker exists
+            return jsonify(Error="An error has occured. Please verify the submmited arguments."), 400                          #Check if worker exists
         else:
             if status:
                 wDao.updateStatus(wid, status)                                      #Update Status
             else:
-                return jsonify(Error="No attribute in update request"), 400
+                return jsonify(Error="No attributes in update request"), 400
             row = wDao.getWorkerByID(wid)
             result = self.build_worker_dict(row)
-            return jsonify(Worker=result), 200
+            # return jsonify(Worker=result)
+            return jsonify("Update was successful.")
 
     def workerLogin(self, form):
         uHand = UsersHandler()
@@ -116,9 +115,6 @@ class WorkerHandler:
 
                     uHand.resetLoginAttempt(email)                                      #Set login attempt to 0
 
-                    # token = jwt.encode(
-                    #     {'Role': 'Worker', 'wID': wID, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
-                    #     SECRET_KEY)
                     userInfo = uHand.getProfile(email)                                  #Get User information
 
                     response = {

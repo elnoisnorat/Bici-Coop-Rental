@@ -45,7 +45,7 @@ class RentalHandler:
         cID = current_user.roleID
 
         if not cHandler.getClientByCID(cID):
-               return jsonify(Error="Client does not exist."), 401
+               return jsonify(Error="Unauthorized access."), 403
 
         rental_list = rDao.getRentalByCID(cID)
         result_list = []
@@ -97,7 +97,8 @@ class RentalHandler:
             }
             return jsonify(result)
         else:
-            return jsonify(Rental=rental)
+            # return jsonify(Rental=rental)
+            return jsonify("Check-in was successful.")
 
 
     def checkOutBicycle(self, form):
@@ -127,7 +128,11 @@ class RentalHandler:
                 uHand = UsersHandler()
                 cHand = ClientHandler()
                 uID = uHand.getUserIDByEmail(email)
-                cID = cHand.getClientByUID(uID)
+                if uID is None:
+                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                cID = cHand.getCIDByUID(uID)
+                if cID is None:
+                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
                 rid = rDao.getRentalByCIDCheckOut(cID)
             else:
                 return jsonify(Error="No arguments given to identify the rental."), 400
@@ -152,7 +157,8 @@ class RentalHandler:
 
         row = rDao.getRentalByID(rid)
         rental = self.build_checkIn_dict(row)
-        return jsonify(Rental=rental)
+        # return jsonify(Rental=rental)
+        return jsonify("Check-out was successful.")
 
     def getBIDByCIDAndPlate(self, cid, plate):
         rDao = RentalDAO()

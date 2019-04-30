@@ -74,7 +74,7 @@ class TransactionHandler:
         for rental in rental_list:
             rentals = rentals + str(rental) + ", "
         rentals[-2]
-        return jsonify("Transaction # " + str(tid) + " and rental(s) # " + rentals + " have been created successfully.")
+        return jsonify("Rental(s) # " + rentals + " have been created successfully.")
 
 '''
         def newTransactionWithCreditCard(self, form):

@@ -51,6 +51,6 @@ class AdminHandler:
             uID = uHandler.insert(form, "Admin")                             #Try to insert a new user with role admin
         except Exception as e:
             return jsonify(Error="An error has occurred."), 400
-        aDao = AdminDAO()
-        aID = aDao.getAdminByUID(uID)
-        return jsonify("Admin #: " + str(aID) + " was successfully added.")
+        #aDao = AdminDAO()
+        #aID = aDao.getAdminByUID(uID)
+        return jsonify("Account was successfully created.")
