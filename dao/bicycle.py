@@ -299,27 +299,21 @@ class BicycleDAO:
             return row
         return row[0]
 
-    def swapStatusIsAvailable(self, oldValid, newValid, rid):
+    def swapStatus(self, newBID, rid):
         try:
             cur = self.conn.cursor()
             query = '''
-                    Update Bike set bikestatus = %s Where bid = %s 
+                    Update Bike set bikestatus = 'RENTED' 
+                    Where bid = %s 
                 '''
-            cur.execute(query, (status, bid,))
-
-            query = '''
-                    UPDATE Bike set bikestatus = 'AVAILABLE' 
-                    where bid = (SELECT BID from bike 
-                                  where bikestatus= 'RESERVED' LIMIT 1);
-                '''
-            cur.execute(query)
+            cur.execute(query, (newBID,))
 
             query = '''
                     Update Rental 
-                    set DispatchedBy = %s, BID = %s, STime = now() 
+                    set BID = %s
                     Where RID = %s
                      '''
-            cur.execute(query, (wid, bid, rid,))
+            cur.execute(query, (newBID, rid,))
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
@@ -346,6 +340,19 @@ class BicycleDAO:
                                  Where lp = %s and (bikestatus = %s or bikestatus = %s)
                              '''
         cur.execute(query, (plate, 'AVAILABLE', 'MAINTENANCE',))
+        result = cur.fetchone()
+        if result is None:
+            return result
+        return result[0]
+
+    def get_bicycle_for_swap(self, newRFID):
+        cur = self.conn.cursor()
+        query = '''
+                    Select BID
+                    From Bike
+                    Where RFID = %s and bikestatus = 'AVAILABLE'
+                '''
+        cur.execute(query, (newRFID,))
         result = cur.fetchone()
         if result is None:
             return result

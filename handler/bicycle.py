@@ -155,9 +155,9 @@ class BicycleHandler():
         bid = bDao.getBIDByPlate(plate)
         return bid
 
-    def swapStatusIsAvailable(self, oldValid, newValid, rid):
+    def swapStatus(self, newBID, rid):
         bDao = BicycleDAO()
-        bid = bDao.swapStatusIsAvailable(oldValid, newValid, rid)
+        bid = bDao.swapStatus(newBID, rid)
         return bid
 
     def getBIDByRFIDForMaintenance(self, rfid):
@@ -168,4 +168,9 @@ class BicycleHandler():
     def getBIDByPlateForMaintenance(self, plate):
         bDao = BicycleDAO()
         bid = bDao.getBIDByPlateForMaintenance(plate)
+        return bid
+
+    def get_bicycle_for_swap(self, newRFID):
+        bDao = BicycleDAO()
+        bid = bDao.get_bicycle_for_swap(newRFID)
         return bid

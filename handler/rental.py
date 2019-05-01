@@ -119,7 +119,12 @@ class RentalHandler:
             return jsonify(Error="A bicycle with the given arguments does not exist. "
                                  "Please verify the submitted arguments."), 400
 
-        if not rid:
+        if rid is not None:
+            rental = rDao.getRentalByID(rid)
+            if rental is None:
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        else:
             try:
                 email = form['email']
             except Exception as e:
@@ -170,56 +175,36 @@ class RentalHandler:
         rental_list = rDao.getNewRentals(tid)
         return rental_list
 
-    # def swapBicycle(self, form):
-    #     rDao = RentalDAO()
-    #     try:
-    #         rid = form["rID"]
-    #         oldRFID = form["oldRFID"]
-    #         newRFID = form["newRFID"]
-    #     except Exception as e:
-    #         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-    #
-    #     if rid and oldRFID and newRFID:
-    #         rDao = RentalDAO()
-    #         bHand = BicycleHandler()
-    #
-    #         oldBID = rDao.get_rental_by_rid_and_rfid(rid, oldRFID)
-    #         if oldBID is None:
-    #             return jsonify(Error="This bicycle is not linked to the provided information."), 400
-    #
-    #         newBID = bHand.getBIDByRFID(newRFID)
-    #
-    #
-    #         if oldBID and newBID:
-    #             oldBStatus = bHand.getStatusByID(oldBID)
-    #             newBStatus = bHand.getStatusByID(newBID)
-    #
-    #             if oldBStatus == "MAINTENANCE":
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #             if bStatus == 'AVAILABLE':
-    #                 try:
-    #                     bHand.swapStatusIsAvailable(oldValid, newValid, rid)
-    #                 except Exception as e:
-    #                     return jsonify(Error="An error has occurred.")
-    #             elif bStatus == 'RESERVED':
-    #                 try:
-    #                     bHand.swapStatusIsReserved(oldValid, newValid, rid)
-    #                 except Exception as e:
-    #                     return jsonify(Error="An error has occurred.")
-    #             else:
-    #                 return jsonify(Error="Bicycle is not in a condition to be rented.")
-    #
-    #
-    #     rental_list = rDao.getNewRentals(tid)
-    #     return rental_list
+    def swapBicycle(self, form):
+        rDao = RentalDAO()
+        try:
+            rid = form["rID"]
+            oldRFID = form["oldRFID"]
+            newRFID = form["newRFID"]
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        if rid and oldRFID and newRFID:
+            bHand = BicycleHandler()
+
+            oldBID = rDao.get_rental_by_rid_and_rfid(rid, oldRFID)
+            if oldBID is None:
+                return jsonify(Error="This bicycle is not linked to the provided information."), 400
+
+            newBID = bHand.get_bicycle_for_swap(newRFID)
+            if newBID is None:
+                return jsonify(Error="Bicycle is not in a condition to be rented."), 400
+
+            try:
+                bHand.swapStatus(newBID, rid)
+                return jsonify("The bicycle swap was successful.")
+            except Exception as e:
+                return jsonify(Error="An error has occurred.")
+
+        else:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+
+
+
+

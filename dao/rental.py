@@ -166,7 +166,7 @@ class RentalDAO:
         query = '''
                     Select BID
                     From Rental NATURAL INNER JOIN Bike
-                    Where RID = %s and RFID = %s
+                    Where RID = %s and RFID = %s and bikestatus = 'MAINTENANCE'
                 '''
         cursor.execute(query, (rid, oldRFID,))
         result = cursor.fetchone()

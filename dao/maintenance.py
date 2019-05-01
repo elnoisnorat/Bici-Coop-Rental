@@ -101,7 +101,7 @@ class MaintenanceDAO:
         cursor = self.conn.cursor()
         query = '''SELECT requestedby 
                    FROM Maintenance
-                   Where MID = %s
+                   Where MID = %s and status = 'PENDING'
                 '''
         cursor.execute(query, (mid,))
         result = cursor.fetchone()
@@ -121,56 +121,72 @@ class MaintenanceDAO:
             return result
         return result[0]
 
-    def provideMaintenance(self, wid, mID, notes, role):
+    def provideMaintenance(self, wid, mID, notes):
+        release = 0
         try:
             cursor = self.conn.cursor()
             query = '''
-            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
-            Where mID = %s and Status = %s
-            Returning BID
+                Select BID
+                From Maintenance
+                Where MID = %s and Status = %s
             '''
-            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
-            expected_bid = cursor.fetchone()
-            if expected_bid is None:
-                return expected_bid
+            cursor.execute(query, (mID, 'PENDING'))
 
-            bid = expected_bid[0]
+            swap = cursor.fetchone()
+
+            if swap is None:
+                return swap
+            bid = swap[0]
 
             size = len(self.getRequestByBID(bid))
-
-            if size == 0:
-                if role == 'Worker':
-                    query = '''
-                          Update Bike set bikestatus = 'AVAILABLE' 
-                          Where BID = %s  
-                          '''
-                elif role == 'Client':
-                    query = '''
-                          Update Bike set bikestatus = 'RENTED' 
-                          Where BID = %s  
-                          '''
+            if size == 1:
+                query = '''
+                            Select RID
+                            From Rental
+                            Where BID = %s and ETime IS NULL
+                        '''
                 cursor.execute(query, (bid,))
+                rental = cursor.fetchone()
+                if rental is None:
+                    query = '''
+                            Update Bike set bikestatus = 'AVAILABLE' 
+                            Where BID = %s  
+                            '''
+                else:
+                    query = '''
+                        Update Bike set bikestatus = 'RENTED' 
+                        Where BID = %s  
+                        '''
+                    release = 1
+                cursor.execute(query, (bid,))
+
+            query = '''
+            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
+            Where mID = %s and Status = %s
+            '''
+            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
             self.conn.commit()
-            return size
+            return release
         except Exception as e:
             self.conn.rollback()
             raise e
 
-    def provideMaintenancePlate(self, wid, mID, notes, role, plate):
+    def provideMaintenancePlate(self, wid, mID, notes, plate):
+        release = 0
         try:
             cursor = self.conn.cursor()
-
             query = '''
-            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
-            Where mID = %s and Status = %s
-            Returning BID
-            '''
-            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
-            expected_bid = cursor.fetchone()
-            if expected_bid is None:
-                return expected_bid
+                        Select BID
+                        From Maintenance
+                        Where MID = %s and Status = %s
+                    '''
+            cursor.execute(query, (mID, 'PENDING'))
 
-            bid = expected_bid[0]
+            swap = cursor.fetchone()
+
+            if swap is None:
+                return swap
+            bid = swap[0]
 
             query = '''
                 UPDATE Bike set lp = %s
@@ -179,41 +195,54 @@ class MaintenanceDAO:
             cursor.execute(query, (plate, bid,))
 
             size = len(self.getRequestByBID(bid))
-
-            if size == 0:
-                if role == 'Worker':
-                    query = '''
-                          Update Bike set bikestatus = 'AVAILABLE' 
-                          Where BID = %s  
-                          '''
-                elif role == 'Client':
-                    query = '''
-                          Update Bike set bikestatus = 'RENTED' 
-                          Where BID = %s  
-                          '''
+            if size == 1:
+                query = '''
+                                    Select RID
+                                    From Rental
+                                    Where BID = %s and ETime IS NULL
+                                '''
                 cursor.execute(query, (bid,))
+                rental = cursor.fetchone()
+                if rental is None:
+                    query = '''
+                                    Update Bike set bikestatus = 'AVAILABLE' 
+                                    Where BID = %s  
+                                    '''
+                else:
+                    query = '''
+                                Update Bike set bikestatus = 'RENTED' 
+                                Where BID = %s  
+                                '''
+                    release = 1
+                cursor.execute(query, (bid,))
+
+            query = '''
+                    update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
+                    Where mID = %s and Status = %s
+                    '''
+            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
             self.conn.commit()
-            return size
+            return release
         except Exception as e:
             self.conn.rollback()
             raise e
 
-    def provideMaintenanceRFID(self, wid, mID, notes, role, rfid):
+    def provideMaintenanceRFID(self, wid, mID, notes, rfid):
+        release = 0
         try:
             cursor = self.conn.cursor()
-
             query = '''
-            update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
-            Where mID = %s and Status = %s
-            Returning BID
-            '''
-            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
-            expected_bid = cursor.fetchone()
-            if expected_bid is None:
-                return expected_bid
+                        Select BID
+                        From Maintenance
+                        Where MID = %s and Status = %s
+                    '''
+            cursor.execute(query, (mID, 'PENDING'))
 
-            bid = expected_bid[0]
+            swap = cursor.fetchone()
 
+            if swap is None:
+                return swap
+            bid = swap[0]
 
             query = '''
                 UPDATE Bike set rfid = %s
@@ -222,21 +251,34 @@ class MaintenanceDAO:
             cursor.execute(query, (rfid, bid,))
 
             size = len(self.getRequestByBID(bid))
-
-            if size == 0:
-                if role == 'Worker':
-                    query = '''
-                          Update Bike set bikestatus = 'AVAILABLE' 
-                          Where BID = %s  
-                          '''
-                elif role == 'Client':
-                    query = '''
-                          Update Bike set bikestatus = 'RENTED' 
-                          Where BID = %s  
-                          '''
+            if size == 1:
+                query = '''
+                                    Select RID
+                                    From Rental
+                                    Where BID = %s and ETime IS NULL
+                                '''
                 cursor.execute(query, (bid,))
+                rental = cursor.fetchone()
+                if rental is None:
+                    query = '''
+                                    Update Bike set bikestatus = 'AVAILABLE' 
+                                    Where BID = %s  
+                                    '''
+                else:
+                    query = '''
+                                Update Bike set bikestatus = 'RENTED' 
+                                Where BID = %s  
+                                '''
+                    release = 1
+                cursor.execute(query, (bid,))
+
+            query = '''
+                    update Maintenance set EndTime = now(), ServicedBy = %s, notes = %s, Status = %s
+                    Where mID = %s and Status = %s
+                    '''
+            cursor.execute(query, (wid, notes, 'FINISHED', mID, 'PENDING'))
             self.conn.commit()
-            return size
+            return release
         except Exception as e:
             self.conn.rollback()
             raise e

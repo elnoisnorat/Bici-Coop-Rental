@@ -13,7 +13,8 @@ from handler.worker import WorkerHandler
 
 class MaintenanceHandler:
     def __init__(self):
-        self.valid_services = ["Clean Up", "Pedal Adjustment", "New Plate", "Tune Up", "Transmission Adjustment", "Flat Tire", "New Tire", "Break Adjustment", "New Break", "Maneuver Adjustment", "New RFID Tag"]
+        self.valid_services_Worker = ["Clean Up", "Pedal Adjustment", "New Plate", "Tune Up", "Transmission Adjustment", "Flat Tire", "New Tire", "Break Adjustment", "New Break", "Maneuver Adjustment", "New RFID Tag"]
+        self.valid_services_Client = ["Clean Up", "Pedal Adjustment", "Tune Up", "Transmission Adjustment", "Flat Tire", "New Tire", "Break Adjustment", "New Break", "Maneuver Adjustment"]
 
     def build_maintenance_dict(self, row):
         result = {}
@@ -54,6 +55,16 @@ class MaintenanceHandler:
             bid = rHand.getBIDByCIDAndPlate(cid, plate)
             if not bid:
                 return jsonify("You have no current bicycle rental at this time.") #Pending
+            try:
+                service_list = form["Services"]
+                filteredArgs = []
+                active_service_list = mDao.getRequestByBID(bid)
+                print(active_service_list)
+                for service in service_list:  # Filter arguments received using a dictionary
+                    if service and service in self.valid_services_Client and service not in active_service_list:
+                        filteredArgs.append(service)
+            except Exception as e:
+                return jsonify(Error="An error has occurred."), 400
 
         elif current_user.role == 'Worker':
             bHand = BicycleHandler()
@@ -77,16 +88,16 @@ class MaintenanceHandler:
                     bid = None
                 if not bid:
                     return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-        try:
-            service_list = form["Services"]
-            filteredArgs = []
-            active_service_list = mDao.getRequestByBID(bid)
-            print(active_service_list)
-            for service in service_list:  # Filter arguments received using a dictionary
-                if service and service in self.valid_services and service not in active_service_list:
-                    filteredArgs.append(service)
-        except Exception as e:
-            return jsonify(Error="An error has occurred."), 400
+            try:
+                service_list = form["Services"]
+                filteredArgs = []
+                active_service_list = mDao.getRequestByBID(bid)
+                print(active_service_list)
+                for service in service_list:  # Filter arguments received using a dictionary
+                    if service and service in self.valid_services_Worker and service not in active_service_list:
+                        filteredArgs.append(service)
+            except Exception as e:
+                return jsonify(Error="An error has occurred."), 400
 
         try:
             other = form['Other']
@@ -137,9 +148,8 @@ class MaintenanceHandler:
                 return jsonify(Error="An error has occurred."), 400
 
             if wHand.getWorkerByUID(reqID):
-                role = 'Worker'
+                pass
             elif cHand.getCIDByUID(reqID):
-                role = 'Client'
                 uHand = UsersHandler()
                 pNumber = uHand.getPhoneNumberByUID(reqID)
             else:
@@ -152,31 +162,28 @@ class MaintenanceHandler:
                     plate = form['lp']
                     if plate is None:
                         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-                    check = mDao.provideMaintenancePlate(wid, mid, notes, role, plate)
+                    check = mDao.provideMaintenancePlate(wid, mid, notes, plate)
                 elif mService == "New RFID Tag":
                     rfid = form['rfid']
                     print(rfid)
                     if rfid is None:
                         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-                    check = mDao.provideMaintenanceRFID(wid, mid, notes, role, rfid)
+                    check = mDao.provideMaintenanceRFID(wid, mid, notes, rfid)
                 else:
-                    check = mDao.provideMaintenance(wid, mid, notes, role)
+                    check = mDao.provideMaintenance(wid, mid, notes)
 
             except Exception as e:
                 return jsonify(Error="An error has occurred."), 400
 
             if check is None:
-                return jsonify(Error="An error has occurred."), 403
-            elif check > 0:
-                return jsonify("Maintenance has been completed.")
+                return jsonify(Error="An error has occurred."), 400
             elif check == 0:
-                if role == 'Worker':
-                    return jsonify("Maintenance has been completed.")
-                elif role == 'Client':
-                    cResult = {
-                        "ALERT": "Please call the user at " + str(pNumber),
-                        "Maintenance": "Maintenance has been completed."
-                    }
-                    return jsonify(cResult)
+                return jsonify("Maintenance has been completed.")
+            elif check == 1:
+                cResult = {
+                    "ALERT": "Please call the user at " + str(pNumber),
+                    "Maintenance": "Maintenance has been completed."
+                }
+                return jsonify(cResult)
         else:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
