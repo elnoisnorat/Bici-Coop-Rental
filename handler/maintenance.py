@@ -138,8 +138,10 @@ class MaintenanceHandler:
         if email is None:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-        wid = wHand.getWIDByEmail(email)
-        if wid and mid:
+        wid = wHand.getWorkerForMaintenance(email)
+        if wid is None:
+            return jsonify(Error="An error has occurred. Please contact an Administrator."), 403
+        if mid:
             mDao = MaintenanceDAO()
             wHand = WorkerHandler()
             cHand = ClientHandler()

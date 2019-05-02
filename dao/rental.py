@@ -41,6 +41,18 @@ class RentalDAO:
             result.append(row)
         return result
 
+    def getRentalAmountByCID(self, cID): #ReceivedBy typo
+        cursor = self.conn.cursor()
+        query = '''
+            Select count(*)
+            From Rental
+            Where Client = %s AND ReceivedBy IS NULL
+        '''
+        cursor.execute(query, (cID,))
+
+        result = cursor.fetchone()[0]
+        return result
+
     def getRentalByCIDCheckOut(self, cID): #ReceivedBy typo
         cursor = self.conn.cursor()
         query = '''
@@ -180,3 +192,30 @@ class RentalDAO:
         cur.execute(query)
         result = cur.fetchone()
         return result
+
+    def getOverduePlan(self):
+        cur = self.conn.cursor()
+        query = " Select name, amount from plans WHERE PID = 2"
+        cur.execute(query)
+        print("Query:\n")
+        result = cur.fetchone()
+        print(result[0][0])
+        return result
+
+    def getClientByRID(self, rid):
+        cur = self.conn.cursor()
+        query = " Select client From Rental Where RID = %s"
+        cur.execute(query, (rid,))
+        result = cur.fetchone()
+        if result is None:
+            return result
+        return result[0]
+
+    def isLate(self, rid):
+        cur = self.conn.cursor()
+        query = " Select client From Rental Where RID = %s and duedate < now()"
+        cur.execute(query, (rid,))
+        result = cur.fetchone()
+        if result is None:
+            return result
+        return result[0]

@@ -121,3 +121,16 @@ class ClientHandler:
         cID = cDao.getCIDByUID(reqID)
         return cID
 
+    def getPhoneNumber(self, cid):
+        cDao = ClientDAO()
+        pNumber = cDao.getPhoneNumber(cid)
+        return pNumber
+
+    def setDebtorFlag(self, cid):
+        cDao = ClientDAO()
+        cDao.setDebtorFlag(cid)
+
+    def getDebtorFlag(self, cid):
+        cDao = ClientDAO()
+        flag = cDao.getDebtorFlag(cid)
+        return flag

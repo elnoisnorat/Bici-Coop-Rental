@@ -144,6 +144,11 @@ class WorkerHandler:
         result = wDao.getWIDByEmail(email)
         return result
 
+    def getWorkerForMaintenance(self, email):
+        wDao = WorkerDAO()
+        result = wDao.getWorkerForMaintenance(email)
+        return result
+
 
 
 

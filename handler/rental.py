@@ -56,6 +56,16 @@ class RentalHandler:
             return jsonify("You have no current rental at this moment.")
         return jsonify(CurrentRentals=result_list)
 
+    def getRentalAmountByCID(self, cID):
+        cHandler = ClientHandler()
+        rDao = RentalDAO()
+
+        if not cHandler.getClientByCID(cID):
+               return jsonify(Error="Unauthorized access."), 403
+
+        amount = rDao.getRentalAmountByCID(cID)
+        return amount
+
     def getBIDByCID(self, cid):
         rDao = RentalDAO()
         bid = rDao.getBIDByCID(cid)
@@ -213,5 +223,39 @@ class RentalHandler:
             pass
         except Exception as e:
            raise e
+
+    def getOverduePlan(self):
+        rDao = RentalDAO()
+        try:
+            result = rDao.getOverduePlan()
+            return result
+            pass
+        except Exception as e:
+            raise e
+
+    def activeRental(self, form):
+        rDao = RentalDAO()
+        try:
+            rfid = form['rfid']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        bHand = BicycleHandler()
+        cHand = ClientHandler()
+        bid = bHand.getBIDByRFID(rfid)
+        rid = rDao.getRIDByBID(bid)
+        if rid:
+            isLate = rDao.isLate(rid)
+            cid = rDao.getClientByRID(rid)
+            if isLate is None:
+                pNumber = cHand.getPhoneNumber(cid)
+                if pNumber is None:
+                    return jsonify("The renter does not have a phone number. Please check in the bicycle.")
+                else:
+                    return jsonify("Please call this number (" + str(pNumber) + ") to contact the renter.")
+            else:
+                cHand.setDebtorFlag(cid)
+                return jsonify("This bicycle is currently rented, but has exceeded its rental period.")
+        else:
+            return jsonify("This bicycle is not linked to an active rental.")
 
 

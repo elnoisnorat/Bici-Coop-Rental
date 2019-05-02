@@ -125,6 +125,38 @@ class ClientDAO:
             return result
         return result[0]
 
+    def getPhoneNumber(self, cid):
+        cursor = self.conn.cursor()
+        query = '''
+                        Select pnumber
+                        From Users natural inner join Client
+                        Where CID = %s
+                        '''
+        cursor.execute(query, (cid,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]
 
+    def setDebtorFlag(self, cid):
+        cursor = self.conn.cursor()
+        query = '''
+                update Client set debtorflag = True where cid= %s
+                '''
+        cursor.execute(query, (cid,))
+        self.conn.commit()
+
+    def getDebtorFlag(self, cid):
+        cursor = self.conn.cursor()
+        query = '''
+                Select debtorflag
+                From Client
+                Where cid = %s
+                '''
+        cursor.execute(query, (cid,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]
 
 

@@ -128,6 +128,18 @@ class WorkerDAO:
             return row
         return row[0]
 
+    def getWorkerForMaintenance(self, email):
+        cursor = self.conn.cursor()
+        query = '''SELECT WID 
+                    FROM Worker NATURAL INNER JOIN Users
+                    Where Email = %s and status = 'ACTIVE'
+                    '''
+        cursor.execute(query, (email,))
+        row = cursor.fetchone()
+        if row is None:
+            return row
+        return row[0]
+
 
 
 

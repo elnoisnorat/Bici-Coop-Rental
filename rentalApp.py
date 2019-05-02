@@ -1,7 +1,7 @@
 #from flask import Flask, request, jsonify
 #from handler.schedule import ScheduleHandler
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, redirect, url_for
+from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, session
 from handler.client import ClientHandler
 from handler.fullRentalTransaction import FullTransactionHandler
 from handler.maintenance import MaintenanceHandler
@@ -14,6 +14,7 @@ from handler.worker import WorkerHandler
 from handler.admin import AdminHandler
 from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
+from handler.financial import FinancialHandler
 from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword, \
     validUpdatePhoneNumber, isWorkerOrClient
 from config.encryption import SECRET_KEY
@@ -160,6 +161,12 @@ def swapBicycle():
         return jsonify(Error="An error has occurred."), 400
     return RentalHandler().swapBicycle(request.json)
 
+@app.route('/activeRental')
+@login_required
+@isWorker
+def activeRental():
+    return RentalHandler().activeRental(request.json)
+
 ##########################################################Admin#########################################################
 '''
     Route used for the login of an administrator.
@@ -232,6 +239,14 @@ def updateWorkerStatus():
         return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().updateStatus(request.json)
 
+@app.route('/getFinancialReport', methods=["GET"])
+@login_required
+# @isAdmin
+def getFinancialReport():
+    # if request.json is None:
+    #     return jsonify(Error="An error has occurred."), 400
+    return FinancialHandler().getFinancialReport(request.json)
+
 '''
     Route used to edit the rental plans.
 '''
@@ -270,7 +285,7 @@ def clientLogin():
         return jsonify(Error="An error has occurred."), 400
 
     if current_user.is_authenticated:
-        return jsonify(Error="Incorrect username or password.1"), 400
+        return jsonify(Error="Incorrect username or password."), 400
 
     token = ClientHandler().clientLogin(request.json)
 
@@ -288,9 +303,12 @@ def clientLogin():
         return token
 
 @app.route('/charge')
-
+@login_required
+@isClient
 def charge():
-    return  """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
+    session['quantity'] = request.args.get('amount')
+    print(session['quantity'])
+    return """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
   <script
     src="https://checkout.stripe.com/checkout.js" class="stripe-button"
     data-key="pk_test_lYsQ0aji6IiOcMBI3qXU02Dd00XWDimuKZ"
@@ -307,13 +325,13 @@ def charge():
     Route used for the creation of a bicycle rental.
 '''
 @app.route('/rentBicycle', methods=["POST"])                                                    #18
-#@login_required
-#@isClient
+@login_required
+@isClient
 def rentBicycle():
     # if request.json is None:
     #     return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     # return TransactionHandler().newTransaction(request.json)
-    return FullTransactionHandler().newTransaction()#request.json)
+    return TransactionHandler().newTransaction()#request.json)
 
 
 '''
@@ -485,15 +503,17 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    token = requests.get("http://127.0.0.1:5000/home")
-    print(token.json()['test'])
+    info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
+    user = User(info, "C")
+    user.id = "bbob21308@gmail.com" + "C"
+    login_user(user)
     return "DONE"
 
 
 '''
     Route used to logout a user.
 '''
-@app.route('/logout', methods=["POST"])
+@app.route('/logout', methods=["POST", "GET"])
 @login_required
 @hasRole
 def logout():
