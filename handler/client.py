@@ -25,8 +25,11 @@ class ClientHandler:
 
     def clientLogin(self, form):
         uHand = UsersHandler()
-        email = form['Email']
-        password = form['password']
+        try:
+            email = form['Email']
+            password = form['password']
+        except Exception as e:
+            return -2
         if email and password:                                                  #No null arguments
             confirmation = uHand.getConfirmation(email)
             if confirmation is False or confirmation is None:                                          #User does not exist
