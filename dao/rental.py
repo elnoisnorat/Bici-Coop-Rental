@@ -173,3 +173,10 @@ class RentalDAO:
         if result is None:
             return result
         return result[0]
+
+    def getPlan(self):
+        cur = self.conn.cursor()
+        query = " Select name, amount from plans WHERE PID = 1"
+        cur.execute(query)
+        result = cur.fetchone()
+        return result

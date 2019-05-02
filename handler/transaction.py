@@ -1,5 +1,5 @@
 import jwt
-from flask import jsonify
+from flask import jsonify, abort, redirect, url_for
 from flask_login import current_user
 
 from dao.transaction import TransactionDAO
@@ -53,14 +53,13 @@ class TransactionHandler:
         tDao = TransactionDAO()
         bHand = BicycleHandler()
         amount = form['amount']
-        card = form['card']
         cid = current_user.roleID
         available = bHand.getAvailableBicycleCount()
         if available < int(amount):
             return jsonify("We are sorry. At the moment there are no bicycles available for rent.")
 
         #Integration with the strip API static values for testing
-        stripeToken = 'token'
+        stripeToken = redirect(url_for('pay'))
         cost = 9.99
 
         try:

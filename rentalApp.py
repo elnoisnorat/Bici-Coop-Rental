@@ -1,8 +1,9 @@
 #from flask import Flask, request, jsonify
 #from handler.schedule import ScheduleHandler
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify
+from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, redirect, url_for
 from handler.client import ClientHandler
+from handler.fullRentalTransaction import FullTransactionHandler
 from handler.maintenance import MaintenanceHandler
 from handler.newEmail import EmailHandler
 from handler.rental import RentalHandler
@@ -17,7 +18,8 @@ from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAd
     validUpdatePhoneNumber, isWorkerOrClient
 from config.encryption import SECRET_KEY
 from model.user import User
-
+import requests
+from flask_cors import CORS
 
 # app = Flask(__name__)
 # login_manager = LoginManager()
@@ -25,6 +27,8 @@ from model.user import User
 #
 # app.secret_key = SECRET_KEY
 app.secret_key = SECRET_KEY
+CORS(app)
+
 
 @login_manager.user_loader
 def load_user(id):
@@ -49,7 +53,7 @@ def currentUser():
 
 @app.route('/home')
 def home():
-    return 'Welcome Home'
+    return jsonify(test='Welcome Home')
 
 #########################################################Worker#########################################################
 '''
@@ -266,7 +270,7 @@ def clientLogin():
         return jsonify(Error="An error has occurred."), 400
 
     if current_user.is_authenticated:
-        return jsonify(Error="Incorrect username or password."), 400
+        return jsonify(Error="Incorrect username or password.1"), 400
 
     token = ClientHandler().clientLogin(request.json)
 
@@ -283,16 +287,33 @@ def clientLogin():
         login_user(user)
         return token
 
+@app.route('/charge')
+
+def charge():
+    return  """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
+  <script
+    src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+    data-key="pk_test_lYsQ0aji6IiOcMBI3qXU02Dd00XWDimuKZ"
+    data-amount="999"
+    data-name="Demo Site"
+    data-zip-code="true"
+    data-description="Example charge"
+    data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+    data-locale="auto">
+  </script>
+</form>"""
+
 '''
     Route used for the creation of a bicycle rental.
 '''
 @app.route('/rentBicycle', methods=["POST"])                                                    #18
-@login_required
-@isClient
+#@login_required
+#@isClient
 def rentBicycle():
-    if request.json is None:
-        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-    return TransactionHandler().newTransaction(request.json)
+    # if request.json is None:
+    #     return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+    # return TransactionHandler().newTransaction(request.json)
+    return FullTransactionHandler().newTransaction()#request.json)
 
 
 '''
@@ -464,10 +485,8 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
-    pnumber = request.json['PNumber']
-    size = len(pnumber)
-    if size >= 10 and size <= 12 and pnumber.isnumeric():
-        return "Success"
+    token = requests.get("http://127.0.0.1:5000/home")
+    print(token.json()['test'])
     return "DONE"
 
 

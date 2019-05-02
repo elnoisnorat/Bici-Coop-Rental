@@ -205,6 +205,13 @@ class RentalHandler:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
 
-
+    def getPlan(self):
+        rDao = RentalDAO()
+        try:
+            result = rDao.getPlan()
+            return result
+            pass
+        except Exception as e:
+           raise e
 
 
