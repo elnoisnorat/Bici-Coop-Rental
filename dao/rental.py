@@ -32,7 +32,7 @@ class RentalDAO:
         query = '''
             Select *
             From Rental
-            Where Client = %s AND ReceivedBy IS NULL
+            Where Client = %s AND ReceivedBy IS NULL AND etime IS NULL
         '''
         cursor.execute(query, (cID,))
 
@@ -46,7 +46,7 @@ class RentalDAO:
         query = '''
             Select count(*)
             From Rental
-            Where Client = %s AND ReceivedBy IS NULL
+            Where Client = %s AND ReceivedBy IS NULL AND etime is NULL
         '''
         cursor.execute(query, (cID,))
 
@@ -58,7 +58,7 @@ class RentalDAO:
         query = '''
             Select *
             From Rental
-            Where Client = %s AND ReceivedBy IS NULL AND DispatchedBy IS NULL
+            Where Client = %s AND ReceivedBy IS NULL AND DispatchedBy IS NULL AND etime IS NULL
         '''
         cursor.execute(query, (cID,))
 
@@ -72,7 +72,7 @@ class RentalDAO:
         query = '''
                 Select BID
                 From Rental
-                Where Client = %s AND ReceivedBy IS NULL
+                Where Client = %s AND ReceivedBy IS NULL AND etime IS NULL
                 '''
         cursor.execute(query, (cID,))
 
@@ -152,7 +152,7 @@ class RentalDAO:
         query = '''
             Select BID
             From Rental Natural Inner Join Bike
-            Where Client = %s AND lp = %s AND ReceivedBy IS NULL
+            Where Client = %s AND lp = %s AND ReceivedBy IS NULL AND etime IS NULL
         '''
         cursor.execute(query, (cid, plate,))
         result = cursor.fetchone()
@@ -160,17 +160,24 @@ class RentalDAO:
             return result
         return result[0]
 
-    def getNewRentals(self, tid):
+    def getNewRentals(self, tid, payment):
         cursor = self.conn.cursor()
-        query = '''
-            Select RID
+        if payment == 'CASH':
+            query = '''
+            Select RID, stime + INTERVAL '3 hour', duedate
             From RentLink NATURAL INNER JOIN Rental
             Where TID = %s
         '''
+        elif payment == 'CARD':
+            query = '''
+                        Select RID, duedate, duedate + INTERVAL '5 minute'
+                        From RentLink NATURAL INNER JOIN Rental
+                        Where TID = %s
+                    '''
         cursor.execute(query, (tid,))
         result = []
         for row in cursor:
-            result.append(row[0])
+            result.append(row)
         return result
 
     def get_rental_by_rid_and_rfid(self, rid, oldRFID):
@@ -219,3 +226,13 @@ class RentalDAO:
         if result is None:
             return result
         return result[0]
+
+    def wasDispatched(self, rid):
+        cur = self.conn.cursor()
+        query = " Select DispatchedBy From Rental Where RID = %s"
+        cur.execute(query, (rid,))
+        result = cur.fetchone()
+        if result is None:
+            query = "UPDATE Rental set etime = now() Where RID = %s"
+            cur.execute(query, (rid,))
+            self.conn.commit()

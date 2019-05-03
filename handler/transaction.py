@@ -1,9 +1,10 @@
 from flask_login import current_user
-from app import request, jsonify, session
+from app import request, jsonify, session, scheduler
 from dao.transaction import TransactionDAO
 from handler.bicycle import BicycleHandler
 from handler.rental import RentalHandler
 from handler.client import ClientHandler
+from handler.applicationScheduler import SchedulerHandler
 from config.encryption import sKey, pKey
 import stripe
 import time
@@ -57,7 +58,6 @@ class TransactionHandler:
         bHand = BicycleHandler()
         rHand = RentalHandler()
         amount = session['quantity']
-        print(amount)
         cid = current_user.roleID
         cHand = ClientHandler()
         if cHand.getDebtorFlag(cid) is True:
@@ -65,36 +65,38 @@ class TransactionHandler:
         if amount is None or not amount.isnumeric():
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         #Integration with the strip API static values for testing
+
         try:
+            if session['payment'] == "CASH":
+                cost = 500 * amount
+                token = "CASH"
 
-            print("Getting Outcome...")
-
-            customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
-            subscription = stripe.Subscription.create(
-                customer=customer['id'],
-                items=[{'plan': str(RentalHandler().getPlan()[0]),
+            elif session['payment'] == 'CARD':
+                customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
+                subscription = stripe.Subscription.create(
+                    customer=customer['id'],
+                    items=[{'plan': str(RentalHandler().getPlan()[0]),
+                            'quantity': amount,
+                            }],
+                )
+                dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
+                stripe.Subscription.modify(
+                    subscription['id'],
+                    trial_end=int(time.mktime(dt.timetuple())),
+                    prorate=False,
+                    cancel_at_period_end=False,
+                    items=[{
+                        'id': subscription['items']['data'][0].id,
+                        'plan': str(RentalHandler().getOverduePlan()[0]),  # Change to Overdue Plan
                         'quantity': amount,
-                        }],
-            )
-            print("Getting Outcome...")
-            print(subscription)
-            dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
-            print(int(time.mktime(dt.timetuple())))
-            print("New Plan:\n")
-            print(RentalHandler().getOverduePlan())
-            stripe.Subscription.modify(
-                subscription['id'],
-                trial_end=int(time.mktime(dt.timetuple())),
-                prorate=False,
-                cancel_at_period_end=False,
-                items=[{
-                    'id': subscription['items']['data'][0].id,
-                    'plan': str(RentalHandler().getOverduePlan()[0]),  # Change to Overdue Plan
-                    'quantity': amount,
-                }]
+                    }]
 
-            )
-            cost = subscription['items']['data'][0]['plan']['amount'] * amount
+                )
+                cost = subscription['items']['data'][0]['plan']['amount'] * amount
+                token = subscription["id"]
+            else:
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
             rentedAmount = rHand.getRentalAmountByCID(cid)
             if int(amount) + rentedAmount > 4:
                 return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
@@ -104,12 +106,27 @@ class TransactionHandler:
                 return jsonify("We are sorry. At the moment there are no bicycles available for rent.")
 
             tDao = TransactionDAO()
-            tid = tDao.newTransaction(subscription["id"], cid, amount, cost)
-            rental_list = rHand.getNewRentals(tid)
+            tid = tDao.newTransaction(token, cid, amount, cost)
+            rental_list = rHand.getNewRentals(tid, session['payment'])
             rentals = ""
             for rental in rental_list:
-                rentals = rentals + str(rental) + ", "
+                rentals = rentals + str(rental[0]) + ", "
+                if session['payment'] == "CASH":
+                    scheduler.add_job(func=SchedulerHandler().wasDispatched(), args=[rental[0]], trigger="date",
+                                      run_date=rental[1], id='rental' + str(rental[0]))
+
+                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                                      run_date=rental[2], id='debt' + str(rental[0]))
+
+                if session['payment'] == 'CARD':
+                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                                      run_date=rental[1], id='rental' + str(rental[0]))
+
+                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                                      run_date=rental[2], id='debt' + str(rental[0]))
             rentals[-2]
+            session.pop('amount', None)
+            session.pop('payment', None)
             return jsonify("Rental(s) # " + rentals + " have been created successfully.")
 
         except stripe.error.CardError as e:
@@ -141,6 +158,8 @@ class TransactionHandler:
             # Something else happened, completely unrelated to Stripe
             print('Exception')
             pass
+        session.pop('amount', None)
+        session.pop('payment', None)
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
 '''

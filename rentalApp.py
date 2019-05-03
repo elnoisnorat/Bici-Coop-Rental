@@ -1,7 +1,7 @@
 #from flask import Flask, request, jsonify
 #from handler.schedule import ScheduleHandler
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, session
+from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, session, atexit, scheduler
 from handler.client import ClientHandler
 from handler.fullRentalTransaction import FullTransactionHandler
 from handler.maintenance import MaintenanceHandler
@@ -17,7 +17,7 @@ from handler.user import UsersHandler
 from handler.financial import FinancialHandler
 from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword, \
     validUpdatePhoneNumber, isWorkerOrClient
-from config.encryption import SECRET_KEY
+from config.encryption import SECRET_KEY, pKey
 from model.user import User
 import requests
 from flask_cors import CORS
@@ -29,7 +29,6 @@ from flask_cors import CORS
 # app.secret_key = SECRET_KEY
 app.secret_key = SECRET_KEY
 CORS(app)
-
 
 @login_manager.user_loader
 def load_user(id):
@@ -307,15 +306,15 @@ def clientLogin():
 @isClient
 def charge():
     session['quantity'] = request.args.get('amount')
-    print(session['quantity'])
+    session['payment'] = request.args.get('payment')
     return """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
   <script
     src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-    data-key="pk_test_lYsQ0aji6IiOcMBI3qXU02Dd00XWDimuKZ"
-    data-amount="999"
-    data-name="Demo Site"
+    data-key=""" + pKey + """
+    data-amount="500"
+    data-name="BiciCoop Rental"
     data-zip-code="true"
-    data-description="Example charge"
+    data-description="Rental Transaction"
     data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
     data-locale="auto">
   </script>

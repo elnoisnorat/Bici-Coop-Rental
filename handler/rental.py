@@ -1,7 +1,7 @@
 import jwt
 from flask import jsonify
 from flask_login import current_user
-
+from app import scheduler
 from config.encryption import SECRET_KEY
 from dao.rental import RentalDAO
 from handler.bicycle import BicycleHandler
@@ -108,6 +108,11 @@ class RentalHandler:
             return jsonify(result)
         else:
             # return jsonify(Rental=rental)
+            try:
+                scheduler.remove_job('debt' + str(rid))
+                print("Debt" + str(rid) + " has been removed.")
+            except Exception as e:
+                pass
             return jsonify("Check-in was successful.")
 
 
@@ -170,9 +175,14 @@ class RentalHandler:
         else:
             return jsonify(Error="Bicycle is not in a condition to be rented."), 400
 
-        row = rDao.getRentalByID(rid)
-        rental = self.build_checkIn_dict(row)
+        #row = rDao.getRentalByID(rid)
+        #rental = self.build_checkIn_dict(row)
         # return jsonify(Rental=rental)
+        try:
+            scheduler.remove_job('rental' + str(rid))
+            print("Rental" + str(rid) + " has been removed.")
+        except Exception as e:
+            pass
         return jsonify("Check-out was successful.")
 
     def getBIDByCIDAndPlate(self, cid, plate):
@@ -180,9 +190,9 @@ class RentalHandler:
         bid = rDao.getBIDByCIDAndPlate(cid, plate)
         return bid
 
-    def getNewRentals(self, tid):
+    def getNewRentals(self, tid, payment):
         rDao = RentalDAO()
-        rental_list = rDao.getNewRentals(tid)
+        rental_list = rDao.getNewRentals(tid, payment)
         return rental_list
 
     def swapBicycle(self, form):
