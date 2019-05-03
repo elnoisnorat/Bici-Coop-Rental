@@ -134,3 +134,8 @@ class ClientHandler:
         cDao = ClientDAO()
         flag = cDao.getDebtorFlag(cid)
         return flag
+
+    def getName(self, cid):
+        cDao = ClientDAO()
+        name = cDao.getName(cid)
+        return name

@@ -159,4 +159,17 @@ class ClientDAO:
             return result
         return result[0]
 
+    def getName(self, cid):
+        cursor = self.conn.cursor()
+        query = '''
+                        Select fname
+                        From Client
+                        Where cid = %s
+                        '''
+        cursor.execute(query, (cid,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]
+
 

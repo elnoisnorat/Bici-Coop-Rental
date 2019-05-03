@@ -258,10 +258,11 @@ class RentalHandler:
             cid = rDao.getClientByRID(rid)
             if isLate is None:
                 pNumber = cHand.getPhoneNumber(cid)
+                name = cHand.getName(cid)
                 if pNumber is None:
                     return jsonify("The renter does not have a phone number. Please check in the bicycle.")
                 else:
-                    return jsonify("Please call this number (" + str(pNumber) + ") to contact the renter.")
+                    return jsonify("Please call this number (" + str(pNumber) + ") to contact the renter. There name is " + name)
             else:
                 cHand.setDebtorFlag(cid)
                 return jsonify("This bicycle is currently rented, but has exceeded its rental period.")
