@@ -28,7 +28,7 @@ from flask_cors import CORS
 #
 # app.secret_key = SECRET_KEY
 app.secret_key = SECRET_KEY
-CORS(app)
+CORS(app, supports_credentials=True)
 
 @login_manager.user_loader
 def load_user(id):
@@ -509,7 +509,7 @@ def test():
     user.id = "bbob21308@gmail.com" + "C"
     login_user(user)
     session['email'] = "bbob21308@gmail.com"
-    print(session['_id'])
+    print("Session ID= " + session['_id'])
     return "DONE"
 
 
