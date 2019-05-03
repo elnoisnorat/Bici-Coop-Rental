@@ -29,8 +29,8 @@ class RentalHandler:
         result['rentalID'] = row[0]
         result['Rental Start Date'] = row[1]
         result['Date Delivered'] = row[2]
-        result['Due Date'] = row[7]
-        result['BID'] = row[6]
+        result['Due Date'] = row[3]
+        result['BID'] = row[4]
         return result
 
 

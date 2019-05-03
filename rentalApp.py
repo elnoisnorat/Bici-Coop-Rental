@@ -509,6 +509,7 @@ def test():
     user.id = "bbob21308@gmail.com" + "C"
     login_user(user)
     session['email'] = "bbob21308@gmail.com"
+    print(session['_id'])
     return "DONE"
 
 

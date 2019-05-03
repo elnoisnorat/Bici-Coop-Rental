@@ -30,7 +30,7 @@ class RentalDAO:
     def getRentalByCID(self, cID): #ReceivedBy typo
         cursor = self.conn.cursor()
         query = '''
-            Select *
+            Select rid, stime, etime, duedate, bid 
             From Rental
             Where Client = %s AND ReceivedBy IS NULL AND etime IS NULL
         '''
