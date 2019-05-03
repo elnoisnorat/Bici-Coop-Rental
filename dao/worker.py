@@ -132,9 +132,9 @@ class WorkerDAO:
         cursor = self.conn.cursor()
         query = '''SELECT WID 
                     FROM Worker NATURAL INNER JOIN Users
-                    Where Email = %s and status = 'ACTIVE'
+                    Where Email = %s and status = 'ACTIVE' and confirmation = %s
                     '''
-        cursor.execute(query, (email,))
+        cursor.execute(query, (email, True))
         row = cursor.fetchone()
         if row is None:
             return row
