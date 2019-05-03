@@ -49,11 +49,11 @@ def currentUser():
     Used for testing.
     :return:
     '''
-    return 'Your name is ' + current_user.name
+    return jsonify('Your name is ' + current_user.name)
 
 @app.route('/home')
 def home():
-    return jsonify(test='Welcome Home')
+    return  'Your name is ' + session['email']#jsonify(test='Welcome Home')
 
 #########################################################Worker#########################################################
 '''
@@ -160,7 +160,7 @@ def swapBicycle():
         return jsonify(Error="An error has occurred."), 400
     return RentalHandler().swapBicycle(request.json)
 
-@app.route('/activeRental')
+@app.route('/activeRental', methods=["PUT"])
 @login_required
 @isWorker
 def activeRental():
@@ -300,8 +300,7 @@ def clientLogin():
         user = User(info, "C")
         user.id = request.json["Email"] + "C"
         login_user(user)
-        token.headers.add('Access-Control-Allow-Headers',
-                             "Origin, X-Requested-With, Content-Type, Accept, x-auth")
+        #token.headers.add('Access-Control-Allow-Headers', "Origin, X-Requested-With, Content-Type, Accept, x-auth")
         return token
 
 @app.route('/charge')
@@ -509,6 +508,7 @@ def test():
     user = User(info, "C")
     user.id = "bbob21308@gmail.com" + "C"
     login_user(user)
+    session['email'] = "bbob21308@gmail.com"
     return "DONE"
 
 
