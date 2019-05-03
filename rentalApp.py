@@ -275,6 +275,7 @@ def createClient():
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return ClientHandler().insert(request.json)
+
 '''
     Route used for the login process of a client.
 '''
@@ -299,6 +300,8 @@ def clientLogin():
         user = User(info, "C")
         user.id = request.json["Email"] + "C"
         login_user(user)
+        token.headers.add('Access-Control-Allow-Headers',
+                             "Origin, X-Requested-With, Content-Type, Accept, x-auth")
         return token
 
 @app.route('/charge')
