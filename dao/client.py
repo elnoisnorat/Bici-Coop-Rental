@@ -163,7 +163,7 @@ class ClientDAO:
         cursor = self.conn.cursor()
         query = '''
                         Select fname
-                        From Client
+                        From Client NATURAL INNER JOIN Users
                         Where cid = %s
                         '''
         cursor.execute(query, (cid,))

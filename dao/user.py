@@ -34,7 +34,6 @@ class UsersDAO:
             cursor.execute(query, (uID,))
             eHand = EmailHandler()
             eHand.confirmationEmail(Email)
-
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()

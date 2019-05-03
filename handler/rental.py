@@ -262,7 +262,7 @@ class RentalHandler:
                 if pNumber is None:
                     return jsonify("The renter does not have a phone number. Please check in the bicycle.")
                 else:
-                    return jsonify("Please call this number (" + str(pNumber) + ") to contact the renter. There name is " + name)
+                    return jsonify("Please call this number (" + str(pNumber) + ") to contact the renter. Their name is " + name)
             else:
                 cHand.setDebtorFlag(cid)
                 return jsonify("This bicycle is currently rented, but has exceeded its rental period.")
