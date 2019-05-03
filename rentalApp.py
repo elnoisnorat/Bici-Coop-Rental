@@ -279,7 +279,7 @@ def createClient():
 '''
     Route used for the login process of a client.
 '''
-@app.route('/clientLogin', methods=["GET"])                                                     #17
+@app.route('/clientLogin', methods=["POST"])                                                     #17
 def clientLogin():
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
