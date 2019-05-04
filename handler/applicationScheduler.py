@@ -1,8 +1,4 @@
-from datetime import datetime
 from app import scheduler, time, atexit
-import schedule
-import time
-#import datetime
 from dao.client import ClientDAO
 from dao.rental import RentalDAO
 
