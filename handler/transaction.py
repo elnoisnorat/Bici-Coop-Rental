@@ -60,6 +60,7 @@ class TransactionHandler:
         bHand = BicycleHandler()
         rHand = RentalHandler()
         try:
+            cHand = ClientHandler()
             # amount = form['amount']
             # payment = form['payment']
             amount = form.get('amount')
@@ -69,6 +70,9 @@ class TransactionHandler:
             session['payment'] = payment
 
             cid = current_user.roleID
+
+            if cHand.getDebtorFlag(cid) is True:
+                return jsonify(Error="An error has occurred."), 403
 
             available = bHand.getAvailableBicycleCount()
             if available < int(amount):
@@ -103,25 +107,25 @@ class TransactionHandler:
         rHand = RentalHandler()
         amount = session['quantity']
         cid = current_user.roleID
-        cHand = ClientHandler()
-        if cHand.getDebtorFlag(cid) is True:
-            return jsonify(Error="An error has occurred."), 403
+
         if amount is None or not amount.isnumeric():
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         #Integration with the strip API static values for testing
 
-        cost2Pay = RentalPlanHandler().getPlan()[0]
+        plan = RentalPlanHandler().getPlan()
+        if plan is None:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         try:
             if session['payment'] == "CASH":
-                cost = cost2Pay * amount
+                cost = plan[1] * amount
                 token = "CASH"
 
             elif session['payment'] == 'CARD':
                 customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
                 subscription = stripe.Subscription.create(
                     customer=customer['id'],
-                    items=[{'plan': str(cost2Pay),
+                    items=[{'plan': str(plan[0]),
                             'quantity': amount,
                             }],
                 )
@@ -152,18 +156,30 @@ class TransactionHandler:
             for rental in rental_list:
                 rentals = rentals + str(rental[0]) + ", "
                 if session['payment'] == "CASH":
+                    # scheduler.add_job(func=SchedulerHandler().wasDispatched(), args=[rental[0]], trigger="date",
+                    #                   run_date=rental[1], id='rental' + str(rental[0]))
+                    #
+                    # scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                    #                   run_date=rental[2], id='debt' + str(rental[0]))
+
                     scheduler.add_job(func=SchedulerHandler().wasDispatched(), args=[rental[0]], trigger="date",
-                                      run_date=rental[1], id='rental' + str(rental[0]))
+                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=2), id='rental' + str(rental[0]))
 
                     scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                                      run_date=rental[2], id='debt' + str(rental[0]))
+                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=5), id='debt' + str(rental[0]))
 
                 if session['payment'] == 'CARD':
-                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                                      run_date=rental[1], id='rental' + str(rental[0]))
+                    # scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                    #                   run_date=rental[1], id='rental' + str(rental[0]))
+                    #
+                    # scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                    #                   run_date=rental[2], id='debt' + str(rental[0]))
 
                     scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                                      run_date=rental[2], id='debt' + str(rental[0]))
+                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=2), id='rental' + str(rental[0]))
+
+                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
+                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=5), id='debt' + str(rental[0]))
             rentals[-2]
             session.pop('amount', None)
             session.pop('payment', None)

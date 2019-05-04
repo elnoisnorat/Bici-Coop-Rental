@@ -1,14 +1,21 @@
 from app import scheduler, time, atexit
 from dao.client import ClientDAO
 from dao.rental import RentalDAO
+import datetime
 
 
 class SchedulerHandler:
     def wasDispatched(self, rid):
         print("ENTERED wasDispatched")
         rDao = RentalDAO()
-        rDao.wasDispatched(rid[0])
-        scheduler.remove_job('rental' + str(rid[0]))
+        try:
+            rDao.wasDispatched(rid[0])
+            scheduler.remove_job('rental' + str(rid[0]))
+        except Exception as e:
+            print("Something went wrong with schedule: rental" + rid)
+            scheduler.add_job(func=self.wasDispatched(), args=[rid[0]], trigger="date",
+                              run_date=datetime.datetime.today() + datetime.timedelta(minutes=2),
+                              id='rental' + str(rid[0]))
 
     def hasDebt(self, rid):
         print("ENTERED hasDebt")

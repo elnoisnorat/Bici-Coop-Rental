@@ -233,6 +233,17 @@ class RentalDAO:
         cur.execute(query, (rid,))
         result = cur.fetchone()
         if result is None:
-            query = "UPDATE Rental set etime = now() Where RID = %s"
-            cur.execute(query, (rid,))
-            self.conn.commit()
+            try:
+                query = "UPDATE Rental set etime = now() Where RID = %s"
+                cur.execute(query, (rid,))
+                query = '''
+                  UPDATE bike SET bikestatus = 'AVAILABLE'
+                  WHERE BID in (SELECT bid from bike 
+                                where bikestatus = 'RESERVED' limit 1) 
+                                returning bid
+                        '''
+                cur.execute(query)
+                self.conn.commit()
+            except Exception as e:
+                self.conn.rollback()
+                raise e
