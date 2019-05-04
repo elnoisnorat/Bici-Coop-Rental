@@ -30,14 +30,14 @@ class RentalHandler:
         result['Rental Start Date'] = row[1]
         result['Date Delivered'] = row[2]
         result['Due Date'] = row[3]
-        result['BID'] = row[4]
+        #result['BID'] = row[4]
         return result
 
 
 
-    def rentBicycle(self, cid, tid):
-        rDao = RentalDAO()
-        return rDao.rentBicycle(cid, tid)
+    # def rentBicycle(self, cid, tid):
+    #     rDao = RentalDAO()
+    #     return rDao.rentBicycle(cid, tid)
 
     def getRentalByCID(self, form):
         cHandler = ClientHandler()
@@ -268,5 +268,7 @@ class RentalHandler:
                 return jsonify("This bicycle is currently rented, but has exceeded its rental period.")
         else:
             return jsonify("This bicycle is not linked to an active rental.")
+
+
 
 

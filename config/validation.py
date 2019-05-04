@@ -3,6 +3,7 @@ from functools import wraps
 from flask_login import current_user
 from dao.bicycle import BicycleDAO
 from handler.user import UsersHandler
+import re
 
 
 def isWorker(f):
@@ -70,8 +71,8 @@ def validPassword(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         password = request.json['password']
-        size = len(password)
-        if size >= 8 \
+        passSize = len(password)
+        if 8 <= passSize <= 60 \
                 and any(a.islower() for a in password) \
                 and any(a.isupper() for a in password) \
                 and any(a.isnumeric() for a in password):
@@ -102,7 +103,7 @@ def validUpdatePassword(f):
                 password_list.append(newPassword)
                 for password in password_list:
                     size = len(password)
-                    if size >= 8 \
+                    if 8 <= size <= 60 \
                             and any(a.islower() for a in password) \
                             and any(a.isupper() for a in password) \
                             and any(a.isnumeric() for a in password):
@@ -122,9 +123,9 @@ def validPhoneNumber(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         pnumber = request.json['PNumber']
-        size = len(pnumber)
-        if size >= 10 and size <= 12 and pnumber.isnumeric():
-            valid = True
+        pnumberSize = len(pnumber)
+        if pnumberSize == 10 and pnumber.isnumeric():
+            pass
         else:
             return jsonify(Error="Phone number does not meet our standards."), 400
         return f(*args, **kwargs)
@@ -142,7 +143,7 @@ def validUpdatePhoneNumber(f):
 
             if oldPNumber != newPNumber:
                 size = len(newPNumber)
-                if size >= 10 and size <= 12 and newPNumber.isnumeric():
+                if 10 <= size <= 12 and newPNumber.isnumeric():
                     valid = True
                 else:
                     return jsonify(Error="Phone number does not meet our standards."), 400
@@ -150,6 +151,98 @@ def validUpdatePhoneNumber(f):
                 return jsonify(Error="Incorrect arguments."), 400
         except:
             return jsonify(Error="Incorrect arguments."), 400
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+def validEmail(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            email = request.json['Email']
+
+            if email is None:
+                return jsonify(Error="Incorrect arguments."), 400
+
+                emailSize = len(email)
+                if 6 <= size <= 100 and re.match(r"[a-zA-Z0-9_.%+-]+@(?:[a-zA-Z0-9]+\.)+[a-zA-Z]{2,4}", email):
+                    pass
+                else:
+                    return jsonify(Error="Phone number does not meet our standards."), 400
+            else:
+                return jsonify(Error="Incorrect arguments."), 400
+        except:
+            return jsonify(Error="Incorrect arguments."), 400
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+def validUserCreation(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            fName = request.json['FName']
+            lName = request.json['LName']
+            email = request.json['Email']
+            password = request.json['password']
+            pnumber = request.json['PNumber']
+            nameSize = len(fName)
+            lNameSize = len(lName)
+            emailSize = len(email)
+            passSize = len(password)
+            pnumberSize = len(pnumber)
+
+            if 1 <= nameSize <= 50 \
+                    and all(x.isalpha()
+                            or x.isspace()
+                            or x == '-'
+                            for x in fName) \
+                    and not fName.isspace() \
+                    and fName.find('  ') == -1 \
+                    and fName.find('--') == -1 \
+                    and fName.find('- ') == -1 \
+                    and fName.find(' -') == -1:
+                pass
+            else:
+                return jsonify(Error="Name provided does not meet our standards."), 400
+
+            if 1 <= lNameSize <= 50 \
+                    and all(x.isalpha()
+                            or x.isspace()
+                            or x == '-'
+                            for x in fName) \
+                    and not lName.isspace() \
+                    and lName.find('  ') == -1 \
+                    and lName.find('--') == -1 \
+                    and lName.find('- ') == -1 \
+                    and lName.find(' -') == -1:
+                pass
+            else:
+                return jsonify(Error="Last name provided does not meet our standards."), 400
+
+            if 8 <= passSize <= 60 \
+                    and any(a.islower() for a in password) \
+                    and any(a.isupper() for a in password) \
+                    and any(a.isnumeric() for a in password):
+                pass
+            else:
+                return jsonify(Error="Password provided does not meet our standards."), 400
+
+            if 6 <= emailSize <= 100 and re.match(r"[a-zA-Z0-9_.%+-]+@(?:[a-zA-Z0-9]+\.)+[a-zA-Z]{2,4}", email):
+                pass
+            else:
+                return jsonify(Error="Email provided does not meet our standards."), 400
+
+            if pnumberSize == 10 and pnumber.isnumeric():
+                pass
+            else:
+                return jsonify(Error="Phone number does not meet our standards."), 400
+
+
+        except:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         return f(*args, **kwargs)
 

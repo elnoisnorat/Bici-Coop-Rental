@@ -1,3 +1,4 @@
+import stripe
 from flask import jsonify
 
 from dao.rentalPlan import RentalPlanDAO
@@ -19,12 +20,41 @@ class RentalPlanHandler:
             result_list.append(result)
         return jsonify(RentalPlan=result_list)
 
-    def editPlan(self, json):
+    def getPlan(self):
+        rDao = RentalPlanDAO()
         try:
-            str = "asd"
-            # Json entries
+            result = rDao.getPlan()
+            return result
+            pass
+        except Exception as e:
+           raise e
+
+    def getOverduePlan(self):
+        rDao = RentalPlanDAO()
+        try:
+            result = rDao.getOverduePlan()
+            return result
+            pass
+        except Exception as e:
+            raise e
+
+    def editPlan(self, form):
+        rDao = RentalPlanDAO()
+        try:
+            name = form['name']
+            amount = form['amount']
+
+            response = jsonify(stripe.Plan.create(
+                id=name,
+                amount=amount,
+                interval="week",
+                product={
+                    "name": "Rental"
+                },
+                currency="usd",
+            ))
+            rDao.editPlan(name, amount)
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-        rDao = RentalPlanDAO().editPlan()
         return jsonify('Rental Plan update was successful.')

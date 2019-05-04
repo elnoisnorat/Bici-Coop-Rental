@@ -66,23 +66,35 @@ class WorkerHandler:
         return jsonify("Account was successfully created.")
 
     def updateStatus(self, form):
+        try:
+            wid = form['wID']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
         wDao = WorkerDAO()
-
-        wid = form['Worker ID']
-        status = form['Status']
-
         if not wid:                                                                 #Check for null value
-            return jsonify(Error="An error has occured. Please verify the submmited arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-        if not wDao.getWorkerByID(wid):
-            return jsonify(Error="An error has occured. Please verify the submmited arguments."), 400                          #Check if worker exists
+        worker = wDao.getWorkerByID(wid)
+
+        if worker is None:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400                          #Check if worker exists
         else:
-            if status:
-                wDao.updateStatus(wid, status)                                      #Update Status
+            status = worker[5]
+            if status == 'ACTIVE':
+                valid = wDao.updateStatus(wid, 'INACTIVE')                                      #Update Status
+
+            elif status == 'ACTIVE':
+                valid = wDao.updateStatus(wid, 'ACTIVE')                                      #Update Status
+
             else:
-                return jsonify(Error="No attributes in update request"), 400
-            row = wDao.getWorkerByID(wid)
-            result = self.build_worker_dict(row)
+                return jsonify(Error="An error has occurred."), 400
+
+            if valid is None:
+                return
+
+            # row = wDao.getWorkerByID(wid)
+            # result = self.build_worker_dict(row)
             # return jsonify(Worker=result)
             return jsonify("Update was successful.")
 
@@ -148,6 +160,15 @@ class WorkerHandler:
         wDao = WorkerDAO()
         result = wDao.getWorkerForMaintenance(email)
         return result
+
+    def getConfirmedWorker(self):
+        wDao = WorkerDAO()
+        worker_list = wDao.getConfirmedWorker()
+        result_list = []
+        for row in worker_list:
+            result = self.build_worker_dict(row)
+            result_list.append(result)
+        return jsonify(result_list)
 
 
 

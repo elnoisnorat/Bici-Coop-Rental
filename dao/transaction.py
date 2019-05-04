@@ -48,7 +48,7 @@ class TransactionDAO:
             result.append(row)
         return result
 
-    def newTransaction(self, token, cid, amount, cost): #NEEDS QUERY
+    def newTransaction(self, token, cid, amount, cost, duedate):
         try:
             cursor = self.conn.cursor()
             query = '''
@@ -77,7 +77,7 @@ class TransactionDAO:
                   VALUES (now(), %s , %s) 
                   RETURNING RID;
                 '''
-                cursor.execute(query, (cid, datetime.datetime.utcnow() + datetime.timedelta(days = 8)))
+                cursor.execute(query, (cid, duedate))
                 rID = cursor.fetchone()[0]
                 print(rID)
                 query = '''

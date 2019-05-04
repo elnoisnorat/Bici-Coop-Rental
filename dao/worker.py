@@ -25,9 +25,9 @@ class WorkerDAO:
         query = '''
             Select WID, FName, LName, Email, PNumber, Status
             From Users natural inner join Worker
-            Where WID = %s
+            Where WID = %s and confirmation = %s
         '''
-        cursor.execute(query, (wid,))
+        cursor.execute(query, (wid, True,))
         result = cursor.fetchone()
         return result
 
@@ -139,6 +139,18 @@ class WorkerDAO:
         if row is None:
             return row
         return row[0]
+
+    def getConfirmedWorker(self):
+        cursor = self.conn.cursor()
+        query = '''SELECT WID, FName, LName, Email, PNumber, Status 
+                    FROM Worker NATURAL INNER JOIN Users
+                    Where confirmation = %s
+                    '''
+        cursor.execute(query, (True,))
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
 
 
 

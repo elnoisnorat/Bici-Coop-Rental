@@ -16,10 +16,12 @@ from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
 from handler.financial import FinancialHandler
 from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword, \
-    validUpdatePhoneNumber, isWorkerOrClient
+    validUpdatePhoneNumber, isWorkerOrClient, validEmail, validPhoneNumber, validUserCreation
 from config.encryption import SECRET_KEY, pKey
 from model.user import User
 import requests
+import re
+import datetime
 from flask_cors import CORS
 
 # app = Flask(__name__)
@@ -47,20 +49,33 @@ def currentUser():
     '''
     Route that returns the current user's name.
     Used for testing.
-    :return:
+    :input:
+    {}
+    :return: A string with the name of the current user
     '''
     return jsonify('Your name is ' + current_user.name)
 
 @app.route('/home')
 def home():
-    return  'Your name is ' + session['email']#jsonify(test='Welcome Home')
+    '''
+    Route that returns a json object which contains a string
+    :return: A dictionary that contains the string 'Welcome Home'
+    '''
+    return jsonify(test='Welcome Home')
 
 #########################################################Worker#########################################################
-'''
-    Route used for the worker's login
-'''
+
 @app.route('/workerLogin', methods=["GET"])                                                     #1
 def workerLogin():
+    '''
+    Route used for the worker's login
+    :input:
+    {
+        "Email" = "",
+        "password" = ""
+    }
+    :return: A json object which contains the users information
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
 
@@ -88,16 +103,45 @@ def workerLogin():
 '''
     Route used for the creation and modifications done to a bicycle.
 '''
-@app.route('/bicycle', methods=["POST", "PUT"])                                                 #2, 3
+@app.route('/bicycle', methods=["POST"])                                                 #2
 @login_required
 @isWorkerOrAdmin
 def bicycle():
+    '''
+    Route used for the creation of a bicycle.
+    :input:
+    {
+	    "lp" : "",
+        "rfid" : "",
+        "model" : "",
+        "brand" : "",
+        "snumber" : ""
+    }
+    :return: A message confirming the creation of the bicycle
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
-    if request.method == "POST":
-        return BicycleHandler().insert(request.json)
-    elif request.method == "PUT":
-        return BicycleHandler().update(request.json)
+    return BicycleHandler().insert(request.json)
+
+@app.route('/bicycle', methods=["PUT"])                                                 #3
+@login_required
+@isWorkerOrAdmin
+def bicycleUpdate():
+    '''
+    Route used for the modifications of a bicycle.
+    :input:
+    {
+	    "lp" : "",
+	    "bikestatus" : "",
+        "rfid" : "",
+        "model" : "",
+        "brand" : "",
+    }
+    :return: A message stating that the update was successful
+    '''
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+    return BicycleHandler().update(request.json)
 
 '''
     Route used for the creation and modifications done to a bicycle.
@@ -106,6 +150,12 @@ def bicycle():
 @login_required
 @isWorkerOrAdmin
 def bicycleInInventory():
+    '''
+    Route used to get the bicycles that are in the Inventory (ie bikestatus != rented, decommissioned)
+    :input:
+    {}
+    :return: A json object that contains a list of all the bicycles that should be in the workspace
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return BicycleHandler().getAllBicyclesInPhysicalInventory()
@@ -118,6 +168,15 @@ def bicycleInInventory():
 @login_required
 @isWorker
 def checkIn():
+    '''
+    Route used for the check in process of a bicycle that is about to be returned.
+    :input:
+    {
+        "rfid": "",
+        "lp": "" (Optional: In case rfid malfunctions)
+    }
+    :return: Return confirmation that check-in was successful
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return RentalHandler().checkInBicycle(request.json)
@@ -129,6 +188,16 @@ def checkIn():
 @login_required
 @isWorker
 def checkOut():
+    '''
+    Route used for the check out process of a bicycle that is about to be released to a client.
+    :input:
+    {
+        "rid": "",
+        "rfid": "",
+        "email": "", (Optional: For rental identification. Not in use.)
+    }
+    :return: Return confirmation that check-out was successful
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return RentalHandler().checkOutBicycle(request.json)
@@ -139,6 +208,12 @@ def checkOut():
 @app.route('/getMaintenance', methods=["GET"])                                                  #6
 #@isWorker
 def bicycleDetails():
+    '''
+    Route used to receive the list of pending maintenance requests for the bicycles in the system.
+    :input:
+    {}
+    :return: JSON object with the maintenance requests  that have not been finished or a message stating that there are no current maintenance requests.
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return MaintenanceHandler().getMaintenance(request.json)
@@ -149,6 +224,18 @@ def bicycleDetails():
 @app.route('/provideMaintenance', methods=["PUT"])                                              #7
 @isWorker
 def provideMaintenance():
+    '''
+    Route used to provide the maintenance that was requested for a bicycle .
+    :input:
+    {
+        "Notes": "",
+        "Email": "",
+        "mID": "",
+        "lp": "",   (Optional: For the service New Plate)
+        "rfid": ""  (Optional: For the service New RFID tag)
+    }
+    :return: A confirmation that the maintenance has been updated to show that it has been completed
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return MaintenanceHandler().provideMaintenance(request.json)
@@ -156,6 +243,16 @@ def provideMaintenance():
 @app.route('/swapBicycle', methods=["PUT"])
 @isWorker
 def swapBicycle():
+    '''
+    Route used for the exchange of bicycles in a rental request
+    :input:
+    {
+        "rID": "",
+        "oldRFID": "",
+        "newRFID": ""
+    }
+    :return: A confirmation that the exchange was successful
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return RentalHandler().swapBicycle(request.json)
@@ -164,6 +261,17 @@ def swapBicycle():
 @login_required
 @isWorker
 def activeRental():
+    '''
+    Route used to check if a bicycle is currently linked to a rental
+    :input:
+    {
+        "rfid": ""
+    }
+    :return: A message with the contact information of the renter if the bicycle is linked to an active rental,
+             a message if the rental is past its due date.
+    '''
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return RentalHandler().activeRental(request.json)
 
 ##########################################################Admin#########################################################
@@ -172,6 +280,15 @@ def activeRental():
 '''
 @app.route('/adminLogin', methods=["GET"])                                                      #8
 def adminLogin():
+    '''
+    Route used for the login of an administrator.
+    :input:
+    {
+        "Email": "",
+        "password": ""
+    }
+    :return: A json object with the user's information
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
 
@@ -198,8 +315,20 @@ def adminLogin():
 @app.route('/createAdmin', methods=["POST"])                                                    #9
 @login_required
 @isAdmin
-@validPassword
+@validUserCreation
 def createAdmin():
+    '''
+    Route used for the creation of an administrator.
+    :input:
+    {
+        "FName" : "",
+	    "LName" : "",
+	    "Email": "",
+	    "password" : "",
+	    "PNumber" : ""
+    }
+    :return: A confirmation that the account was created.
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return AdminHandler().insert(request.json)
@@ -210,8 +339,20 @@ def createAdmin():
 @app.route('/createWorker', methods=["POST"])                                                   #10
 @login_required
 @isAdmin
-@validPassword
+@validUserCreation
 def createWorker():
+    '''
+    Route used for the creation of a worker.
+    :input:
+    {
+        "FName" : "",
+	    "LName" : "",
+	    "Email": "",
+	    "password" : "",
+	    "PNumber" : ""
+    }
+    :return: A confirmation that the account was created.
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().insert(request.json)
@@ -223,9 +364,39 @@ def createWorker():
 @login_required
 @isAdmin
 def getWorker():
+    '''
+    Route used to get an individual or list of workers.
+    :input:
+    {
+        (If empty gets all workers)
+        "fName": "",    (Optional)
+        "lName": "",    (Optional)
+        "pNumber": "",  (Optional)
+        "email": "",    (Optional)
+        "wid": "",      (Optional)
+        "uid": "",      (Optional)
+        "status": "",   (Optional)
+        "orderby": ""   (Optional)
+    }
+    :return: A list with the worker's information
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().getWorker(request.json)
+
+@app.route('/getConfirmedWorker', methods=["GET"])                                                       #11
+@login_required
+@isAdmin
+def getConfirmedWorker():
+    '''
+    Route used to get a list of all workers that have been confirmed.
+    :input:
+    {}
+    :return: A list with the worker's information
+    '''
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+    return WorkerHandler().getConfirmedWorker()
 
 '''
     Route used to update the status of a worker.
@@ -234,25 +405,48 @@ def getWorker():
 @login_required
 @isAdmin
 def updateWorkerStatus():
+    '''
+    Route used to update the status of a worker.
+    :input:
+    {
+        "wID": ""
+    }
+    :return: A confirmation that the update was successful
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().updateStatus(request.json)
 
 @app.route('/getFinancialReport', methods=["GET"])
 @login_required
-# @isAdmin
+@isAdmin
 def getFinancialReport():
-    # if request.json is None:
-    #     return jsonify(Error="An error has occurred."), 400
+    '''
+    Route used to get the rentals and revenue earned in the past seven days
+    :input:
+    {}
+    :return: The number of rentals in the past seven days and the amount of money earned
+    '''
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
     return FinancialHandler().getFinancialReport(request.json)
 
 '''
-    Route used to edit the rental plans.
+    Route used to edit the rental plans.#############################################
 '''
 @app.route('/editPlan', methods=["PUT"])                                                        #13
 @login_required
 @isAdmin
 def editPlan():
+    '''
+    Route used to edit the rental plans.
+    :input:
+    {
+        "name": "",
+        "amount": ""
+    }
+    :return:
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return RentalPlanHandler().editPlan(request.json)
@@ -270,8 +464,20 @@ def resolveDecommission():
     Route used for the creation of a user.
 '''
 @app.route('/client', methods=["POST"])                                                         #16
-@validPassword
+@validUserCreation
 def createClient():
+    '''
+    Route used for the creation of a user.
+    :input:
+    {
+        "FName" : "",
+	    "LName" : "",
+	    "Email": "",
+	    "password" : "",
+	    "PNumber" : ""
+    }
+    :return: A confirmation that the account was created.
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return ClientHandler().insert(request.json)
@@ -281,6 +487,15 @@ def createClient():
 '''
 @app.route('/clientLogin', methods=["POST"])                                                     #17
 def clientLogin():
+    '''
+    Route used for the login of a client.
+    :input:
+    {
+        "Email": "",
+        "password": ""
+    }
+    :return: A json object with the user's information
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
 
@@ -300,7 +515,6 @@ def clientLogin():
         user = User(info, "C")
         user.id = request.json["Email"] + "C"
         login_user(user)
-        #token.headers.add('Access-Control-Allow-Headers', "Origin, X-Requested-With, Content-Type, Accept, x-auth")
         return token
 
 @app.route('/charge')
@@ -309,18 +523,9 @@ def clientLogin():
 def charge():
     session['quantity'] = request.args.get('amount')
     session['payment'] = request.args.get('payment')
-    return """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
-  <script
-    src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-    data-key=""" + pKey + """
-    data-amount="500"
-    data-name="BiciCoop Rental"
-    data-zip-code="true"
-    data-description="Rental Transaction"
-    data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-    data-locale="auto">
-  </script>
-</form>"""
+    # session['quantity'] = request.json['amount']
+    # session['payment'] = request.json['payment']
+    return TransactionHandler().charge(request.json)
 
 '''
     Route used for the creation of a bicycle rental.
@@ -329,10 +534,7 @@ def charge():
 @login_required
 @isClient
 def rentBicycle():
-    # if request.json is None:
-    #     return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-    # return TransactionHandler().newTransaction(request.json)
-    return TransactionHandler().newTransaction()#request.json)
+    return TransactionHandler().newTransaction()
 
 
 '''
@@ -402,6 +604,16 @@ def profile():
 @hasRole
 @validUpdatePassword
 def updatePassword():
+    '''
+    Route used to modify a user's password.
+    :input:
+    {
+        "oldPassword": "",
+        "newPassword": "",
+        "confirmPassword": ""
+    }
+    :return:
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updatePassword(request.json)
@@ -503,14 +715,22 @@ def requestDecommission():
     Route used for testing features.
 '''
 @app.route('/test')
+@validUserCreation
 def test():
-    info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
-    user = User(info, "C")
-    user.id = "bbob21308@gmail.com" + "C"
-    login_user(user)
-    session['email'] = "bbob21308@gmail.com"
-    print("Session ID= " + session['_id'])
-    return "DONE"
+    # info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
+    # user = User(info, "C")
+    # user.id = "bbob21308@gmail.com" + "C"
+    # login_user(user)
+    # session['email'] = "bbob21308@gmail.com"
+    # print("Session ID= " + session['_id'])
+    # return "DONE"
+    today = datetime.datetime.today()
+    dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
+    my = datetime.datetime.utcnow() + datetime.timedelta(days = 7)
+    print(today)
+    print(dt)
+    print(my)
+    return "Valid User"
 
 
 '''

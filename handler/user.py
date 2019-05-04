@@ -116,6 +116,7 @@ class UsersHandler:
 
     def updatePassword(self, form):     #When User is logged in
         uDao = UsersDAO()
+
         password = form['newPassword']
         email = current_user.email
 

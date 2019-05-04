@@ -10,6 +10,8 @@ import stripe
 import time
 import datetime
 
+from handler.rentalPlan import RentalPlanHandler
+
 stripe.api_key = sKey
 currentPlan =  2
 
@@ -54,8 +56,50 @@ class TransactionHandler:
             resultList.append(result)
         return jsonify(Transactions=resultList)
 
-    def newTransaction(self):
+    def charge(self, form):
         bHand = BicycleHandler()
+        rHand = RentalHandler()
+        try:
+            # amount = form['amount']
+            # payment = form['payment']
+            amount = form.get('amount')
+            payment = form.get('payment')
+            #plan = form['plan']
+            session['quantity'] = amount
+            session['payment'] = payment
+
+            cid = current_user.roleID
+
+            available = bHand.getAvailableBicycleCount()
+            if available < int(amount):
+                session.pop('amount', None)
+                session.pop('payment', None)
+                return jsonify("We are sorry. At the moment there are not enough bicycles available for rent.")
+
+            rentedAmount = rHand.getRentalAmountByCID(cid)
+            if int(amount) + rentedAmount > 4:
+                session.pop('amount', None)
+                session.pop('payment', None)
+                return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
+
+            return """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
+          <script
+            src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+            data-key=""" + pKey + """
+            data-amount="500"
+            data-name="BiciCoop Rental"
+            data-zip-code="true"
+            data-description="Rental Transaction"
+            data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+            data-locale="auto">
+          </script>
+        </form>"""
+        except Exception as e:
+            session.pop('amount', None)
+            session.pop('payment', None)
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+    def newTransaction(self):
         rHand = RentalHandler()
         amount = session['quantity']
         cid = current_user.roleID
@@ -66,16 +110,18 @@ class TransactionHandler:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         #Integration with the strip API static values for testing
 
+        cost2Pay = RentalPlanHandler().getPlan()[0]
+
         try:
             if session['payment'] == "CASH":
-                cost = 500 * amount
+                cost = cost2Pay * amount
                 token = "CASH"
 
             elif session['payment'] == 'CARD':
                 customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
                 subscription = stripe.Subscription.create(
                     customer=customer['id'],
-                    items=[{'plan': str(RentalHandler().getPlan()[0]),
+                    items=[{'plan': str(cost2Pay),
                             'quantity': amount,
                             }],
                 )
@@ -94,19 +140,13 @@ class TransactionHandler:
                 )
                 cost = subscription['items']['data'][0]['plan']['amount'] * amount
                 token = subscription["id"]
+
+
             else:
                 return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-            rentedAmount = rHand.getRentalAmountByCID(cid)
-            if int(amount) + rentedAmount > 4:
-                return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
-
-            available = bHand.getAvailableBicycleCount()
-            if available < int(amount):
-                return jsonify("We are sorry. At the moment there are no bicycles available for rent.")
-
             tDao = TransactionDAO()
-            tid = tDao.newTransaction(token, cid, amount, cost)
+            tid = tDao.newTransaction(token, cid, amount, cost, dt)
             rental_list = rHand.getNewRentals(tid, session['payment'])
             rentals = ""
             for rental in rental_list:
@@ -161,6 +201,10 @@ class TransactionHandler:
         session.pop('amount', None)
         session.pop('payment', None)
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+    def charge(self):
+        pass
+
 
 '''
         def newTransactionWithCreditCard(self, form):
