@@ -717,20 +717,18 @@ def requestDecommission():
 @app.route('/test')
 @validUserCreation
 def test():
-    # info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
-    # user = User(info, "C")
-    # user.id = "bbob21308@gmail.com" + "C"
-    # login_user(user)
-    # session['email'] = "bbob21308@gmail.com"
-    # print("Session ID= " + session['_id'])
-    # return "DONE"
-    today = datetime.datetime.today()
-    dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
-    my = datetime.datetime.utcnow() + datetime.timedelta(days = 7)
-    print(today)
-    print(dt)
-    print(my)
-    return "Valid User"
+    info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
+    user = User(info, "C")
+    user.id = "bbob21308@gmail.com" + "C"
+    login_user(user)
+    return "DONE"
+    # today = datetime.datetime.today()
+    # dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
+    # my = datetime.datetime.utcnow() + datetime.timedelta(days = 7)
+    # print(today)
+    # print(dt)
+    # print(my)
+    # return "Valid User"
 
 
 '''
