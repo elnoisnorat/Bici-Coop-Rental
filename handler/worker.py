@@ -60,9 +60,9 @@ class WorkerHandler:
     def insert(self, form):
         uHandler = UsersHandler()
         try:
-            uID = uHandler.insert(form, "Worker")
+            uHandler.insert(form, "Worker")
         except Exception as e:
-            return jsonify(Error="An error has occurred."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         return jsonify("Account was successfully created.")
 
     def updateStatus(self, form):

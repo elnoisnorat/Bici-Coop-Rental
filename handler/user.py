@@ -44,7 +44,7 @@ class UsersHandler:
             PNumber = form['PNumber']
             Email = form['Email']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            raise e
         uDao = UsersDAO()
 
         if FName and LName and password and PNumber and Email and Role:
@@ -56,8 +56,7 @@ class UsersHandler:
 
             return uID
         else:
-            return jsonify(Error="Null values in user creation request."), 400
-
+            raise Exception
     '''
     def getUser(self,form):
         uDao = UsersDAO()
