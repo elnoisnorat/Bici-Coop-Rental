@@ -105,3 +105,12 @@ class TransactionDAO:
         #self.conn.commit()
         #return tID
         return 1
+
+    def getStripeToken(self, rid):
+        cursor = self.conn.cursor()
+        query = "SELECT token " \
+                "From Transactions natural inner join RentLink natural inner join Rental" \
+                "Where rid = %s"
+        cursor.execute(query, (rid,))
+        result = cursor.fetchone()[0]
+        return result

@@ -1,4 +1,5 @@
 import jwt
+import stripe
 from flask import jsonify
 from flask_login import current_user
 from app import scheduler
@@ -6,6 +7,7 @@ from config.encryption import SECRET_KEY
 from dao.rental import RentalDAO
 from handler.bicycle import BicycleHandler
 from handler.client import ClientHandler
+from handler.transaction import TransactionHandler
 from handler.user import UsersHandler
 import datetime
 
@@ -97,6 +99,10 @@ class RentalHandler:
             return jsonify(Error="There is no current rental for this bicycle."), 400
 
         debt = rDao.checkIn(wID, rid)
+        stripeID = TransactionHandler().getStripeToken(rid)
+        if stripeID != 'CASH':
+            sub = stripe.Subscription.retrieve(stripeID)
+            stripe.Subscription.delete(sub)
 
         row = rDao.getRentalByID(rid)
         rental = self.build_checkIn_dict(row)

@@ -120,6 +120,7 @@ class TransactionHandler:
             if session['payment'] == "CASH":
                 cost = plan[1] * amount
                 token = "CASH"
+                dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
 
             elif session['payment'] == 'CARD':
                 customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
@@ -220,6 +221,12 @@ class TransactionHandler:
 
     def charge(self):
         pass
+
+    def getStripeToken(self, rid):
+        tDao = TransactionDAO()
+        token = tDao.getStripeToken(rid)
+        return token
+
 
 
 '''
