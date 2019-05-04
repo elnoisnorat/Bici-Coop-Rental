@@ -540,7 +540,7 @@ def rentBicycle():
 '''
     Route used to get the rental plans that have been established.
 '''
-@app.route('/getRentalPlan', methods=["GET"])                                                   #19
+@app.route('/getRentalPlan', methods=["POST"])                                                   #19
 @login_required
 @isClient
 def getRentalPlan():
