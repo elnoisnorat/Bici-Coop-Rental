@@ -219,13 +219,6 @@ class TransactionHandler:
         session.pop('payment', None)
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-    def charge(self):
-        pass
-
-    def getStripeToken(self, rid):
-        tDao = TransactionDAO()
-        token = tDao.getStripeToken(rid)
-        return token
 
 
 

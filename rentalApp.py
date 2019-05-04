@@ -3,7 +3,7 @@
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, session, atexit, scheduler
 from handler.client import ClientHandler
-from handler.fullRentalTransaction import FullTransactionHandler
+#from handler.fullRentalTransaction import FullTransactionHandler
 from handler.maintenance import MaintenanceHandler
 from handler.newEmail import EmailHandler
 from handler.rental import RentalHandler

@@ -247,3 +247,12 @@ class RentalDAO:
             except Exception as e:
                 self.conn.rollback()
                 raise e
+
+    def getStripeToken(self, rid):
+        cursor = self.conn.cursor()
+        query = "SELECT token " \
+                "From Transactions natural inner join RentLink natural inner join Rental" \
+                "Where rid = %s"
+        cursor.execute(query, (rid,))
+        result = cursor.fetchone()[0]
+        return result
