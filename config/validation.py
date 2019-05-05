@@ -218,6 +218,10 @@ def validUpdateNames(f):
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
+        return f(*args, **kwargs)
+
+    return decorated
+
 def validUpdateName(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -240,6 +244,9 @@ def validUpdateName(f):
                 return jsonify(Error="Name provided does not meet our standards."), 400
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        return f(*args, **kwargs)
+
+    return decorated
 
 def validUpdateLName(f):
     @wraps(f)
@@ -263,6 +270,9 @@ def validUpdateLName(f):
                 return jsonify(Error="Last name provided does not meet our standards."), 400
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        return f(*args, **kwargs)
+
+    return decorated
 
 def validUserCreation(f):
     @wraps(f)
