@@ -627,7 +627,7 @@ def updateName():
 @hasRole
 @login_required
 @validUpdateLName
-def updateName():   #Requires token (All)
+def updateLName():   #Requires token (All)
     """
     Route used to modify the name of a user.
     :param:
