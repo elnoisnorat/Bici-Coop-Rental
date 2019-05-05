@@ -69,15 +69,14 @@ class TransactionHandler:
             payment = form['payment']
             # plan = form['plan']
         except Exception as e:
-            amount = args.get('amount')
-            payment = args.get('payment')
+            # amount = args.get('amount')
+            # payment = args.get('payment')
 
         try:
             cHand = ClientHandler()
 
-
-            session['quantity'] = amount
-            session['payment'] = payment
+            # session['quantity'] = amount
+            # session['payment'] = payment
 
             cid = current_user.roleID
 
@@ -106,9 +105,42 @@ class TransactionHandler:
             session.pop('payment', None)
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-    def newTransaction(self):
+    def newTransaction(self, form):
+        bHand = BicycleHandler()
         rHand = RentalHandler()
-        amount = session['quantity']
+
+        try:
+            amount = form['amount']
+            payment = form['payment']
+            stripeID = form['id']
+            # plan = form['plan']
+        except Exception as e:
+            traceback.print_exc()
+            return jsonify("SOMETHING BLEW UP")
+        cHand = ClientHandler()
+
+        # session['quantity'] = amount
+        # session['payment'] = payment
+
+        cid = current_user.roleID
+        email = current_user.email
+        if cHand.getDebtorFlag(cid) is True:
+            return jsonify(Error="An error has occurred."), 403
+
+        available = bHand.getAvailableBicycleCount()
+        if available < int(amount):
+            # session.pop('amount', None)
+            # session.pop('payment', None)
+            return jsonify("We are sorry. At the moment there are not enough bicycles available for rent.")
+
+        rentedAmount = rHand.getRentalAmountByCID(cid)
+        if int(amount) + rentedAmount > 4:
+            # session.pop('amount', None)
+            # session.pop('payment', None)
+            return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
+
+        rHand = RentalHandler()
+        # amount = session['quantity']
         cid = current_user.roleID
 
         if amount is None or not amount.isnumeric():
@@ -120,13 +152,15 @@ class TransactionHandler:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         try:
-            if session['payment'] == "CASH":
+            # if session['payment'] == "CASH":
+            if payment == "CASH":
                 total = int(plan[1]) * int(amount)
                 token = "CASH"
                 dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
 
-            elif session['payment'] == 'CARD':
-                customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
+            # elif session['payment'] == 'CARD':
+            elif payment == 'CARD':
+                customer = stripe.Customer.create(email= email, source= stripeID)
                 subscription = stripe.Subscription.create(
                     customer=customer['id'],
                     items=[{'plan': str(plan[0]),
@@ -158,11 +192,13 @@ class TransactionHandler:
 
             tDao = TransactionDAO()
             tid = tDao.newTransaction(token, cid, amount, total, dt)
-            rental_list = rHand.getNewRentals(tid, session['payment'])
+            # rental_list = rHand.getNewRentals(tid, session['payment'])
+            rental_list = rHand.getNewRentals(tid, payment)
             rentals = ""
             for rental in rental_list:
                 rentals = rentals + str(rental[0]) + ", "
-                if session['payment'] == "CASH":
+                # if session['payment'] == "CASH":
+                if payment == "CASH":
                     scheduler.add_job(func=SchedulerHandler().wasDispatched, args=[rental[0]], trigger="date",
                                       run_date=rental[1], id='rental' + str(rental[0]))
 
@@ -175,7 +211,8 @@ class TransactionHandler:
                     # scheduler.add_job(SchedulerHandler().hasDebt, rental[0], trigger="date",
                     #                   run_date=datetime.datetime.today() + datetime.timedelta(minutes=5), id='debt' + str(rental[0]))
 
-                if session['payment'] == 'CARD':
+                # if session['payment'] == 'CARD':
+                if payment == 'CARD':
                     scheduler.add_job(func=SchedulerHandler().wasDispatched, args=[rental[0]], trigger="date",
                                       run_date=rental[1], id='rental' + str(rental[0]))
 
@@ -189,8 +226,8 @@ class TransactionHandler:
                     #                   run_date=(datetime.datetime.today() + datetime.timedelta(seconds=45)), id='debt' + str(rental[0]))
 
             rentals = rentals[:-2]
-            session.pop('amount', None)
-            session.pop('payment', None)
+            # session.pop('amount', None)
+            # session.pop('payment', None)
             return jsonify("Rental(s) # " + rentals + " have been created successfully.")
 
         except stripe.error.CardError as e:
@@ -223,8 +260,8 @@ class TransactionHandler:
             print('Exception')
             traceback.print_exc()
             pass
-        session.pop('amount', None)
-        session.pop('payment', None)
+        # session.pop('amount', None)
+        # session.pop('payment', None)
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
 

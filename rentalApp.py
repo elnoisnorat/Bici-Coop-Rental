@@ -542,7 +542,7 @@ def rentBicycle():
     Route used for the creation of a bicycle rental.
     :return: A messeage with the confirmation code of each bicycle rented
     """
-    return TransactionHandler().newTransaction()
+    return TransactionHandler().newTransaction(request.json)
 
 
 '''
