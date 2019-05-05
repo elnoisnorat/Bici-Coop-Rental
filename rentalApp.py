@@ -522,11 +522,12 @@ def clientLogin():
 @login_required
 @isClient
 def charge():
-    session['quantity'] = request.args.get('amount')
-    session['payment'] = request.args.get('payment')
+    # session['quantity'] = request.args.get('amount')
+    # session['payment'] = request.args.get('payment')
+    # return TransactionHandler().charge(request.args)
     # session['quantity'] = request.json['amount']
     # session['payment'] = request.json['payment']
-    return TransactionHandler().charge(request.args)
+    return TransactionHandler().charge(request.json)
 
 '''
     Route used for the creation of a bicycle rental.

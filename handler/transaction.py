@@ -1,7 +1,7 @@
 import traceback
 
 from flask_login import current_user
-from app import request, jsonify, session, scheduler
+from app import request, jsonify, session, scheduler, redirect, url_for
 from dao.transaction import TransactionDAO
 from handler.bicycle import BicycleHandler
 from handler.rental import RentalHandler
@@ -64,10 +64,10 @@ class TransactionHandler:
         rHand = RentalHandler()
         try:
             cHand = ClientHandler()
-            # amount = form['amount']
-            # payment = form['payment']
-            amount = form.get('amount')
-            payment = form.get('payment')
+            amount = form['amount']
+            payment = form['payment']
+            # amount = form.get('amount')
+            # payment = form.get('payment')
             #plan = form['plan']
             session['quantity'] = amount
             session['payment'] = payment
@@ -88,19 +88,21 @@ class TransactionHandler:
                 session.pop('amount', None)
                 session.pop('payment', None)
                 return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
-
-            return """ <form action=""" + AWS_LINK + """/rentBicycle method="POST">
-          <script
-            src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-            data-key=""" + pKey + """
-            data-amount="500"
-            data-name="BiciCoop Rental"
-            data-zip-code="true"
-            data-description="Rental Transaction"
-            data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-            data-locale="auto">
-          </script>
-        </form>"""
+            if payment == 'CARD':
+                return """ <form action=""" + AWS_LINK + """/rentBicycle method="POST">
+              <script
+                src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                data-key=""" + pKey + """
+                data-amount="500"
+                data-name="BiciCoop Rental"
+                data-zip-code="true"
+                data-description="Rental Transaction"
+                data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+                data-locale="auto">
+              </script>
+            </form>"""
+            else:
+                return redirect(url_for('/rentBicycle'))
         except Exception as e:
             session.pop('amount', None)
             session.pop('payment', None)
