@@ -69,8 +69,10 @@ class TransactionHandler:
             payment = form['payment']
             # plan = form['plan']
         except Exception as e:
+            pass
             # amount = args.get('amount')
             # payment = args.get('payment')
+
 
         try:
             cHand = ClientHandler()
