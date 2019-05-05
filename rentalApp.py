@@ -17,6 +17,7 @@ from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAd
 from config.encryption import SECRET_KEY, pKey
 from model.user import User
 from flask_cors import CORS
+import re
 
 app.secret_key = SECRET_KEY
 CORS(app, supports_credentials=True)
@@ -73,7 +74,7 @@ def workerLogin():
         return jsonify(Error="Incorrect username or password."), 400
 
     token = WorkerHandler().workerLogin(request.json)
-
+    print(token)
     if token is -1:
         return jsonify(Error="An error has occurred. Please contact an administrator."), 403
 
@@ -775,13 +776,19 @@ def requestDecommission():
 """
 @app.route('/test')
 def test():
+    email = request.json['Email']
+    emailSize = len(email)
+    if 6 <= emailSize <= 100 and re.match(r"[a-zA-Z0-9_.%+-]+@(?:[a-zA-Z0-9]+\.)+[a-zA-Z]{2,4}", email):
+        return "VALID EMAIL"
+    return "INVALID EMAIL"
+
     # scheduler.add_job(func=home, trigger="interval", seconds=2)
     # return "DONE"
-    info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
-    user = User(info, "C")
-    user.id = "bbob21308@gmail.com" + "C"
-    login_user(user)
-    return "DONE"
+    # info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
+    # user = User(info, "C")
+    # user.id = "bbob21308@gmail.com" + "C"
+    # login_user(user)
+    # return "DONE"
     # today = datetime.datetime.today()
     # dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
     # my = datetime.datetime.utcnow() + datetime.timedelta(days = 7)

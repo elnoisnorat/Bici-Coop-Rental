@@ -114,11 +114,14 @@ class TransactionHandler:
         try:
             amount = form['amount']
             payment = form['payment']
-            stripeID = form['id']
             # plan = form['plan']
+            if payment == 'CARD':
+                stripeID = form['id']
+
         except Exception as e:
             traceback.print_exc()
-            return jsonify("SOMETHING BLEW UP")
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
         cHand = ClientHandler()
 
         # session['quantity'] = amount

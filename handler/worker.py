@@ -102,7 +102,8 @@ class WorkerHandler:
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
-
+        print(email)
+        print(password)
         if email and password:                                                      #No null arguments
             confirmation = uHand.getConfirmation(email)
             if confirmation is False or confirmation is None:
@@ -110,6 +111,9 @@ class WorkerHandler:
             elif confirmation is True:
                 attempts = uHand.getLoginAttempts(email)                                #Get current number of attempts
                 blockTime = uHand.getBlockTime(email)                                   #Get current account block time
+
+                print(datetime.datetime.now())
+                print(blockTime)
 
                 if datetime.datetime.now() > blockTime:                                 #If current time > block time proceed
 
