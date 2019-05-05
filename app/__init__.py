@@ -20,5 +20,5 @@ login_manager.init_app(app)
 # scheduler.add_job(func=job,args = [4], trigger="interval", seconds=3)
 
 # Shut down the scheduler when exiting the app
-atexit.register(lambda: scheduler.shutdown())
+#atexit.register(lambda: scheduler.shutdown())
 # atexit.register(bye)

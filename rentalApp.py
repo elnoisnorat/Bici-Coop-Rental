@@ -715,7 +715,6 @@ def requestDecommission():
     Route used for testing features.
 '''
 @app.route('/test')
-@validUserCreation
 def test():
     info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
     user = User(info, "C")
@@ -729,6 +728,15 @@ def test():
     # print(dt)
     # print(my)
     # return "Valid User"
+
+@app.route('/sche')
+def schedule():
+    try:
+        scheduler.get_jobs()
+        scheduler.print_jobs()
+    except:
+        pass
+    return "DONE"
 
 
 '''
