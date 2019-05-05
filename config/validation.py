@@ -179,6 +179,91 @@ def validEmail(f):
 
     return decorated
 
+def validUpdateNames(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            fName = request.json['FName']
+            nameSize = len(fName)
+            lName = request.json['LName']
+            lNameSize = len(lName)
+
+            if 1 <= nameSize <= 50 \
+                    and all(x.isalpha()
+                            or x.isspace()
+                            or x == '-'
+                            for x in fName) \
+                    and not fName.isspace() \
+                    and fName.find('  ') == -1 \
+                    and fName.find('--') == -1 \
+                    and fName.find('- ') == -1 \
+                    and fName.find(' -') == -1:
+                pass
+            else:
+                return jsonify(Error="Name provided does not meet our standards."), 400
+
+            if 1 <= lNameSize <= 50 \
+                    and all(x.isalpha()
+                            or x.isspace()
+                            or x == '-'
+                            for x in lName) \
+                    and not lName.isspace() \
+                    and lName.find('  ') == -1 \
+                    and lName.find('--') == -1 \
+                    and lName.find('- ') == -1 \
+                    and lName.find(' -') == -1:
+                pass
+            else:
+                return jsonify(Error="Last name provided does not meet our standards."), 400
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+def validUpdateName(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            fName = request.json['FName']
+            nameSize = len(fName)
+
+            if 1 <= nameSize <= 50 \
+                    and all(x.isalpha()
+                            or x.isspace()
+                            or x == '-'
+                            for x in fName) \
+                    and not fName.isspace() \
+                    and fName.find('  ') == -1 \
+                    and fName.find('--') == -1 \
+                    and fName.find('- ') == -1 \
+                    and fName.find(' -') == -1:
+                pass
+            else:
+                return jsonify(Error="Name provided does not meet our standards."), 400
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+def validUpdateLName(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            lName = request.json['LName']
+            lNameSize = len(lName)
+
+            if 1 <= lNameSize <= 50 \
+                    and all(x.isalpha()
+                            or x.isspace()
+                            or x == '-'
+                            for x in lName) \
+                    and not lName.isspace() \
+                    and lName.find('  ') == -1 \
+                    and lName.find('--') == -1 \
+                    and lName.find('- ') == -1 \
+                    and lName.find(' -') == -1:
+                pass
+            else:
+                return jsonify(Error="Last name provided does not meet our standards."), 400
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
 def validUserCreation(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -212,7 +297,7 @@ def validUserCreation(f):
                     and all(x.isalpha()
                             or x.isspace()
                             or x == '-'
-                            for x in fName) \
+                            for x in lName) \
                     and not lName.isspace() \
                     and lName.find('  ') == -1 \
                     and lName.find('--') == -1 \

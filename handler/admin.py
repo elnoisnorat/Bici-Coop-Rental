@@ -10,7 +10,7 @@ class AdminHandler:
 
     def adminLogin(self, form):
         '''
-        Function used for admin login
+        Method used for admin login
         :param form: request.json
         :return: A response object containing the user's name, last name, phone number and email
         '''
@@ -52,7 +52,7 @@ class AdminHandler:
 
     def insert(self, form):
         '''
-        Function used to create a new user. Calls the UserHandler().insert() function
+        Method used to create a new user. Calls the UserHandler().insert() method
         :param form: request.json
         :return: A response object with a message confirming account creation
         '''

@@ -12,6 +12,11 @@ class BicycleHandler():
         self.update_attributes = ['lp', 'bikestatus', 'rfid', 'brand', 'model']
 
     def build_bike_dict(self, row):
+        """
+        Method to build a dictionary of a bicycles attributes
+        :param row: Entry received from a query to the database
+        :return: A dictionary containing each of the attributes of the row
+        """
         result = {}
         result['bid'] = row[0]
         result['snumber'] = row[1]
@@ -22,11 +27,11 @@ class BicycleHandler():
         result['model'] = row[6]
         return result
 
-    def build_arg_dict(self, row):
-        result = {}
-        result[row] = row[row]
-
     def getAllBicyclesInPhysicalInventory(self):
+        """
+        Method used to get all bicycles that are in the work area of BiciCoop
+        :return: A list of all bikes that are not rented or decommissioned
+        """
         bDao = BicycleDAO()
         result_list = bDao.getAllBicyclesInPhysicalInventory()
         bicycle_list = []
@@ -37,6 +42,11 @@ class BicycleHandler():
 
 
     def getBicycle(self, form):
+        """
+        Method used to get all bicycles that meet the criteria provided
+        :param form: request.json (Only entries inside bike_attributes will be searched for)
+        :return: A list of all bicycles that meet the criteria provided
+        """
         bDao = BicycleDAO()
 
         filteredArgs = {}
@@ -67,6 +77,11 @@ class BicycleHandler():
         return jsonify(Inventory=result_list)
 
     def insert(self, form):
+        """
+        Method used to create a new bicycle object in the database
+        :param form: request.json
+        :return: A response object with a message confirming that the bicycle was created
+        """
         try:
             plate = form['lp']
             rfid = form['rfid']
@@ -87,6 +102,11 @@ class BicycleHandler():
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
     def getBIDByRFID(self, rfid):
+        """
+        Method used to get the bicycle id from a the RFID tag
+        :param rfid: RFID tag linked to the bicycle
+        :return: The bicycle id
+        """
         bDao = BicycleDAO()
         bid = bDao.getBIDByRFID(rfid)
         return bid

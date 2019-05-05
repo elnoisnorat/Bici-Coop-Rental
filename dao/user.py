@@ -64,13 +64,29 @@ class UsersDAO:
         result = cursor.fetchone()
         return result
 
-    def updateName(self, email, fName, lName):
+    def updateNames(self, email, fName, lName):
         cursor = self.conn.cursor()
         query = '''
-            update Users set FName = %s, LName = %s
+            update Users set FName = %s, LName = 
             Where Email = %s
         '''
         cursor.execute(query, (fName, lName, email,))
+
+    def updateName(self, email, fName):
+        cursor = self.conn.cursor()
+        query = '''
+            update Users set FName = %s
+            Where Email = %s
+        '''
+        cursor.execute(query, (fName, email,))
+
+    def updateLName(self, email, uLName):
+        cursor = self.conn.cursor()
+        query = '''
+            update Users set LName = %s
+            Where Email = %s
+        '''
+        cursor.execute(query, (uLName, email,))
 
     def updatePassword(self, email, password):
         cursor = self.conn.cursor()
@@ -293,3 +309,7 @@ class UsersDAO:
         except Exception as e:
             self.conn.rollback()
             raise e
+
+
+
+

@@ -12,8 +12,8 @@ from handler.admin import AdminHandler
 from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
 from handler.financial import FinancialHandler
-from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validPassword, validUpdatePassword, \
-    validUpdatePhoneNumber, isWorkerOrClient, validEmail, validPhoneNumber, validUserCreation
+from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validUpdatePassword, \
+    validUpdatePhoneNumber, isWorkerOrClient, validUserCreation, validUpdateName, validUpdateLName, validUpdateNames
 from config.encryption import SECRET_KEY, pKey
 from model.user import User
 from flask_cors import CORS
@@ -38,7 +38,7 @@ def currentUser():
     '''
     Route that returns the current user's name.
     Used for testing.
-    :input:
+    :param:
     {}
     :return: A string with the name of the current user
     '''
@@ -59,7 +59,7 @@ def home():
 def workerLogin():
     '''
     Route used for the worker's login
-    :input:
+    :param:
     {
         "Email" = "",
         "password" = ""
@@ -99,7 +99,7 @@ def workerLogin():
 def bicycle():
     '''
     Route used for the creation of a bicycle.
-    :input:
+    :param:
     {
 	    "lp" : "",
         "rfid" : "",
@@ -119,7 +119,7 @@ def bicycle():
 def bicycleUpdate():
     '''
     Route used for the modifications of a bicycle.
-    :input:
+    :param:
     {
 	    "lp" : "",
 	    "bikestatus" : "",
@@ -142,7 +142,7 @@ def bicycleUpdate():
 def bicycleInInventory():
     '''
     Route used to get the bicycles that are in the Inventory (ie bikestatus != rented, decommissioned)
-    :input:
+    :param:
     {}
     :return: A response object that contains a list of all the bicycles that should be in the workspace
     '''
@@ -160,7 +160,7 @@ def bicycleInInventory():
 def checkIn():
     '''
     Route used for the check in process of a bicycle that is about to be returned.
-    :input:
+    :param:
     {
         "rfid": "",
         "lp": "" (Optional: In case rfid malfunctions)
@@ -180,7 +180,7 @@ def checkIn():
 def checkOut():
     '''
     Route used for the check out process of a bicycle that is about to be released to a client.
-    :input:
+    :param:
     {
         "rid": "",
         "rfid": "",
@@ -200,7 +200,7 @@ def checkOut():
 def bicycleDetails():
     '''
     Route used to receive the list of pending maintenance requests for the bicycles in the system.
-    :input:
+    :param:
     {}
     :return: A response object with the maintenance requests  that have not been finished or a message stating that there are no current maintenance requests.
     '''
@@ -216,7 +216,7 @@ def bicycleDetails():
 def provideMaintenance():
     '''
     Route used to provide the maintenance that was requested for a bicycle .
-    :input:
+    :param:
     {
         "Notes": "",
         "Email": "",
@@ -235,7 +235,7 @@ def provideMaintenance():
 def swapBicycle():
     '''
     Route used for the exchange of bicycles in a rental request
-    :input:
+    :param:
     {
         "rID": "",
         "oldRFID": "",
@@ -253,7 +253,7 @@ def swapBicycle():
 def activeRental():
     '''
     Route used to check if a bicycle is currently linked to a rental
-    :input:
+    :param:
     {
         "rfid": ""
     }
@@ -272,7 +272,7 @@ def activeRental():
 def adminLogin():
     '''
     Route used for the login of an administrator.
-    :input:
+    :param:
     {
         "Email": "",
         "password": ""
@@ -309,7 +309,7 @@ def adminLogin():
 def createAdmin():
     '''
     Route used for the creation of an administrator.
-    :input:
+    :param:
     {
         "FName" : "",
 	    "LName" : "",
@@ -333,7 +333,7 @@ def createAdmin():
 def createWorker():
     '''
     Route used for the creation of a worker.
-    :input:
+    :param:
     {
         "FName" : "",
 	    "LName" : "",
@@ -356,7 +356,7 @@ def createWorker():
 def getWorker():
     '''
     Route used to get an individual or list of workers.
-    :input:
+    :param:
     {
         (If empty gets all workers)
         "fName": "",    (Optional)
@@ -380,7 +380,7 @@ def getWorker():
 def getConfirmedWorker():
     '''
     Route used to get a list of all workers that have been confirmed.
-    :input:
+    :param:
     {}
     :return: A list with the worker's information
     '''
@@ -397,7 +397,7 @@ def getConfirmedWorker():
 def updateWorkerStatus():
     '''
     Route used to update the status of a worker.
-    :input:
+    :param:
     {
         "wID": ""
     }
@@ -413,7 +413,7 @@ def updateWorkerStatus():
 def getFinancialReport():
     '''
     Route used to get the rentals and revenue earned in the past seven days
-    :input:
+    :param:
     {}
     :return: The number of rentals in the past seven days and the amount of money earned
     '''
@@ -430,7 +430,7 @@ def getFinancialReport():
 def editPlan():
     '''
     Route used to edit the rental plans.
-    :input:
+    :param:
     {
         "name": "",
         "amount": ""
@@ -458,7 +458,7 @@ def resolveDecommission():
 def createClient():
     '''
     Route used for the creation of a user.
-    :input:
+    :param:
     {
         "FName" : "",
 	    "LName" : "",
@@ -479,7 +479,7 @@ def createClient():
 def clientLogin():
     '''
     Route used for the login of a client.
-    :input:
+    :param:
     {
         "Email": "",
         "password": ""
@@ -511,16 +511,16 @@ def clientLogin():
 @login_required
 @isClient
 def charge():
-    '''
+    """
     Route used to determine the amount, payment and plan of the rental
-    :input:
+    :param:
     {
         "amount": "",
         "payment": "",
         "plan": ""
     }
-    :return:
-    '''
+    :return: A redirect to the rentBicycle route
+    """
     # session['quantity'] = request.args.get('amount')
     # session['payment'] = request.args.get('payment')
     # return TransactionHandler().charge(request.args)
@@ -538,10 +538,10 @@ def charge():
 @login_required
 @isClient
 def rentBicycle():
-    '''
+    """
     Route used for the creation of a bicycle rental.
     :return: A messeage with the confirmation code of each bicycle rented
-    '''
+    """
     return TransactionHandler().newTransaction()
 
 
@@ -554,26 +554,26 @@ def rentBicycle():
 def getRentalPlan():
     return RentalPlanHandler().getRentalPlan()
 
-'''
+"""
     Route used to view the current bicycle rentals that the client has.
-'''
+"""
 @app.route('/viewCurrentRental', methods = ["GET"])                                             #20
 @login_required
 @isClient
 def viewCurrentRental():
-    '''
+    """
     Route used to view the current bicycle rentals that the client has.
-    :input:
+    :param:
     {}
     :return: A response object which contains a list of the rentals.
-    '''
+    """
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return RentalHandler().getRentalByCID(request.json)
 
-'''
+"""
     Route used to request maintenance for a bicycle that is not in the system.
-'''
+"""
 @app.route('/requestPersonalMaintenance', methods=["POST"])                                     #21
 @login_required
 @isClient
@@ -583,21 +583,66 @@ def requestPersonalMaintenance():
     return ServiceMaintenanceHandler().requestServiceMaintenance(request.json)
 
 #########################################################Everyone#########################################################
-'''
+@app.route('/updateNames', methods=["PUT"])                                                      #22
+@hasRole
+@login_required
+@validUpdateNames
+def updateNames():
+    """
     Route used to modify the name and last name of a user.
-    Needs to receive both parameters
-'''
+    :param:
+    {
+        "FName": ""
+    }
+    :return: A response object with a message stating that the update was successful
+    """
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+    return UsersHandler().updateNames(request.json)
+
+"""
+    Route used to modify the name of a user.
+"""
 @app.route('/updateName', methods=["PUT"])                                                      #22
 @hasRole
 @login_required
-def updateName():   #Requires token (All)
+@validUpdateName
+def updateName():
+    """
+    Route used to modify the name of a user.
+    :param:
+    {
+        "FName": ""
+    }
+    :return: A response object with a message stating that the update was successful
+    """
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updateName(request.json)
 
-'''
+"""
+    Route used to modify the last name of a user.
+"""
+@app.route('/updateLName', methods=["PUT"])                                                      #22
+@hasRole
+@login_required
+@validUpdateLName
+def updateName():   #Requires token (All)
+    """
+    Route used to modify the name of a user.
+    :param:
+    {
+        "LName": ""
+    }
+    :return: A response object with a message stating that the update was successful
+    """
+    if request.json is None:
+        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+    return UsersHandler().updateLName(request.json)
+
+"""
     Route used to view relevant information of the current user.
-'''
+"""
 @app.route('/profile', methods=["GET"])                                                         #23
 @login_required
 def profile():
@@ -610,31 +655,31 @@ def profile():
     #profile["Role ID"] = current_user.roleID
     return jsonify(Profile=profile)
 
-'''
+"""
     Route used to modify a user's password.
-'''
+"""
 @app.route('/updatePassword', methods=["PUT"])                                                  #24
 @login_required
 @hasRole
 @validUpdatePassword
 def updatePassword():
-    '''
+    """
     Route used to modify a user's password.
-    :input:
+    :param:
     {
         "oldPassword": "",
         "newPassword": "",
         "confirmPassword": ""
     }
     :return:
-    '''
+    """
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updatePassword(request.json)
 
-'''
+"""
     Route used to modify a user's phone number.
-'''
+"""
 @app.route('/updatePhoneNumber', methods=["PUT"])                                               #25
 @login_required
 @hasRole
@@ -644,18 +689,18 @@ def updatePhoneNumber():
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updatePNumber(request.json)
 
-'''
+"""
     Route used to confirm a password reset request.
-'''
+"""
 @app.route('/confirmForgotPassword')
 def confirmResetPassword():
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().confirmForgotPassword(request.json)
 
-'''
+"""
     Route used to reset a user's password and send a new one via email.(The email part is not implemented)
-'''
+"""
 @app.route('/forgotPassword')                                                                   #26
 def forgotPassword():
     if request.args is None:
@@ -664,18 +709,18 @@ def forgotPassword():
         return jsonify(Error="An error has occurred."), 400
     return UsersHandler().resetPassword(request.args)
 
-'''
+"""
     Route used to confirm a new user account.
-'''
+"""
 @app.route('/confirm')                                                         #27
 def confirmAccount():
     if request.args is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().confirmAccount(request.args)
 
-'''
+"""
     Route used to generate a new confirmation token.
-'''
+"""
 @app.route('/newConfirmation', methods=['POST'])
 def newConfirmation():
     if request.json is None:
@@ -683,9 +728,9 @@ def newConfirmation():
     return UsersHandler().newConfirmation(request.json)
 
 #####################################################CLIENT&WORKER######################################################
-'''
+"""
     Route used to request maintenace for a rented/stored bicycle.
-'''
+"""
 @app.route('/requestRentalMaintenance', methods=["POST"]) #Client and Worker                    #28
 @login_required
 @isWorkerOrClient
@@ -696,9 +741,9 @@ def requestRentalMaintenance():
     return MaintenanceHandler().requestMaintenance(request.json)
 
 #####################################################ADMIN&WORKER#######################################################
-'''
+"""
     Route used to get a list of bicycles.
-'''
+"""
 @app.route('/bicycle', methods=["GET"])                                                         #29
 @login_required
 @isWorkerOrAdmin
@@ -707,10 +752,10 @@ def getbicycle():
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return BicycleHandler().getBicycle(request.json)
 
-'''
+"""
     Route used to get a client list.
     (No actual use as of now)
-'''
+"""
 @app.route('/client', methods=['GET'])                                                          #30
 #@login_required
 def getClient():
@@ -718,16 +763,16 @@ def getClient():
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return ClientHandler().getClient(request.json)
 
-'''
+"""
     Route used to make a decommission request
-'''
+"""
 @app.route('/requestDecommission', methods=["POST"])                                            #31
 def requestDecommission():
     return
 
-'''
+"""
     Route used for testing features.
-'''
+"""
 @app.route('/test')
 def test():
     # scheduler.add_job(func=home, trigger="interval", seconds=2)
@@ -755,9 +800,9 @@ def schedule():
     return "DONE"
 
 
-'''
+"""
     Route used to logout a user.
-'''
+"""
 @app.route('/logout', methods=["POST", "GET"])
 @login_required
 @hasRole

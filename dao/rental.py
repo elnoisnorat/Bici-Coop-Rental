@@ -32,8 +32,8 @@ class RentalDAO:
     def getRentalByCID(self, cID): #ReceivedBy typo
         cursor = self.conn.cursor()
         query = '''
-            Select rid, stime, etime, duedate, bid 
-            From Rental
+            Select rid, stime, etime, duedate, bid, debtorflag
+            From Rental natural inner join Client
             Where Client = %s AND ReceivedBy IS NULL AND etime IS NULL
         '''
         cursor.execute(query, (cID,))
@@ -166,7 +166,7 @@ class RentalDAO:
         cursor = self.conn.cursor()
         if payment == 'CASH':
             query = '''
-            Select RID, stime + INTERVAL '3 hour', duedate
+            Select RID, stime + INTERVAL '30 minute', duedate
             From RentLink NATURAL INNER JOIN Rental
             Where TID = %s
         '''
@@ -259,3 +259,35 @@ class RentalDAO:
         cursor.execute(query, (rid,))
         result = cursor.fetchone()[0]
         return result
+
+    def getMoneyToCollect(self, rid):
+        cursor = self.conn.cursor()
+        query = "SELECT tid, cost " \
+                "From Transactions natural inner join RentLink natural inner join Rental " \
+                "Where rid = %s"
+        cursor.execute(query, (rid,))
+
+        row = cursor.fetchone()
+        tid = row[0]
+        cost = row[1]
+
+        query = """
+                    Select count(*)
+                    From RentLink
+                    Where tid = %s
+                """
+        cursor.execute(query, (tid,))
+        amount = cursor.fetchone()[0]
+        money2pay = float(cost) / float(amount)
+        money2pay = money2pay / 100
+        return money2pay
+
+    def getDebtToCollect(self, rid):
+        cursor = self.conn.cursor()
+        query = "SELECT  ceil((DATE_PART('day', current_date - (SELECT dueDate from Rental where RID = %s))) )* (SELECT amount from plans WHERE PID = %s);"
+        cursor.execute(query, (rid, 2,))
+
+        row = cursor.fetchone()[0]
+
+        money2pay = float(row) / 100
+        return money2pay

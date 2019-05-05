@@ -50,8 +50,8 @@ class UsersHandler:
         '''
         Function used to create a user in the database
         :param form: request.json
-        :param Role:
-        :return:
+        :param Role: The role that the user will have in the system (Client, Admin, Worker)
+        :return: Returns the new user's user id
         '''
         try:
             FName = form['FName']
@@ -108,21 +108,52 @@ class UsersHandler:
 
         return jsonify(Inventory=result_list)
     '''
-    
-    def updateName(self, form):
+
+    def updateNames(self, form):
         uDao = UsersDAO()
         email = current_user.email
         try:
             uName = form['FName']
             uLName = form['LName']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submmited arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-        # if len(form) != 3:
-        #     return jsonify(Error="Malformed update request."), 400
-        # else:
-        if uName and uLName:
-                uDao.updateName(email, uName, uLName)
+        if uName:
+                uDao.updateNames(email, uName, uLName)
+        else:
+            return jsonify(Error="No attributes in update request"), 400
+        row = uDao.getUserByEmail(email)
+        result = self.build_worker_dict(row)
+        # return jsonify(User=result)
+        return jsonify("Update was successful.")
+
+    def updateName(self, form):
+        uDao = UsersDAO()
+        email = current_user.email
+        try:
+            uName = form['FName']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        if uName:
+                uDao.updateName(email, uName)
+        else:
+            return jsonify(Error="No attributes in update request"), 400
+        row = uDao.getUserByEmail(email)
+        result = self.build_worker_dict(row)
+        # return jsonify(User=result)
+        return jsonify("Update was successful.")
+
+    def updateLName(self, form):
+        uDao = UsersDAO()
+        email = current_user.email
+        try:
+            uLName = form['LName']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        if uLName:
+            uDao.updateLName(email, uLName)
         else:
             return jsonify(Error="No attributes in update request"), 400
         row = uDao.getUserByEmail(email)
@@ -141,8 +172,6 @@ class UsersHandler:
         else:
             uDao.updatePassword(email, password)
             return jsonify("Update was successsful.")
-
-
 
     def updatePNumber(self, form):
         uDao = UsersDAO()
@@ -198,7 +227,6 @@ class UsersHandler:
         attempts = attempts + 1
         uDao.addToLoginAttempt(email, attempts)
 
-
     def resetLoginAttempt(self, email):
         uDao = UsersDAO()
         uDao.resetLoginAttempt(email)
@@ -221,7 +249,6 @@ class UsersHandler:
         uDao = UsersDAO()
         attempts = uDao.getLoginAttempts(email)
         return attempts
-
 
     def getUserInfo(self, email, role):
         uDao = UsersDAO()

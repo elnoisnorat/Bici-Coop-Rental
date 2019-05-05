@@ -34,6 +34,7 @@ class RentalHandler:
         result['Date Delivered'] = row[2]
         result['Due Date'] = row[3]
         #result['BID'] = row[4]
+        result['Debt Status'] = row[5]
         return result
 
 
@@ -106,7 +107,8 @@ class RentalHandler:
 
         if stripeID == 'CASH':
             if debt is True:
-                return jsonify("Check-in was successful, but the user has exceeded their rental period.")
+                money2get = rDao.getDebtToCollect(rid)
+                return jsonify("Check-in was successful, but the user has exceeded their rental period. Please collect $" + money2get + ".")
 
         else:
             try:
@@ -195,7 +197,8 @@ class RentalHandler:
         token = rDao.getStripeToken(rid)
 
         if token == "CASH":
-            return jsonify("Check-out was successful. The client has chosen to pay in cash. Please collect the payment.")
+            money2collect = rDao.getMoneyToCollect(rid)
+            return jsonify("Check-out was successful. The client has chosen to pay in cash. Please collect $" + str(money2collect) +".")
         else:
             return jsonify("Check-out was successful.")
 
@@ -219,22 +222,24 @@ class RentalHandler:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         if rid and oldRFID and newRFID:
-            bHand = BicycleHandler()
+            if oldRFID != newRFID:
+                bHand = BicycleHandler()
 
-            oldBID = rDao.get_rental_by_rid_and_rfid(rid, oldRFID)
-            if oldBID is None:
-                return jsonify(Error="This bicycle is not linked to the provided information."), 400
+                oldBID = rDao.get_rental_by_rid_and_rfid(rid, oldRFID)
+                if oldBID is None:
+                    return jsonify(Error="This bicycle is not linked to the provided information."), 400
 
-            newBID = bHand.get_bicycle_for_swap(newRFID)
-            if newBID is None:
-                return jsonify(Error="Bicycle is not in a condition to be rented."), 400
+                newBID = bHand.get_bicycle_for_swap(newRFID)
+                if newBID is None:
+                    return jsonify(Error="Bicycle is not in a condition to be rented."), 400
 
-            try:
-                bHand.swapStatus(newBID, rid)
-                return jsonify("The bicycle swap was successful.")
-            except Exception as e:
-                return jsonify(Error="An error has occurred.")
-
+                try:
+                    bHand.swapStatus(newBID, rid)
+                    return jsonify("The bicycle swap was successful.")
+                except Exception as e:
+                    return jsonify(Error="An error has occurred.")
+            else:
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         else:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
