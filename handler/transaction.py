@@ -98,18 +98,6 @@ class TransactionHandler:
             if payment == 'CARD':
                 return redirect(url_for('rentBicycle'), code=307)
 
-            """ <form action=""" + AWS_LINK + """/rentBicycle method="POST">
-              <script
-                src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-                data-key=""" + pKey + """
-                data-amount="500"
-                data-name="BiciCoop Rental"
-                data-zip-code="true"
-                data-description="Rental Transaction"
-                data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-                data-locale="auto">
-              </script>
-            </form>"""
             else:
                 return redirect(url_for('rentBicycle'), code=307)
         except Exception as e:
