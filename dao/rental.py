@@ -172,7 +172,7 @@ class RentalDAO:
         '''
         elif payment == 'CARD':
             query = '''
-                        Select RID, duedate, duedate + INTERVAL '5 minute'
+                        Select RID, duedate - INTERVAL '5 minute', duedate + INTERVAL '5 minute'
                         From RentLink NATURAL INNER JOIN Rental
                         Where TID = %s
                     '''
