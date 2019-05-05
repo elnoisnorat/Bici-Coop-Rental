@@ -9,6 +9,11 @@ import datetime
 class AdminHandler:
 
     def adminLogin(self, form):
+        '''
+        Function used for admin login
+        :param form: request.json
+        :return: A response object containing the user's name, last name, phone number and email
+        '''
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
@@ -46,11 +51,14 @@ class AdminHandler:
             return -2
 
     def insert(self, form):
+        '''
+        Function used to create a new user. Calls the UserHandler().insert() function
+        :param form: request.json
+        :return: A response object with a message confirming account creation
+        '''
         uHandler = UsersHandler()
-        try:
-            uHandler.insert(form, "Admin")                             #Try to insert a new user with role admin
-        except Exception as e:
+        try:    #Try to insert a new user with role admin
+            uHandler.insert(form, "Admin")
+        except Exception as e:  #Catch an exception during the creation process
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-        #aDao = AdminDAO()
-        #aID = aDao.getAdminByUID(uID)
         return jsonify("Account was successfully created.")

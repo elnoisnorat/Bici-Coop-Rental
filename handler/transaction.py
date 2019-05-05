@@ -96,7 +96,9 @@ class TransactionHandler:
                 session.pop('payment', None)
                 return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
             if payment == 'CARD':
-                return """ <form action=""" + AWS_LINK + """/rentBicycle method="POST">
+                return redirect(url_for('rentBicycle'), code=307)
+
+            """ <form action=""" + AWS_LINK + """/rentBicycle method="POST">
               <script
                 src="https://checkout.stripe.com/checkout.js" class="stripe-button"
                 data-key=""" + pKey + """

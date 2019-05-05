@@ -20,6 +20,11 @@ class UsersHandler:
         self.user_attributes = ['uid', 'fName', 'lName', 'email', 'pNumber', 'orderby']
 
     def build_user_dict(self, row):
+        '''
+        Function used to build a dictionary for the content of a response object
+        :param row: A row obtained from a query to the database
+        :return: A dictionary of each element of the row received
+        '''
         result = {}
         result['uid'] = row[0]
         result['FName'] = row[1]
@@ -29,6 +34,11 @@ class UsersHandler:
         return result
 
     def build_profile_dict(self, row):
+        '''
+        Function used to build a dictionary for the content of a response object
+        :param row: A row obtained from a query to the database
+        :return: A dictionary of each element of the row received
+        '''
         result = {}
         result['Name'] = row[1]
         result['Last Name'] = row[2]
@@ -37,6 +47,12 @@ class UsersHandler:
         return result
 
     def insert(self, form, Role):
+        '''
+        Function used to create a user in the database
+        :param form: request.json
+        :param Role:
+        :return:
+        '''
         try:
             FName = form['FName']
             LName = form['LName']
