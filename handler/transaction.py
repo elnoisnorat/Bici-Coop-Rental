@@ -121,7 +121,7 @@ class TransactionHandler:
 
         try:
             if session['payment'] == "CASH":
-                cost = int(plan[1]) * int(amount)
+                total = int(plan[1]) * int(amount)
                 token = "CASH"
                 dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
 
@@ -188,7 +188,7 @@ class TransactionHandler:
                     # scheduler.add_job(func=SchedulerHandler().hasDebt, args=[rental[0]], trigger="date",
                     #                   run_date=(datetime.datetime.today() + datetime.timedelta(seconds=45)), id='debt' + str(rental[0]))
 
-            rentals[-2]
+            rentals = rentals[:-2]
             session.pop('amount', None)
             session.pop('payment', None)
             return jsonify("Rental(s) # " + rentals + " have been created successfully.")

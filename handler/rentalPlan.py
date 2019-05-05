@@ -7,6 +7,7 @@ from dao.rentalPlan import RentalPlanDAO
 class RentalPlanHandler:
     def build_plan_dict(self, row):
         result = {}
+        result['ID'] = row[0]
         result['Plan Name'] = row[1]
         result['Cost'] = row[2]
         return result

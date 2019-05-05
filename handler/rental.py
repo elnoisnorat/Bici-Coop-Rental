@@ -192,7 +192,12 @@ class RentalHandler:
             print("Rental" + str(rid) + " has been removed.")
         except Exception as e:
             pass
-        return jsonify("Check-out was successful.")
+        token = rDao.getStripeToken(rid)
+
+        if token == "CASH":
+            return jsonify("Check-out was successful. The client has chosen to pay in cash. Please collect the payment.")
+        else:
+            return jsonify("Check-out was successful.")
 
     def getBIDByCIDAndPlate(self, cid, plate):
         rDao = RentalDAO()
