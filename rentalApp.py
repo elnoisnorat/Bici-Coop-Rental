@@ -1,11 +1,8 @@
-#from flask import Flask, request, jsonify
-#from handler.schedule import ScheduleHandler
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+import traceback
+
 from app import app, login_manager, login_user, login_required, logout_user, current_user, request, jsonify, session, atexit, scheduler
 from handler.client import ClientHandler
-#from handler.fullRentalTransaction import FullTransactionHandler
 from handler.maintenance import MaintenanceHandler
-from handler.newEmail import EmailHandler
 from handler.rental import RentalHandler
 from handler.rentalPlan import RentalPlanHandler
 from handler.serviceMaintenance import ServiceMaintenanceHandler
@@ -19,16 +16,8 @@ from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAd
     validUpdatePhoneNumber, isWorkerOrClient, validEmail, validPhoneNumber, validUserCreation
 from config.encryption import SECRET_KEY, pKey
 from model.user import User
-import requests
-import re
-import datetime
 from flask_cors import CORS
 
-# app = Flask(__name__)
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-#
-# app.secret_key = SECRET_KEY
 app.secret_key = SECRET_KEY
 CORS(app, supports_credentials=True)
 
@@ -55,10 +44,10 @@ def currentUser():
     '''
     return jsonify('Your name is ' + current_user.name)
 
-# @app.route('/home')
+@app.route('/home')
 def home():
     '''
-    Route that returns a json object which contains a string
+    Route that returns a response object which contains a string
     :return: A dictionary that contains the string 'Welcome Home'
     '''
     print('Welcome Home')
@@ -75,7 +64,7 @@ def workerLogin():
         "Email" = "",
         "password" = ""
     }
-    :return: A json object which contains the users information
+    :return: A response object which contains the users information
     '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
@@ -155,7 +144,7 @@ def bicycleInInventory():
     Route used to get the bicycles that are in the Inventory (ie bikestatus != rented, decommissioned)
     :input:
     {}
-    :return: A json object that contains a list of all the bicycles that should be in the workspace
+    :return: A response object that contains a list of all the bicycles that should be in the workspace
     '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
@@ -213,7 +202,7 @@ def bicycleDetails():
     Route used to receive the list of pending maintenance requests for the bicycles in the system.
     :input:
     {}
-    :return: JSON object with the maintenance requests  that have not been finished or a message stating that there are no current maintenance requests.
+    :return: A response object with the maintenance requests  that have not been finished or a message stating that there are no current maintenance requests.
     '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
@@ -288,7 +277,7 @@ def adminLogin():
         "Email": "",
         "password": ""
     }
-    :return: A json object with the user's information
+    :return: A response object with the user's information
     '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
@@ -495,7 +484,7 @@ def clientLogin():
         "Email": "",
         "password": ""
     }
-    :return: A json object with the user's information
+    :return: A response object with the user's information
     '''
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
@@ -522,11 +511,24 @@ def clientLogin():
 @login_required
 @isClient
 def charge():
+    '''
+    Route used to determine the amount, payment and plan of the rental
+    :input:
+    {
+        "amount": "",
+        "payment": "",
+        "plan": ""
+    }
+    :return:
+    '''
     # session['quantity'] = request.args.get('amount')
     # session['payment'] = request.args.get('payment')
     # return TransactionHandler().charge(request.args)
-    # session['quantity'] = request.json['amount']
-    # session['payment'] = request.json['payment']
+    try:
+        session['quantity'] = request.json['amount']
+        session['payment'] = request.json['payment']
+    except Exception as e:
+        traceback.print_exc()
     return TransactionHandler().charge(request.json, request.args)
 
 '''
@@ -536,6 +538,10 @@ def charge():
 @login_required
 @isClient
 def rentBicycle():
+    '''
+    Route used for the creation of a bicycle rental.
+    :return: A messeage with the confirmation code of each bicycle rented
+    '''
     return TransactionHandler().newTransaction()
 
 
@@ -555,6 +561,12 @@ def getRentalPlan():
 @login_required
 @isClient
 def viewCurrentRental():
+    '''
+    Route used to view the current bicycle rentals that the client has.
+    :input:
+    {}
+    :return: A response object which contains a list of the rentals.
+    '''
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return RentalHandler().getRentalByCID(request.json)
