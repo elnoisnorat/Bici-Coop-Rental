@@ -60,21 +60,21 @@ class TransactionHandler:
             resultList.append(result)
         return jsonify(Transactions=resultList)
 
-    def charge(self, form):
+    def charge(self, form, args):
         bHand = BicycleHandler()
         rHand = RentalHandler()
+
+        try:
+            amount = form['amount']
+            payment = form['payment']
+            # plan = form['plan']
+        except Exception as e:
+            amount = args.get('amount')
+            payment = args.get('payment')
+
         try:
             cHand = ClientHandler()
-            try:
-                amount = form['amount']
-                payment = form['payment']
-                # plan = form['plan']
-            except Exception as e:
-                try:
-                    amount = form.get('amount')
-                    payment = form.get('payment')
-                except:
-                    return jsonify("Something is missing."), 400
+
 
             session['quantity'] = amount
             session['payment'] = payment
@@ -109,8 +109,9 @@ class TransactionHandler:
               </script>
             </form>"""
             else:
-                return requests.requests.get(AWS_LINK + "/rentBicycle")
+                return redirect(url_for('rentBicycle'), code=307)
         except Exception as e:
+            traceback.print_exc()
             session.pop('amount', None)
             session.pop('payment', None)
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400

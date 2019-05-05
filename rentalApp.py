@@ -518,7 +518,7 @@ def clientLogin():
         login_user(user)
         return token
 
-@app.route('/charge', methods=["POST"])
+@app.route('/charge', methods=["POST", "GET"])
 @login_required
 @isClient
 def charge():
@@ -532,7 +532,7 @@ def charge():
 '''
     Route used for the creation of a bicycle rental.
 '''
-@app.route('/rentBicycle', methods=["POST"])                                                    #18
+@app.route('/rentBicycle', methods=["POST", "GET"])                                                    #18
 @login_required
 @isClient
 def rentBicycle():

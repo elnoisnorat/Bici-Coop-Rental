@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="373f897d-3031-40d0-aac3-04929ca4fb38" name="Default" comment="Fixing handler issues">
+    <list default="true" id="373f897d-3031-40d0-aac3-04929ca4fb38" name="Default" comment="Check-in, check-out messages for payment in cash">
+      <change beforePath="$PROJECT_DIR$/.idea/Bici-Coop-Rental.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Bici-Coop-Rental.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler/rental.py" beforeDir="false" afterPath="$PROJECT_DIR$/handler/rental.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler/rentalPlan.py" beforeDir="false" afterPath="$PROJECT_DIR$/handler/rentalPlan.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handler/transaction.py" beforeDir="false" afterPath="$PROJECT_DIR$/handler/transaction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rentalApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/rentalApp.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rentalApp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="239">
-              <caret line="547" column="37" selection-start-line="547" selection-start-column="37" selection-end-line="547" selection-end-column="37" />
+            <state relative-caret-position="449">
+              <caret line="534" column="48" selection-start-line="534" selection-start-column="48" selection-end-line="534" selection-end-column="48" />
               <folding>
                 <element signature="e#89#180#0" expanded="true" />
               </folding>
@@ -27,11 +27,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handler/transaction.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="419">
-              <caret line="190" column="22" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="22" />
+            <state relative-caret-position="179">
+              <caret line="111" column="64" selection-start-line="111" selection-start-column="64" selection-end-line="111" selection-end-column="64" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
               </folding>
@@ -73,7 +73,7 @@
         <entry file="file://$PROJECT_DIR$/handler/financial.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="135">
-              <caret line="9" column="27" lean-forward="true" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
+              <caret line="9" column="27" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
               </folding>
@@ -85,7 +85,7 @@
         <entry file="file://$PROJECT_DIR$/dao/financial.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="315">
-              <caret line="22" column="41" lean-forward="true" selection-start-line="22" selection-start-column="41" selection-end-line="22" selection-end-column="41" />
+              <caret line="22" column="41" selection-start-line="22" selection-start-column="41" selection-end-line="22" selection-end-column="41" />
             </state>
           </provider>
         </entry>
@@ -179,12 +179,12 @@
         <option value="$PROJECT_DIR$/handler/client.py" />
         <option value="$PROJECT_DIR$/dao/transaction.py" />
         <option value="$PROJECT_DIR$/app/__init__.py" />
-        <option value="$PROJECT_DIR$/rentalApp.py" />
         <option value="$PROJECT_DIR$/handler/applicationScheduler.py" />
         <option value="$PROJECT_DIR$/handler/rentalPlan.py" />
         <option value="$PROJECT_DIR$/handler/rental.py" />
         <option value="$PROJECT_DIR$/dao/rental.py" />
         <option value="$PROJECT_DIR$/handler/transaction.py" />
+        <option value="$PROJECT_DIR$/rentalApp.py" />
       </list>
     </option>
   </component>
@@ -323,19 +323,26 @@
       <option name="project" value="LOCAL" />
       <updated>1557026271973</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Check-in, check-out messages for payment in cash">
+      <created>1557031293783</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1557031293783</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18797815" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18797815" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4989071" weight="0.32937366" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49562842" visible="true" weight="0.32937366" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49562842" visible="true" weight="0.32937366" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -393,7 +400,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Esto fue Juan&#10;Fixing handler issues" />
     <MESSAGE value="Fixing handler issues" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixing handler issues" />
+    <MESSAGE value="Check-in, check-out messages for payment in cash" />
+    <option name="LAST_COMMIT_MESSAGE" value="Check-in, check-out messages for payment in cash" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -556,16 +564,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rentalApp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="547" column="37" selection-start-line="547" selection-start-column="37" selection-end-line="547" selection-end-column="37" />
-          <folding>
-            <element signature="e#89#180#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/handler/rentalPlan.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
@@ -596,7 +594,7 @@
     <entry file="file://$PROJECT_DIR$/handler/financial.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="135">
-          <caret line="9" column="27" lean-forward="true" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
+          <caret line="9" column="27" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
           </folding>
@@ -606,7 +604,7 @@
     <entry file="file://$PROJECT_DIR$/dao/financial.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="315">
-          <caret line="22" column="41" lean-forward="true" selection-start-line="22" selection-start-column="41" selection-end-line="22" selection-end-column="41" />
+          <caret line="22" column="41" selection-start-line="22" selection-start-column="41" selection-end-line="22" selection-end-column="41" />
         </state>
       </provider>
     </entry>
@@ -636,10 +634,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/handler/transaction.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="419">
-          <caret line="190" column="22" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="22" />
+        <state relative-caret-position="179">
+          <caret line="111" column="64" selection-start-line="111" selection-start-column="64" selection-end-line="111" selection-end-column="64" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rentalApp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="449">
+          <caret line="534" column="48" selection-start-line="534" selection-start-column="48" selection-end-line="534" selection-end-column="48" />
+          <folding>
+            <element signature="e#89#180#0" expanded="true" />
           </folding>
         </state>
       </provider>
