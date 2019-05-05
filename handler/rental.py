@@ -99,20 +99,16 @@ class RentalHandler:
 
         debt = rDao.checkIn(wID, rid)
         stripeID = rDao.getStripeToken(rid)
-        if stripeID != 'CASH':
-            sub = stripe.Subscription.retrieve(stripeID)
-            stripe.Subscription.delete(sub)
-
         row = rDao.getRentalByID(rid)
         rental = self.build_checkIn_dict(row)
-        if debt is True:
-            result = {
-                "ALERT": "User has returned the bicycle after the due date.",
-                "Rental": rental
-            }
-            return jsonify(result)
+
+        if stripeID == 'CASH':
+            if debt is True:
+                return jsonify("Check-in was successful, but the user has exceeded their rental period.")
+
         else:
-            # return jsonify(Rental=rental)
+            sub = stripe.Subscription.retrieve(stripeID)
+            stripe.Subscription.delete(sub)
             try:
                 scheduler.remove_job('debt' + str(rid))
                 print("Debt" + str(rid) + " has been removed.")

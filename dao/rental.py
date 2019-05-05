@@ -117,10 +117,10 @@ class RentalDAO:
 
             if eTime > dueDate:
                 debt = True
-                query = '''
-                Update Client set debtorflag = %s Where CID = %s
-                '''
-                cursor.execute(query, (True, client,))
+                # query = '''
+                # Update Client set debtorflag = %s Where CID = %s
+                # '''
+                # cursor.execute(query, (True, client,))
             self.conn.commit()
 
         except Exception as e:
