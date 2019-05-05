@@ -1,3 +1,5 @@
+import traceback
+
 from app import scheduler, time, atexit
 from dao.client import ClientDAO
 from dao.rental import RentalDAO
@@ -9,21 +11,28 @@ class SchedulerHandler:
         print("ENTERED wasDispatched")
         rDao = RentalDAO()
         try:
-            rDao.wasDispatched(rid[0])
-            scheduler.remove_job('rental' + str(rid[0]))
+            rDao.wasDispatched(rid)
+            scheduler.remove_job('debt' + str(rid))
+            #scheduler.remove_job('rental' + str(rid))
         except Exception as e:
-            print("Something went wrong with schedule: rental" + rid)
-            scheduler.add_job(func=self.wasDispatched(), args=[rid[0]], trigger="date",
-                              run_date=datetime.datetime.today() + datetime.timedelta(minutes=2),
-                              id='rental' + str(rid[0]))
+            print("Something went wrong with schedule: rental" + str(rid))
+            traceback.print_exc()
+
+            scheduler.add_job(func=self.wasDispatched, args=[rid], trigger="date",
+                              run_date=datetime.datetime.today() + datetime.timedelta(seconds=2),
+                              id='rental' + str(rid))
 
     def hasDebt(self, rid):
         print("ENTERED hasDebt")
-        rDao = RentalDAO()
-        cid = rDao.getClientByRID(rid[0])
-        cDao = ClientDAO()
-        cDao.setDebtorFlag(cid)
-        scheduler.remove_job('debt' + str(rid[0]))
+        try:
+            rDao = RentalDAO()
+            cid = rDao.getClientByRID(rid)
+            cDao = ClientDAO()
+            cDao.setDebtorFlag(cid)
+#            scheduler.remove_job('debt' + str(rid))
+        except Exception as e:
+            traceback.print_exc()
+            pass
 
 
 # schedule.every()

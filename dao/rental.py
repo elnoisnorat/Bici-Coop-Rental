@@ -1,3 +1,5 @@
+import traceback
+
 from config.dbconfig import pg_config
 import datetime
 import psycopg2
@@ -231,7 +233,7 @@ class RentalDAO:
         cur = self.conn.cursor()
         query = " Select DispatchedBy From Rental Where RID = %s"
         cur.execute(query, (rid,))
-        result = cur.fetchone()
+        result = cur.fetchone()[0]
         if result is None:
             try:
                 query = "UPDATE Rental set etime = now() Where RID = %s"
@@ -245,13 +247,14 @@ class RentalDAO:
                 cur.execute(query)
                 self.conn.commit()
             except Exception as e:
+                traceback.print_exc()
                 self.conn.rollback()
                 raise e
 
     def getStripeToken(self, rid):
         cursor = self.conn.cursor()
         query = "SELECT token " \
-                "From Transactions natural inner join RentLink natural inner join Rental" \
+                "From Transactions natural inner join RentLink natural inner join Rental " \
                 "Where rid = %s"
         cursor.execute(query, (rid,))
         result = cursor.fetchone()[0]

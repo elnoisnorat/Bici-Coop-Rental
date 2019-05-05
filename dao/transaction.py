@@ -1,4 +1,5 @@
 import datetime
+import traceback
 
 from config.dbconfig import pg_config
 import psycopg2
@@ -66,12 +67,12 @@ class TransactionDAO:
                 VALUES (now(), %s, %s, 'COMPLETED', %s) 
                 returning TID
             '''
-            cursor.execute(query, (token, cid, cost))
+            cursor.execute(query, (token, cid, int(cost)))
             tID = cursor.fetchone()[0]
 
             print("TRANSACTION")
             print(amount)
-            for iteration in range(amount):
+            for iteration in range(int(amount)):
                 query = '''
                   INSERT INTO Rental(stime, client, dueDate) 
                   VALUES (now(), %s , %s) 

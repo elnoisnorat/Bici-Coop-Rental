@@ -1,3 +1,5 @@
+import traceback
+
 import jwt
 import stripe
 from flask import jsonify
@@ -107,14 +109,20 @@ class RentalHandler:
                 return jsonify("Check-in was successful, but the user has exceeded their rental period.")
 
         else:
-            sub = stripe.Subscription.retrieve(stripeID)
-            stripe.Subscription.delete(sub)
+            try:
+                stripe.Subscription.delete(stripeID)
+            except Exception as e:
+                return jsonify("Check-in was successful, but there was an error closing the payment subscription. Please notify an Administrator of this error.")
+
             try:
                 scheduler.remove_job('debt' + str(rid))
-                print("Debt" + str(rid) + " has been removed.")
             except Exception as e:
                 pass
-            return jsonify("Check-in was successful.")
+
+            if debt is True:
+                return jsonify("Check-in was successful, but the user has exceeded their rental period.")
+
+        return jsonify("Check-in was successful.")
 
 
     def checkOutBicycle(self, form):

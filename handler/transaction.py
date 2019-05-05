@@ -1,3 +1,5 @@
+import traceback
+
 from flask_login import current_user
 from app import request, jsonify, session, scheduler
 from dao.transaction import TransactionDAO
@@ -6,6 +8,7 @@ from handler.rental import RentalHandler
 from handler.client import ClientHandler
 from handler.applicationScheduler import SchedulerHandler
 from config.encryption import sKey, pKey
+from config.account import AWS_LINK
 import stripe
 import time
 import datetime
@@ -86,7 +89,7 @@ class TransactionHandler:
                 session.pop('payment', None)
                 return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
 
-            return """ <form action="http://127.0.0.1:5000/rentBicycle" method="POST">
+            return """ <form action=""" + AWS_LINK + """/rentBicycle method="POST">
           <script
             src="https://checkout.stripe.com/checkout.js" class="stripe-button"
             data-key=""" + pKey + """
@@ -118,7 +121,7 @@ class TransactionHandler:
 
         try:
             if session['payment'] == "CASH":
-                cost = plan[1] * amount
+                cost = int(plan[1]) * int(amount)
                 token = "CASH"
                 dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
 
@@ -143,44 +146,48 @@ class TransactionHandler:
                     }]
 
                 )
-                cost = subscription['items']['data'][0]['plan']['amount'] * amount
+                cost = subscription['items']['data'][0]['plan']['amount']
                 token = subscription["id"]
-
+                print(cost)
+                print(amount)
+                total = int(cost) * int(amount)
+                print(total)
 
             else:
                 return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
             tDao = TransactionDAO()
-            tid = tDao.newTransaction(token, cid, amount, cost, dt)
+            tid = tDao.newTransaction(token, cid, amount, total, dt)
             rental_list = rHand.getNewRentals(tid, session['payment'])
             rentals = ""
             for rental in rental_list:
                 rentals = rentals + str(rental[0]) + ", "
                 if session['payment'] == "CASH":
-                    # scheduler.add_job(func=SchedulerHandler().wasDispatched(), args=[rental[0]], trigger="date",
-                    #                   run_date=rental[1], id='rental' + str(rental[0]))
-                    #
-                    # scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                    #                   run_date=rental[2], id='debt' + str(rental[0]))
+                    scheduler.add_job(func=SchedulerHandler().wasDispatched, args=[rental[0]], trigger="date",
+                                      run_date=rental[1], id='rental' + str(rental[0]))
 
-                    scheduler.add_job(func=SchedulerHandler().wasDispatched(), args=[rental[0]], trigger="date",
-                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=2), id='rental' + str(rental[0]))
+                    scheduler.add_job(func=SchedulerHandler().hasDebt, args=[rental[0]], trigger="date",
+                                      run_date=rental[2], id='debt' + str(rental[0]))
 
-                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=5), id='debt' + str(rental[0]))
+                    # scheduler.add_job(SchedulerHandler().wasDispatched, rental[0], trigger="date",
+                    #                   run_date=datetime.datetime.today() + datetime.timedelta(seconds=10), id='rental' + str(rental[0]))
+
+                    # scheduler.add_job(SchedulerHandler().hasDebt, rental[0], trigger="date",
+                    #                   run_date=datetime.datetime.today() + datetime.timedelta(minutes=5), id='debt' + str(rental[0]))
 
                 if session['payment'] == 'CARD':
-                    # scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                    #                   run_date=rental[1], id='rental' + str(rental[0]))
-                    #
-                    # scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                    #                   run_date=rental[2], id='debt' + str(rental[0]))
+                    scheduler.add_job(func=SchedulerHandler().wasDispatched, args=[rental[0]], trigger="date",
+                                      run_date=rental[1], id='rental' + str(rental[0]))
 
-                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=2), id='rental' + str(rental[0]))
+                    scheduler.add_job(func=SchedulerHandler().hasDebt, args=[rental[0]], trigger="date",
+                                      run_date=rental[2], id='debt' + str(rental[0]))
 
-                    scheduler.add_job(func=SchedulerHandler().hasDebt(), args=[rental[0]], trigger="date",
-                                      run_date=datetime.datetime.today() + datetime.timedelta(minutes=5), id='debt' + str(rental[0]))
+                    # scheduler.add_job(SchedulerHandler().wasDispatched, args=[rental[0]], trigger="date",
+                    #                   run_date=(datetime.datetime.today() + datetime.timedelta(seconds=30)), id='rental' + str(rental[0]))
+
+                    # scheduler.add_job(func=SchedulerHandler().hasDebt, args=[rental[0]], trigger="date",
+                    #                   run_date=(datetime.datetime.today() + datetime.timedelta(seconds=45)), id='debt' + str(rental[0]))
+
             rentals[-2]
             session.pop('amount', None)
             session.pop('payment', None)
@@ -214,6 +221,7 @@ class TransactionHandler:
         except Exception:
             # Something else happened, completely unrelated to Stripe
             print('Exception')
+            traceback.print_exc()
             pass
         session.pop('amount', None)
         session.pop('payment', None)

@@ -55,13 +55,14 @@ def currentUser():
     '''
     return jsonify('Your name is ' + current_user.name)
 
-@app.route('/home')
+# @app.route('/home')
 def home():
     '''
     Route that returns a json object which contains a string
     :return: A dictionary that contains the string 'Welcome Home'
     '''
-    return jsonify(test='Welcome Home')
+    print('Welcome Home')
+    return 'DONE'
 
 #########################################################Worker#########################################################
 
@@ -525,7 +526,7 @@ def charge():
     session['payment'] = request.args.get('payment')
     # session['quantity'] = request.json['amount']
     # session['payment'] = request.json['payment']
-    return TransactionHandler().charge(request.json)
+    return TransactionHandler().charge(request.args)
 
 '''
     Route used for the creation of a bicycle rental.
@@ -716,6 +717,8 @@ def requestDecommission():
 '''
 @app.route('/test')
 def test():
+    # scheduler.add_job(func=home, trigger="interval", seconds=2)
+    # return "DONE"
     info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
     user = User(info, "C")
     user.id = "bbob21308@gmail.com" + "C"
@@ -735,7 +738,7 @@ def schedule():
         scheduler.get_jobs()
         scheduler.print_jobs()
     except:
-        pass
+        print("#F")
     return "DONE"
 
 

@@ -16,7 +16,7 @@ login_manager.init_app(app)
 # def bye():
 #     print("I HAVE SHUTDOWN.")
 #
-# scheduler.start()
+scheduler.start()
 # scheduler.add_job(func=job,args = [4], trigger="interval", seconds=3)
 
 # Shut down the scheduler when exiting the app
