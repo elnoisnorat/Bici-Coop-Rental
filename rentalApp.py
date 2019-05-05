@@ -518,7 +518,7 @@ def clientLogin():
         login_user(user)
         return token
 
-@app.route('/charge')
+@app.route('/charge', methods=["POST"])
 @login_required
 @isClient
 def charge():
@@ -527,7 +527,7 @@ def charge():
     # return TransactionHandler().charge(request.args)
     # session['quantity'] = request.json['amount']
     # session['payment'] = request.json['payment']
-    return TransactionHandler().charge(request.json)
+    return TransactionHandler().charge(request.json, request.args)
 
 '''
     Route used for the creation of a bicycle rental.

@@ -12,6 +12,7 @@ from config.account import AWS_LINK
 import stripe
 import time
 import datetime
+import requests
 
 from handler.rentalPlan import RentalPlanHandler
 
@@ -64,11 +65,17 @@ class TransactionHandler:
         rHand = RentalHandler()
         try:
             cHand = ClientHandler()
-            amount = form['amount']
-            payment = form['payment']
-            # amount = form.get('amount')
-            # payment = form.get('payment')
-            #plan = form['plan']
+            try:
+                amount = form['amount']
+                payment = form['payment']
+                # plan = form['plan']
+            except Exception as e:
+                try:
+                    amount = form.get('amount')
+                    payment = form.get('payment')
+                except:
+                    return jsonify("Something is missing."), 400
+
             session['quantity'] = amount
             session['payment'] = payment
 
@@ -102,7 +109,7 @@ class TransactionHandler:
               </script>
             </form>"""
             else:
-                return redirect(url_for('/rentBicycle'))
+                return requests.requests.get(AWS_LINK + "/rentBicycle")
         except Exception as e:
             session.pop('amount', None)
             session.pop('payment', None)
