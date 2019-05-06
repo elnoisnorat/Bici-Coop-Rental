@@ -54,7 +54,7 @@ class MaintenanceHandler:
                 return jsonify(Error='An error has occurred. Please verify the submitted arguments.'), 400
             bid = rHand.getBIDByCIDAndPlate(cid, plate)
             if not bid:
-                return jsonify("You have no current bicycle rental at this time.") #Pending
+                return jsonify("You have no current bicycle rental at this time."), 400
             try:
                 service_list = form["Services"]
                 filteredArgs = []
