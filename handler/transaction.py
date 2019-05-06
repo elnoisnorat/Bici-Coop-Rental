@@ -108,6 +108,7 @@ class TransactionHandler:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
     def newTransaction(self, form):
+        print("ENTERED NEW TRANSACTION")
         bHand = BicycleHandler()
         rHand = RentalHandler()
 

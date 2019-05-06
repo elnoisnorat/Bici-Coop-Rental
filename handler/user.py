@@ -274,32 +274,32 @@ class UsersHandler:
             return jsonify(Error="This link has already expired."), 403
 
         if not email:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
 
         uDao = UsersDAO()
         uid = uDao.confirmAccount(email)
         if uid is None:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
         return jsonify("Account was successfully confirmed.")
 
     def confirmForgotPassword(self, form):
         try:
             email = form['Email']
         except Exception as e:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
 
         if not email:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
 
         uid = self.getUserIDByEmail(email)
 
         if not uid:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
         try:
             eHand = EmailHandler()
             eHand.confirmResetPassword(email)
         except Exception as e:
-            return jsonify("An error has occurred."), 400
+            return jsonify(Error="An error has occurred."), 400
 
         return jsonify("An email has been sent to the provided address.")
 
@@ -329,7 +329,7 @@ class UsersHandler:
                 uDao.updateForgottenPassword(email, password)
                 return jsonify("An email has been sent to the provided address.")
             except Exception as e:
-                return jsonify("An error has occurred."), 400
+                return jsonify(Error="An error has occurred."), 400
 
     def newConfirmation(self, form):
         uHand = UsersHandler()

@@ -569,7 +569,7 @@ def charge():
 '''
     Route used for the creation of a bicycle rental.
 '''
-@app.route('/rentBicycle', methods=["POST", "GET"])                                                    #18
+@app.route('/rentBicycle', methods=["POST"])                                                    #18
 @login_required
 @isClient
 def rentBicycle():
@@ -577,6 +577,7 @@ def rentBicycle():
     Route used for the creation of a bicycle rental.
     :return: A messeage with the confirmation code of each bicycle rented
     """
+    print("ENTERED RENTBICYCLE")
     return TransactionHandler().newTransaction(request.json)
 
 
