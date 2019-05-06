@@ -826,12 +826,12 @@ def webhook():
         traceback.print_exc()
         return jsonify("Error", 400)
 
+@app.route('/dueNow',  methods =['POST'])
 def dueNow():
     #subcription =
     # stripe.Invoice.create(
     #     customer= subcription['customer'],
     # )
-
     #Send Subscription ID of subscription to be sped up
     return jsonify(stripe.Subscription.modify(request.args.get('id'),
 billing_cycle_anchor='now', prorate = False, quantity=2))
