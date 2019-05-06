@@ -417,8 +417,6 @@ def getConfirmedWorker():
     {}
     :return: A list with the worker's information
     """
-    if request.json is None:
-        return jsonify(Error="An error has occurred."), 400
     return WorkerHandler().getConfirmedWorker()
 
 """
@@ -458,6 +456,10 @@ def getFinancialReport():
 @login_required
 @isAdmin
 def getRentedBicycleList():
+    """
+    Route used to get a list of rented bicycles
+    :return: A response object with a list of rentals
+    """
     return RentalHandler().getRentedBicycleList()
 
 
@@ -547,27 +549,6 @@ def clientLogin():
         login_user(user)
         return token
 
-@app.route('/charge', methods=["POST", "GET"])
-@login_required
-@isClient
-def charge():
-    """
-    Route used to determine the amount, payment and plan of the rental
-    :param:
-    {
-        "amount": "",
-        "payment": "",
-        "plan": ""
-    }
-    :return: A redirect to the rentBicycle route
-    """
-    try:
-        session['quantity'] = request.json['amount']
-        session['payment'] = request.json['payment']
-    except Exception as e:
-        traceback.print_exc()
-    return TransactionHandler().charge(request.json, request.args)
-
 """
     Route used for the creation of a bicycle rental.
 """
@@ -577,7 +558,13 @@ def charge():
 def rentBicycle():
     """
     Route used for the creation of a bicycle rental.
-    :return: A messeage with the confirmation code of each bicycle rented
+    :param:
+    {
+        "amount": "",
+        "payment": "",
+        "plan": ""
+    }
+    :return: A message with the confirmation code of each bicycle rented
     """
     return TransactionHandler().newTransaction(request.json)
 
@@ -589,6 +576,10 @@ def rentBicycle():
 @login_required
 @isClient
 def getRentalPlan():
+    """
+    Route to get the rental plans
+    :return:
+    """
     return RentalPlanHandler().getRentalPlan()
 
 """
@@ -683,6 +674,10 @@ def updateLName():   #Requires token (All)
 @app.route('/profile', methods=["GET"])                                                         #23
 @login_required
 def profile():
+    """
+    Route used to view the current user's profile
+    :return: A response object with the current user's attributes
+    """
     profile = {}
     profile["Name"] = current_user.name
     profile["Last Name"] = current_user.lName
@@ -722,6 +717,10 @@ def updatePassword():
 @hasRole
 @validUpdatePhoneNumber
 def updatePhoneNumber():
+    """
+    Route used to modify a user's password.
+    :return:
+    """
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().updatePNumber(request.json)
