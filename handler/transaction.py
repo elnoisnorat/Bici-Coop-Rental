@@ -108,7 +108,6 @@ class TransactionHandler:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
     def newTransaction(self, form):
-        print("ENTERED NEW TRANSACTION")
         bHand = BicycleHandler()
         rHand = RentalHandler()
 
@@ -188,10 +187,7 @@ class TransactionHandler:
                 )
                 cost = subscription['items']['data'][0]['plan']['amount']
                 token = subscription["id"]
-                print(cost)
-                print(amount)
                 total = int(cost) * int(amount)
-                print(total)
 
             else:
                 return jsonify(Error="An error has occurred. Please verify the submitted arguments 4."), 400
@@ -269,60 +265,3 @@ class TransactionHandler:
         # session.pop('amount', None)
         # session.pop('payment', None)
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-
-
-
-
-'''
-        def newTransactionWithCreditCard(self, form):
-            tDao = TransactionDAO()
-            bHand = BicycleHandler()
-            pMethod = form['pMethod']
-            if form['method'] == 'cash':
-                token = \
-                    {
-                        "method": form['method'],
-                        "amount": form['amount']
-                    }
-            elif form['method'] == 'creditCard':
-                token = \
-                    {
-                        "method": form['method'],
-                        "": form['charge']
-                    }
-            else:
-                return jsonify(Error="Invalid payment method")
-
-            form['Stripe']  # STRIPE CODE
-            token = form['token']
-
-            if bHand.getAvailableBicycleCount() <= 0:
-                return jsonify("We are sorry. At the moment there are no bicycles available for rent.")
-
-            
-                #STRIPE CODE
-            
-
-            try:
-                data = jwt.decode(token, SECRET_KEY)
-                cid = data['cID']
-            except:
-                return jsonify(Error="Invalid token."), 401
-            if not cid:
-                return jsonify(Error="Client does not exist."), 401
-
-            if pMethod == 'Cash':  # stripeToken not used
-                tid = tDao.newTransactionWithCash(cid, pMethod)
-
-            elif pMethod == 'CreditCard':
-                tid = tDao.newTransactionWithCreditCard()
-            else:
-                return jsonify(Error="No payment method given."), 401
-
-            rHandler = RentalHandler()
-
-            rID = rHandler.rentBicycle(cid, tid)
-
-            return jsonify(
-                "Transaction # " + str(tid) + " and rental # " + str(rID) + " have been created successfully.")
-'''

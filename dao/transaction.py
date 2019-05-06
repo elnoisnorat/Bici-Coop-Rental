@@ -60,8 +60,6 @@ class TransactionDAO:
                     '''
             cursor.execute(query, (amount,))
 
-            print("RESERVATION")
-
             if token == 'CASH':
                 query = '''
                     INSERT INTO transactions(stamp, token, cid, status, cost) 
@@ -77,8 +75,6 @@ class TransactionDAO:
             cursor.execute(query, (token, cid, int(cost)))
             tID = cursor.fetchone()[0]
 
-            print("TRANSACTION")
-            print(amount)
             for iteration in range(int(amount)):
                 query = '''
                   INSERT INTO Rental(stime, client, dueDate) 
@@ -87,18 +83,15 @@ class TransactionDAO:
                 '''
                 cursor.execute(query, (cid, duedate))
                 rID = cursor.fetchone()[0]
-                print(rID)
                 query = '''
                   INSERT INTO RentLink(RID, TID) 
                   VALUES (%s, %s);
                         '''
                 cursor.execute(query, (rID, tID,))
-                print(iteration)
             self.conn.commit()
 
         except Exception as e:
             self.conn.rollback()
-            print(e)
             raise e
         return tID
 

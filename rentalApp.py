@@ -21,7 +21,6 @@ import re
 import stripe
 app.secret_key = SECRET_KEY
 CORS(app, supports_credentials=True)
-hook_key = 'whsec_1BYC3kEVQ2Ssu02IXLeTFiNhq5cdWMF2'
 
 @login_manager.user_loader
 def load_user(id):
@@ -75,7 +74,6 @@ def workerLogin():
         return jsonify(Error="Incorrect username or password."), 400
 
     token = WorkerHandler().workerLogin(request.json)
-    print(token)
     if token is -1:
         return jsonify(Error="An error has occurred. Please contact an administrator."), 403
 
@@ -556,9 +554,6 @@ def charge():
     }
     :return: A redirect to the rentBicycle route
     """
-    # session['quantity'] = request.args.get('amount')
-    # session['payment'] = request.args.get('payment')
-    # return TransactionHandler().charge(request.args)
     try:
         session['quantity'] = request.json['amount']
         session['payment'] = request.json['payment']
@@ -577,7 +572,6 @@ def rentBicycle():
     Route used for the creation of a bicycle rental.
     :return: A messeage with the confirmation code of each bicycle rented
     """
-    print("ENTERED RENTBICYCLE")
     return TransactionHandler().newTransaction(request.json)
 
 
@@ -809,36 +803,9 @@ def requestDecommission():
 @app.route('/webhook', methods=["POST"])
 def webhook():
     return RentalHandler().webhook(request.data, request.headers)
-    # payload = request.data
-    # sig_header = request.headers.get('Stripe-Signature')
-    # print(request.headers)
-    # event = None
-    # try:
-    #     event = stripe.Webhook.construct_event(
-    #         payload, sig_header, hook_key
-    #     )
-    #     # print(event['type'] == 'invoice.payment_succeeded')
-    #     # print(event['data']['object']['billing_reason'] != 'subscription_create')
-    #     # print(event['data']['object']['amount_paid'])
-    #     # print(event['data']['object']['charge'])
-    #     # cost = print(event['data']['object']['amount_paid'])
-    #     # tokenID = print(event['data']['object']['charge'])
-    #     return jsonify(event)
-    # except ValueError as e:
-    #     # Invalid payload
-    #     traceback.print_exc()
-    #     return jsonify("Value ErrorError", 400)
-    # except stripe.error.SignatureVerificationError as e:
-    #     # Invalid signature
-    #     traceback.print_exc()
-    #     return jsonify("Error", 400)
 
 @app.route('/dueNow',  methods =['GET'])
 def dueNow():
-    #subcription =
-    # stripe.Invoice.create(
-    #     customer= subcription['customer'],
-    # )
     #Send Subscription ID of subscription to be sped up
     return jsonify(stripe.Subscription.modify(request.args.get('id'),
 billing_cycle_anchor='now', prorate = False, quantity=2))
@@ -847,26 +814,7 @@ billing_cycle_anchor='now', prorate = False, quantity=2))
 """
 @app.route('/test')
 def test():
-    email = request.json['Email']
-    emailSize = len(email)
-    if 6 <= emailSize <= 100 and re.match(r"[a-zA-Z0-9_.%+-]+@(?:[a-zA-Z0-9]+\.)+[a-zA-Z]{2,4}", email):
-        return "VALID EMAIL"
-    return "INVALID EMAIL"
-
-    # scheduler.add_job(func=home, trigger="interval", seconds=2)
-    # return "DONE"
-    # info = UsersHandler().getUserInfo("bbob21308@gmail.com", "C")
-    # user = User(info, "C")
-    # user.id = "bbob21308@gmail.com" + "C"
-    # login_user(user)
-    # return "DONE"
-    # today = datetime.datetime.today()
-    # dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
-    # my = datetime.datetime.utcnow() + datetime.timedelta(days = 7)
-    # print(today)
-    # print(dt)
-    # print(my)
-    # return "Valid User"
+    return "DONE"
 
 @app.route('/sche')
 def schedule():
@@ -891,4 +839,5 @@ def logout():
     return jsonify('You are now logged out')
 
 if __name__ == '__main__':
-    app.run(debug=True)#, ssl_context=('cert.pem', 'key.pem'))
+    app.run()
+    #debug=True)#, ssl_context=('cert.pem', 'key.pem'))

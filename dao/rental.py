@@ -206,9 +206,7 @@ class RentalDAO:
         cur = self.conn.cursor()
         query = " Select name, amount from plans WHERE PID = 2"
         cur.execute(query)
-        print("Query:\n")
         result = cur.fetchone()
-        print(result[0][0])
         return result
 
     def getClientByRID(self, rid):

@@ -324,7 +324,7 @@ class UsersHandler:
                     and any(a.isupper() for a in password) \
                     and any(a.isnumeric() for a in password):
                     valid = False
-            print(password)
+            #print(password)
             try:
                 uDao.updateForgottenPassword(email, password)
                 return jsonify("An email has been sent to the provided address.")

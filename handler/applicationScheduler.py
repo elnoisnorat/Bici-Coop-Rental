@@ -15,7 +15,6 @@ class SchedulerHandler:
         :param rid: Rental ID
         :return: Nothing
         """
-        print("ENTERED wasDispatched")
         rDao = RentalDAO()
         try:
             stripeID = rDao.getStripeToken(rid)
@@ -37,7 +36,6 @@ class SchedulerHandler:
         :param rid: Rental ID
         :return: Nothing
         """
-        print("ENTERED hasDebt")
         try:
             rDao = RentalDAO()
             cid = rDao.getClientByRID(rid)

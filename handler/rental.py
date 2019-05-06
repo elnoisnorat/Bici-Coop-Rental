@@ -5,16 +5,12 @@ import stripe
 from flask import jsonify
 from flask_login import current_user
 from app import scheduler
-from config.encryption import SECRET_KEY
+from config.encryption import hook_key
 from dao.rental import RentalDAO
 from handler.bicycle import BicycleHandler
 from handler.client import ClientHandler
 from handler.user import UsersHandler
 import datetime
-
-hook_key = 'whsec_1BYC3kEVQ2Ssu02IXLeTFiNhq5cdWMF2'
-
-
 
 class RentalHandler:
     def build_checkIn_dict(self, row):
@@ -58,7 +54,6 @@ class RentalHandler:
         result_list = []
         for row in rental_list:
             result = self.build_rental_dict(row)
-            print(result)
             result_list.append(result)
         if len(rental_list) == 0:
             return jsonify("You have no current rental at this moment.")
@@ -176,7 +171,6 @@ class RentalHandler:
             return jsonify(Error="A rental with the given arguments does not exist. "
                                  "Please verify the submitted arguments."), 400
         bStatus = bHand.getStatusByID(bid)
-        print(bStatus)
         if bStatus == 'AVAILABLE':
             try:
                 bHand.updateStatusIsAvailable(bid, wID, rid)
@@ -318,20 +312,14 @@ class RentalHandler:
         payload = data
         sig_header = headers.get('Stripe-Signature')
         rDao = RentalDAO()
-        # print(request.headers)
         event = None
         try:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, hook_key
             )
-            print(event)
-            # print(event['type'] == 'invoice.payment_succeeded')
-            # print(event['data']['object']['billing_reason'] != 'subscription_create')
-            # print(event['data']['object']['amount_paid'])
-            # print(event['data']['object']['charge'])
-            # print(event['data']['object']['lines']['data']['subscription'])
             if event['type'] == 'invoice.payment_succeeded' and event['data']['object'][
-                'billing_reason'] != 'subscription_create':
+                'billing_reason'] != 'subscription_create' and int(event['data']['object']['amount_paid']) != 0 \
+                    and int(event['data']['object']['amount_due']):
                 cost = event['data']['object']['amount_paid']
                 tokenID = event['data']['object']['charge']
                 subscriptionID = event['data']['object']['lines']['data'][0]['subscription']

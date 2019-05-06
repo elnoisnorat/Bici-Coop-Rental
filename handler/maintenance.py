@@ -59,7 +59,6 @@ class MaintenanceHandler:
                 service_list = form["Services"]
                 filteredArgs = []
                 active_service_list = mDao.getRequestByBID(bid)
-                print(active_service_list)
                 for service in service_list:  # Filter arguments received using a dictionary
                     if service and service in self.valid_services_Client and service not in active_service_list:
                         filteredArgs.append(service)
@@ -92,7 +91,6 @@ class MaintenanceHandler:
                 service_list = form["Services"]
                 filteredArgs = []
                 active_service_list = mDao.getRequestByBID(bid)
-                print(active_service_list)
                 for service in service_list:  # Filter arguments received using a dictionary
                     if service and service in self.valid_services_Worker and service not in active_service_list:
                         filteredArgs.append(service)
@@ -167,7 +165,6 @@ class MaintenanceHandler:
                     check = mDao.provideMaintenancePlate(wid, mid, notes, plate)
                 elif mService == "New RFID Tag":
                     rfid = form['rfid']
-                    print(rfid)
                     if rfid is None:
                         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
                     check = mDao.provideMaintenanceRFID(wid, mid, notes, rfid)
