@@ -36,6 +36,13 @@ class RentalHandler:
         result['Debt Status'] = row[5]
         return result
 
+    def build_admin_rental_dict(self, row):
+        result = {}
+        result['rentalID'] = row[0]
+        result['Rental Start Date'] = row[1]
+        result['Due Date'] = row[2]
+        result['Plate'] = row[3]
+        return result
 
 
     # def rentBicycle(self, cid, tid):
@@ -336,6 +343,15 @@ class RentalHandler:
             # Invalid signature
             traceback.print_exc()
             return jsonify("Error", 400)
+
+    def getRentedBicycleList(self):
+        rDao = RentalDAO()
+        rental_list = rDao.getRentedBicycleList()
+        result_list = []
+        for row in rental_list:
+            result = self.build_admin_rental_dict(row)
+            result_list.append(result)
+        return jsonify(result_list)
 
 
 

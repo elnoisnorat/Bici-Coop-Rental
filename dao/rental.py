@@ -386,3 +386,16 @@ class RentalDAO:
                 '''
         cur.execute(query, (tid, tokenID, cost,))
         self.conn.commit()
+
+    def getRentedBicycleList(self):
+        cursor = self.conn.cursor()
+        query = '''
+                   Select rid, stime, duedate lp, 
+                   From Rental natural inner join Bike
+                   Where  bikestatus= 'RENTED' and etime is not NULL 
+                '''
+        cursor.execute(query)
+        result_list = []
+        for row in cursor:
+            result_list.append(row)
+        return result_list
