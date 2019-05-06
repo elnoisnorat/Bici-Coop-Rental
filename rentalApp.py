@@ -808,7 +808,7 @@ def webhook():
 def dueNow():
     #Send Subscription ID of subscription to be sped up
     return jsonify(stripe.Subscription.modify(request.args.get('id'),
-billing_cycle_anchor='now', prorate = False, quantity=2))
+trial_end='now', prorate = False, quantity=2))
 """
     Route used for testing features.
 """
