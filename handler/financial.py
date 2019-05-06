@@ -1,4 +1,4 @@
-from flask import jsonify
+from app import jsonify
 
 from dao.financial import FinancialDAO
 
@@ -9,3 +9,4 @@ class FinancialHandler:
         fDao = FinancialDAO()
         report = fDao.getFinancialReport()
         return jsonify(report)
+

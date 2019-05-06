@@ -12,6 +12,9 @@ from handler.client import ClientHandler
 from handler.user import UsersHandler
 import datetime
 
+hook_key = 'whsec_1BYC3kEVQ2Ssu02IXLeTFiNhq5cdWMF2'
+
+
 
 class RentalHandler:
     def build_checkIn_dict(self, row):
@@ -310,6 +313,37 @@ class RentalHandler:
                 return jsonify("The client has chosen to pay in cash. Please collect " + money2collect + ".")
             else:
                 return jsonify("The client has already paid.")
+
+    def webhook(self, data, headers):
+        payload = data
+        sig_header = headers.get('Stripe-Signature')
+        # print(request.headers)
+        event = None
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, hook_key
+            )
+            print(event['type'] == 'invoice.payment_succeeded')
+            print(event['data']['object']['billing_reason'] != 'subscription_create')
+            print(event['data']['object']['amount_paid'])
+            print(event['data']['object']['charge'])
+            print(event['data']['object']['lines']['data']['subscription'])
+            if event['type'] == 'invoice.payment_succeeded' and event['data']['object'][
+                'billing_reason'] != 'subscription_create':
+                cost = print(event['data']['object']['amount_paid'])
+                tokenID = print(event['data']['object']['charge'])
+                subscriptionID = event['data']['object']['lines']['data']['subscription']
+                # tid =
+
+            return jsonify(event)
+        except ValueError as e:
+            # Invalid payload
+            traceback.print_exc()
+            return jsonify("Value ErrorError", 400)
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            traceback.print_exc()
+            return jsonify("Error", 400)
 
 
 

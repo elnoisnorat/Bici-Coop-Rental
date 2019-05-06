@@ -34,7 +34,7 @@ class RentalDAO:
         query = '''
             Select rid, stime, etime, duedate, bid, debtorflag
             From Rental, Client
-            Where rental.client = client.cid And client.CID = 2 AND rental.ReceivedBy IS NULL AND rental.etime IS NULL
+            Where rental.client = client.cid And client.CID = %s AND rental.ReceivedBy IS NULL AND rental.etime IS NULL
         '''
         cursor.execute(query, (cID,))
 
@@ -302,14 +302,14 @@ class RentalDAO:
                         Where tid = (Select tid From RentLink Where rid = %s) 
                     '''
             cursor.execute(query, (rid,))
-
-            for iteration in cursor:
+            rid_list = cursor.fetchall()
+            for iteration in rid_list:
                 query = '''
                             Update Rental set etime = now() Where rid = %s
                         '''
                 cursor.execute(query, (iteration[0],))
             query = '''
-                        Update Transaction set status = 'CANCELED' Where tid = (Select tid From RentLink Where rid = %s) 
+                        Update Transactions set status = 'CANCELED' Where tid = (Select tid From RentLink Where rid = %s) 
                     '''
             cursor.execute(query, (rid,))
             self.conn.commit()
