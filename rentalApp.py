@@ -729,6 +729,10 @@ def updatePhoneNumber():
 """
 @app.route('/confirmForgotPassword', methods=["POST"])
 def confirmResetPassword():
+    """
+    Route that sends an email to the user confirming the update password request
+    :return: A response object confirming that the email was delivered
+    """
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
     return UsersHandler().confirmForgotPassword(request.json)

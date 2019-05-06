@@ -28,7 +28,7 @@ class EmailHandler():
         token = jwt.encode({'Email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)}, SECRET_KEY)
         content = str(token)
         link = AWS_LINK + "/confirm?value=" +str(content[2:len(content)-1])
-        msg = Message('Account Confirmation', recipients=[email, EMAIL])
+        msg = Message('Account Confirmation', recipients=[email])
         body = '''Please click <a href="''' + link + '''"> here</a> to confirm your account.'''
         msg.html = body
         try:
