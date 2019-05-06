@@ -367,3 +367,24 @@ class RentalDAO:
         amount = cursor.fetchone()[0]
         costPerBike = '${:,.2f}'.format((float(cost)/float(amount)))
         return costPerBike
+
+    def getTIDByToken(self, subscriptionID):
+        cursor = self.conn.cursor()
+        query = '''
+                            Select tid
+                            From Transactions
+                            Where token = %s
+                        '''
+        cursor.execute(query, (subscriptionID,))
+        result = cursor.fetchone()
+        if result is None:
+            return result
+        return result[0]
+
+    def insertCharge(self, tid, tokenID, cost):
+        cur = self.conn.cursor()
+        query = '''
+                  Insert into Tokens (tid, token, cost) values (%s, %s, %s)
+                '''
+        cur.execute(query, (tid, tokenID, cost,))
+        self.conn.commit()

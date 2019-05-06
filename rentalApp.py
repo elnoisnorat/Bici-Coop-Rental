@@ -808,7 +808,7 @@ def requestDecommission():
 
 @app.route('/webhook', methods=["POST"])
 def webhook():
-    return FinancialHandler().webhook(request.data, request.headers)
+    # return FinancialHandler().webhook(request.data, request.headers)
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
     print(request.headers)
@@ -817,12 +817,12 @@ def webhook():
         event = stripe.Webhook.construct_event(
             payload, sig_header, hook_key
         )
-        print(event['type'] == 'invoice.payment_succeeded')
-        print(event['data']['object']['billing_reason'] != 'subscription_create')
-        print(event['data']['object']['amount_paid'])
-        print(event['data']['object']['charge'])
-        cost = print(event['data']['object']['amount_paid'])
-        tokenID = print(event['data']['object']['charge'])
+        # print(event['type'] == 'invoice.payment_succeeded')
+        # print(event['data']['object']['billing_reason'] != 'subscription_create')
+        # print(event['data']['object']['amount_paid'])
+        # print(event['data']['object']['charge'])
+        # cost = print(event['data']['object']['amount_paid'])
+        # tokenID = print(event['data']['object']['charge'])
         return jsonify(event)
     except ValueError as e:
         # Invalid payload

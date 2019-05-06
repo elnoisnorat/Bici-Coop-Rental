@@ -317,25 +317,29 @@ class RentalHandler:
     def webhook(self, data, headers):
         payload = data
         sig_header = headers.get('Stripe-Signature')
+        rDao = RentalDAO()
         # print(request.headers)
         event = None
         try:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, hook_key
             )
-            print(event['type'] == 'invoice.payment_succeeded')
-            print(event['data']['object']['billing_reason'] != 'subscription_create')
-            print(event['data']['object']['amount_paid'])
-            print(event['data']['object']['charge'])
-            print(event['data']['object']['lines']['data']['subscription'])
+            print(event)
+            # print(event['type'] == 'invoice.payment_succeeded')
+            # print(event['data']['object']['billing_reason'] != 'subscription_create')
+            # print(event['data']['object']['amount_paid'])
+            # print(event['data']['object']['charge'])
+            # print(event['data']['object']['lines']['data']['subscription'])
             if event['type'] == 'invoice.payment_succeeded' and event['data']['object'][
                 'billing_reason'] != 'subscription_create':
                 cost = print(event['data']['object']['amount_paid'])
                 tokenID = print(event['data']['object']['charge'])
-                subscriptionID = event['data']['object']['lines']['data']['subscription']
-                # tid =
-
-            return jsonify(event)
+                subscriptionID = event['data']['object']['lines']['data'][0]['subscription']
+                tid = rDao.getTIDByToken(subscriptionID)
+                if tid is None:
+                    return jsonify(), 400
+                rDao.insertCharge(tid, tokenID, cost)
+            return jsonify(), 200
         except ValueError as e:
             # Invalid payload
             traceback.print_exc()
