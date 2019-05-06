@@ -342,3 +342,29 @@ def validUserCreation(f):
         return f(*args, **kwargs)
 
     return decorated
+
+def validPlan(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            name = request.json['name']
+            amount = request.json['amount']
+            nameSize = len(name)
+            if 1 <= nameSize <= 15 \
+                    and any(a.isalpha() for a in name) \
+                    and any(a.isnumeric() for a in name):
+                pass
+            else:
+                return jsonify(Error="Name provided does not meet our standards."), 400
+
+            if amount.isnumeric():
+                pass
+            else:
+                return jsonify(Error="Amount provided does not meet our standards."), 400
+
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        return f(*args, **kwargs)
+
+    return decorated

@@ -13,7 +13,7 @@ from handler.bicycle import BicycleHandler
 from handler.user import UsersHandler
 from handler.financial import FinancialHandler
 from config.validation import isWorker, isClient, hasRole, isAdmin, isWorkerOrAdmin, validUpdatePassword, \
-    validUpdatePhoneNumber, isWorkerOrClient, validUserCreation, validUpdateName, validUpdateLName, validUpdateNames
+    validUpdatePhoneNumber, isWorkerOrClient, validUserCreation, validUpdateName, validUpdateLName, validUpdateNames, validPlan
 from config.encryption import SECRET_KEY, pKey
 from model.user import User
 from flask_cors import CORS
@@ -467,6 +467,7 @@ def getRentedBicycleList():
 @app.route('/editPlan', methods=["PUT"])                                                        #13
 @login_required
 @isAdmin
+@validPlan
 def editPlan():
     """
     Route used to edit the rental plans.
