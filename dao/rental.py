@@ -390,7 +390,7 @@ class RentalDAO:
     def getRentedBicycleList(self):
         cursor = self.conn.cursor()
         query = '''
-                   Select rid, stime, duedate lp, 
+                   Select rid, stime, duedate, lp 
                    From Rental natural inner join Bike
                    Where  bikestatus= 'RENTED' and etime is not NULL 
                 '''
