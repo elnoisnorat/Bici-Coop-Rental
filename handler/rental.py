@@ -332,8 +332,8 @@ class RentalHandler:
             # print(event['data']['object']['lines']['data']['subscription'])
             if event['type'] == 'invoice.payment_succeeded' and event['data']['object'][
                 'billing_reason'] != 'subscription_create':
-                cost = print(event['data']['object']['amount_paid'])
-                tokenID = print(event['data']['object']['charge'])
+                cost = event['data']['object']['amount_paid']
+                tokenID = event['data']['object']['charge']
                 subscriptionID = event['data']['object']['lines']['data'][0]['subscription']
                 tid = rDao.getTIDByToken(subscriptionID)
                 if tid is None:
