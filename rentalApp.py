@@ -448,8 +448,6 @@ def getFinancialReport():
     {}
     :return: The number of rentals in the past seven days and the amount of money earned
     """
-    if request.json is None:
-        return jsonify(Error="An error has occurred."), 400
     return FinancialHandler().getFinancialReport(request.json)
 
 @app.route('/getRentedBicycleList', methods=['GET'])
