@@ -384,7 +384,7 @@ class RentalDAO:
     def insertCharge(self, tid, tokenID, cost):
         cur = self.conn.cursor()
         query = '''
-                  Insert into Tokens (tid, token, cost) values (%s, %s, %s)
+                  Insert into Tokens (tid, token, cost, stamp) values (%s, %s, %s, now())
                 '''
         cur.execute(query, (tid, tokenID, cost,))
         self.conn.commit()

@@ -728,7 +728,7 @@ def updatePhoneNumber():
 """
     Route used to confirm a password reset request.
 """
-@app.route('/confirmForgotPassword')
+@app.route('/confirmForgotPassword', methods=["POST"])
 def confirmResetPassword():
     if request.json is None:
         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
@@ -808,7 +808,7 @@ def requestDecommission():
 
 @app.route('/webhook', methods=["POST"])
 def webhook():
-    return FinancialHandler().webhook(request.data, request.headers)
+    return RentalHandler().webhook(request.data, request.headers)
     # payload = request.data
     # sig_header = request.headers.get('Stripe-Signature')
     # print(request.headers)
