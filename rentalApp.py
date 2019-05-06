@@ -826,7 +826,7 @@ def webhook():
         traceback.print_exc()
         return jsonify("Error", 400)
 
-@app.route('/dueNow',  methods =['POST'])
+@app.route('/dueNow',  methods =['GET'])
 def dueNow():
     #subcription =
     # stripe.Invoice.create(

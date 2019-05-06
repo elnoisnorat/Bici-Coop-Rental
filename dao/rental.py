@@ -280,7 +280,8 @@ class RentalDAO:
         amount = cursor.fetchone()[0]
         money2pay = float(cost) / float(amount)
         money2pay = money2pay / 100
-        return money2pay
+        result = '${:,.2f}'.format(money2pay)
+        return result
 
     def getDebtToCollect(self, rid):
         cursor = self.conn.cursor()
