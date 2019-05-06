@@ -301,7 +301,7 @@ def didNotPay():
 """
     Route used for the login of an administrator.
 """
-@app.route('/adminLogin', methods=["GET"])                                                      #8
+@app.route('/adminLogin', methods=["POST"])                                                      #8
 def adminLogin():
     """
     Route used for the login of an administrator.
