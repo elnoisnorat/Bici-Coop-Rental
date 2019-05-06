@@ -33,8 +33,8 @@ class RentalDAO:
         cursor = self.conn.cursor()
         query = '''
             Select rid, stime, etime, duedate, bid, debtorflag
-            From Rental natural inner join Client
-            Where Client = %s AND ReceivedBy IS NULL AND etime IS NULL
+            From Rental, Client
+            Where rental.client = client.cid And client.CID = 2 AND rental.ReceivedBy IS NULL AND rental.etime IS NULL
         '''
         cursor.execute(query, (cID,))
 
