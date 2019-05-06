@@ -39,7 +39,7 @@ class RentalHandler:
     def build_admin_rental_dict(self, row):
         result = {}
         result['rentalID'] = row[0]
-        result['Rental Start Date'] = row[1]
+        result['Start Date'] = row[1]
         result['Due Date'] = row[2]
         result['Plate'] = row[3]
         return result
