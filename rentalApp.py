@@ -593,7 +593,7 @@ def getRentalPlan():
 """
     Route used to view the current bicycle rentals that the client has.
 """
-@app.route('/viewCurrentRental', methods = ["GET"])                                             #20
+@app.route('/viewCurrentRental', methods = ["POST"])                                             #20
 @login_required
 @isClient
 def viewCurrentRental():

@@ -55,6 +55,7 @@ class RentalHandler:
         result_list = []
         for row in rental_list:
             result = self.build_rental_dict(row)
+            print(result)
             result_list.append(result)
         if len(rental_list) == 0:
             return jsonify("You have no current rental at this moment.")
@@ -286,12 +287,13 @@ class RentalHandler:
             return jsonify("This bicycle is not linked to an active rental.")
 
     def didNotPay(self, form):
-        rfid = form['rfid']
-        rDao = RentalDAO()
-        bHand = BicycleHandler()
-        bid = bHand.getBIDByRFID(rfid)
-        rDao.getRIDByBID()
-        rDao.didNotPay(bid)
+        try:
+            rid = form['rid']
+            rDao = RentalDAO()
+            rDao.didNotPay(rid)
+            return jsonify("The rentals have been canceled.")
+        except Exception as e:
+            return jsonify(Error="An error has occurred."), 400
 
     def getPaymentMethod(self, form):
         try:
@@ -299,14 +301,13 @@ class RentalHandler:
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         rDao = RentalDAO()
-        token = rDao.getTIDByRID(rid)
+        token = rDao.getTokenByRID(rid)
         if token is None:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         else:
             if token == "CASH":
                 money2collect = rDao.getMoneyToCollect(rid)
-                return jsonify("The client has chosen to pay in cash. Please collect $" + str(
-                    money2collect) + ".")
+                return jsonify("The client has chosen to pay in cash. Please collect " + money2collect + ".")
             else:
                 return jsonify("The client has already paid.")
 

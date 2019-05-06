@@ -288,43 +288,35 @@ class RentalDAO:
         cursor.execute(query, (rid, 2,))
 
         row = cursor.fetchone()[0]
-
         money2pay = float(row) / 100
-        return money2pay
+        result = '${:,.2f}'.format(money2pay)
+        return result
 
-    def didNotPay(self, rfid):
+    def didNotPay(self, rid):
         try:
             cursor = self.conn.cursor()
             query = '''
-                            Update Rental set ReceivedBy = %s, ETime = now() Where RID = %s
-                            returning duedate, client, bid, ETime
+                        Select rid
+                        From RentLink
+                        Where tid = (Select tid From RentLink Where rid = %s) 
+                    '''
+            cursor.execute(query, (rid,))
+
+            for iteration in cursor:
+                query = '''
+                            Update Rental set etime = now() Where rid = %s
                         '''
-            cursor.execute(query, (wID, rid,))
-            row = cursor.fetchone()
-            dueDate = row[0]
-            client = row[1]
-            bid = row[2]
-            eTime = row[3]
-
+                cursor.execute(query, (iteration[0],))
             query = '''
-                            Update Bike set bikestatus = %s Where BID = %s
-                            '''
-            cursor.execute(query, ('AVAILABLE', bid,))
-
-            if eTime > dueDate:
-                debt = True
-                # query = '''
-                # Update Client set debtorflag = %s Where CID = %s
-                # '''
-                # cursor.execute(query, (True, client,))
+                        Update Transaction set status = 'CANCELED' Where tid = (Select tid From RentLink Where rid = %s) 
+                    '''
+            cursor.execute(query, (rid,))
             self.conn.commit()
-
         except Exception as e:
             self.conn.rollback()
             raise e
-        return debt
 
-    def getTIDByRID(self, rid):
+    def getTokenByRID(self, rid):
         cursor = self.conn.cursor()
         query = '''
                     Select token
@@ -337,3 +329,40 @@ class RentalDAO:
         if row is None:
             return row
         return row[0]
+
+    def getTIDByRID(self, rid):
+        cursor = self.conn.cursor()
+        query = '''
+                    Select tid
+                    From Transactions natural inner join RentLink
+                    Where rid = %s
+                '''
+        cursor.execute(query, (rid,))
+
+        row = cursor.fetchone()
+        if row is None:
+            return row
+        return row[0]
+
+    def amountPerBike(self, rid):
+        cursor = self.conn.cursor()
+        query = '''
+                    Select tid
+                    From RentLink
+                    Where rid = %s
+                '''
+        cursor.execute(query, (rid,))
+
+        row = cursor.fetchone()
+        tid = row[0]
+        cost = row[1]
+
+        query = '''
+                    Select count(*)
+                    From RentLink
+                    Where tid = %s 
+                '''
+        cursor.execute(query, (rid,))
+        amount = cursor.fetchone()[0]
+        costPerBike = '${:,.2f}'.format((float(cost)/float(amount)))
+        return costPerBike
