@@ -291,3 +291,49 @@ class RentalDAO:
 
         money2pay = float(row) / 100
         return money2pay
+
+    def didNotPay(self, rfid):
+        try:
+            cursor = self.conn.cursor()
+            query = '''
+                            Update Rental set ReceivedBy = %s, ETime = now() Where RID = %s
+                            returning duedate, client, bid, ETime
+                        '''
+            cursor.execute(query, (wID, rid,))
+            row = cursor.fetchone()
+            dueDate = row[0]
+            client = row[1]
+            bid = row[2]
+            eTime = row[3]
+
+            query = '''
+                            Update Bike set bikestatus = %s Where BID = %s
+                            '''
+            cursor.execute(query, ('AVAILABLE', bid,))
+
+            if eTime > dueDate:
+                debt = True
+                # query = '''
+                # Update Client set debtorflag = %s Where CID = %s
+                # '''
+                # cursor.execute(query, (True, client,))
+            self.conn.commit()
+
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        return debt
+
+    def getTIDByRID(self, rid):
+        cursor = self.conn.cursor()
+        query = '''
+                    Select token
+                    From Transactions natural inner join RentLink
+                    Where rid = %s
+                '''
+        cursor.execute(query, (rid,))
+
+        row = cursor.fetchone()
+        if row is None:
+            return row
+        return row[0]

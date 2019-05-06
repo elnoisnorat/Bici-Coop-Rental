@@ -20,7 +20,7 @@ class FinancialDAO:
         query = '''
             Select sum(cost)
             From Transactions
-            Where status != 'FAILED' and current_date - stamp :: date < 7
+            Where status == 'COMPLETED' and current_date - stamp :: date < 7
         '''
         cursor.execute(query)
         costs = cursor.fetchone()[0]

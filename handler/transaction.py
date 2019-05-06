@@ -116,11 +116,11 @@ class TransactionHandler:
             payment = form['payment']
             # plan = form['plan']
             if payment == 'CARD':
-                stripeID = form['id']
+                stripeID = form['id']['id']
 
         except Exception as e:
             traceback.print_exc()
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments 1."), 400
 
         cHand = ClientHandler()
 
@@ -149,12 +149,12 @@ class TransactionHandler:
         cid = current_user.roleID
 
         if amount is None or not amount.isnumeric():
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments 2."), 400
         #Integration with the strip API static values for testing
 
         plan = RentalPlanHandler().getPlan()
         if plan is None:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments 3."), 400
 
         try:
             # if session['payment'] == "CASH":
@@ -193,7 +193,7 @@ class TransactionHandler:
                 print(total)
 
             else:
-                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments 4."), 400
 
             tDao = TransactionDAO()
             tid = tDao.newTransaction(token, cid, amount, total, dt)

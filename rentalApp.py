@@ -18,9 +18,10 @@ from config.encryption import SECRET_KEY, pKey
 from model.user import User
 from flask_cors import CORS
 import re
-
+import stripe
 app.secret_key = SECRET_KEY
 CORS(app, supports_credentials=True)
+hook_key = 'whsec_1BYC3kEVQ2Ssu02IXLeTFiNhq5cdWMF2'
 
 @login_manager.user_loader
 def load_user(id):
@@ -264,6 +265,39 @@ def activeRental():
     if request.json is None:
         return jsonify(Error="An error has occurred."), 400
     return RentalHandler().activeRental(request.json)
+
+@app.route('/getPaymentMethod', methods=["GET"])
+@login_required
+@isWorker
+def getPaymentMethod():
+    '''
+    Route used to determine if a cash transaction is needed
+    :param:
+    {
+        "rid": ""
+    }
+    :return: A message stating the type of transaction.
+    '''
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+    return RentalHandler().getPaymentMethod(request.json)
+
+
+@app.route('/didNotPay', methods=["PUT"])
+@login_required
+@isWorker
+def didNotPay():
+    '''
+    Route used to close a cash transaction that was not paid
+    :param:
+    {
+        "rfid": ""
+    }
+    :return: A message confirming that the transaction was canceled.
+    '''
+    if request.json is None:
+        return jsonify(Error="An error has occurred."), 400
+    return RentalHandler().didNotPay(request.json)
 
 ##########################################################Admin#########################################################
 '''
@@ -770,6 +804,38 @@ def getClient():
 @app.route('/requestDecommission', methods=["POST"])                                            #31
 def requestDecommission():
     return
+
+@app.route('/webhook', methods=["POST"])
+def webhook():
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    print(request.headers)
+    event = None
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, hook_key
+        )
+        return jsonify(event)
+    except ValueError as e:
+        # Invalid payload
+        traceback.print_exc()
+        return jsonify("Value ErrorError", 400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        traceback.print_exc()
+        return jsonify("Error", 400)
+
+@app.route('/dueNow',  methods =['POST'])
+
+def dueNow():
+    #subcription =
+    # stripe.Invoice.create(
+    #     customer= subcription['customer'],
+    # )
+
+    #Send Subscription ID of subscription to be sped up
+    return jsonify(stripe.Subscription.modify(str(request.args.get('id'),
+                               billing_cycle_anchor='now', prorate = False)))
 
 """
     Route used for testing features.

@@ -62,11 +62,18 @@ class TransactionDAO:
 
             print("RESERVATION")
 
-            query = '''
-                INSERT INTO transactions(stamp, token, cid, status, cost) 
-                VALUES (now(), %s, %s, 'COMPLETED', %s) 
-                returning TID
-            '''
+            if token == 'CASH':
+                query = '''
+                    INSERT INTO transactions(stamp, token, cid, status, cost) 
+                    VALUES (now(), %s, %s, 'PENDING', %s) 
+                    returning TID
+                '''
+            else:
+                query = '''
+                    INSERT INTO transactions(stamp, token, cid, status, cost) 
+                    VALUES (now(), %s, %s, 'COMPLETED', %s) 
+                    returning TID
+                '''
             cursor.execute(query, (token, cid, int(cost)))
             tID = cursor.fetchone()[0]
 

@@ -186,9 +186,6 @@ class RentalHandler:
         else:
             return jsonify(Error="Bicycle is not in a condition to be rented."), 400
 
-        #row = rDao.getRentalByID(rid)
-        #rental = self.build_checkIn_dict(row)
-        # return jsonify(Rental=rental)
         try:
             scheduler.remove_job('rental' + str(rid))
             print("Rental" + str(rid) + " has been removed.")
@@ -196,11 +193,11 @@ class RentalHandler:
             pass
         token = rDao.getStripeToken(rid)
 
-        if token == "CASH":
-            money2collect = rDao.getMoneyToCollect(rid)
-            return jsonify("Check-out was successful. The client has chosen to pay in cash. Please collect $" + str(money2collect) +".")
-        else:
-            return jsonify("Check-out was successful.")
+        # if token == "CASH":
+        #     money2collect = rDao.getMoneyToCollect(rid)
+        #     return jsonify("Check-out was successful. The client has chosen to pay in cash. Please collect $" + str(money2collect) +".")
+        # else:
+        return jsonify("Check-out was successful.")
 
     def getBIDByCIDAndPlate(self, cid, plate):
         rDao = RentalDAO()
@@ -287,6 +284,31 @@ class RentalHandler:
                 return jsonify("This bicycle is currently rented, but has exceeded its rental period.")
         else:
             return jsonify("This bicycle is not linked to an active rental.")
+
+    def didNotPay(self, form):
+        rfid = form['rfid']
+        rDao = RentalDAO()
+        bHand = BicycleHandler()
+        bid = bHand.getBIDByRFID(rfid)
+        rDao.getRIDByBID()
+        rDao.didNotPay(bid)
+
+    def getPaymentMethod(self, form):
+        try:
+            rid = form['rid']
+        except Exception as e:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        rDao = RentalDAO()
+        token = rDao.getTIDByRID(rid)
+        if token is None:
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        else:
+            if token == "CASH":
+                money2collect = rDao.getMoneyToCollect(rid)
+                return jsonify("The client has chosen to pay in cash. Please collect $" + str(
+                    money2collect) + ".")
+            else:
+                return jsonify("The client has already paid.")
 
 
 
