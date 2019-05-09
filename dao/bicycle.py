@@ -3,7 +3,7 @@ import psycopg2
 
 class BicycleDAO:
     def __init__(self):
-        self.conn = psycopg2._connect(pg_config['connection_url'])v
+        self.conn = psycopg2._connect(pg_config['connection_url'])
 
     def getAllBicycles(self):
         cursor = self.conn.cursor()
