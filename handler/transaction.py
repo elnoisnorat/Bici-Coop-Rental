@@ -60,52 +60,52 @@ class TransactionHandler:
             resultList.append(result)
         return jsonify(Transactions=resultList)
 
-    def charge(self, form, args):
-        bHand = BicycleHandler()
-        rHand = RentalHandler()
-
-        try:
-            amount = form['amount']
-            payment = form['payment']
-            # plan = form['plan']
-        except Exception as e:
-            pass
-            # amount = args.get('amount')
-            # payment = args.get('payment')
-
-
-        try:
-            cHand = ClientHandler()
-
-            # session['quantity'] = amount
-            # session['payment'] = payment
-
-            cid = current_user.roleID
-
-            if cHand.getDebtorFlag(cid) is True:
-                return jsonify(Error="An error has occurred."), 403
-
-            available = bHand.getAvailableBicycleCount()
-            if available < int(amount):
-                session.pop('amount', None)
-                session.pop('payment', None)
-                return jsonify("We are sorry. At the moment there are not enough bicycles available for rent.")
-
-            rentedAmount = rHand.getRentalAmountByCID(cid)
-            if int(amount) + rentedAmount > 4:
-                session.pop('amount', None)
-                session.pop('payment', None)
-                return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
-            if payment == 'CARD':
-                return redirect(url_for('rentBicycle'), code=307)
-
-            else:
-                return redirect(url_for('rentBicycle'), code=307)
-        except Exception as e:
-            traceback.print_exc()
-            session.pop('amount', None)
-            session.pop('payment', None)
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+    # def charge(self, form, args):
+    #     bHand = BicycleHandler()
+    #     rHand = RentalHandler()
+    #
+    #     try:
+    #         amount = form['amount']
+    #         payment = form['payment']
+    #         # plan = form['plan']
+    #     except Exception as e:
+    #         pass
+    #         # amount = args.get('amount')
+    #         # payment = args.get('payment')
+    #
+    #
+    #     try:
+    #         cHand = ClientHandler()
+    #
+    #         # session['quantity'] = amount
+    #         # session['payment'] = payment
+    #
+    #         cid = current_user.roleID
+    #
+    #         if cHand.getDebtorFlag(cid) is True:
+    #             return jsonify(Error="An error has occurred."), 403
+    #
+    #         available = bHand.getAvailableBicycleCount()
+    #         if available < int(amount):
+    #             session.pop('amount', None)
+    #             session.pop('payment', None)
+    #             return jsonify("We are sorry. At the moment there are not enough bicycles available for rent.")
+    #
+    #         rentedAmount = rHand.getRentalAmountByCID(cid)
+    #         if int(amount) + rentedAmount > 4:
+    #             session.pop('amount', None)
+    #             session.pop('payment', None)
+    #             return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
+    #         if payment == 'CARD':
+    #             return redirect(url_for('rentBicycle'), code=307)
+    #
+    #         else:
+    #             return redirect(url_for('rentBicycle'), code=307)
+    #     except Exception as e:
+    #         traceback.print_exc()
+    #         session.pop('amount', None)
+    #         session.pop('payment', None)
+    #         return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
     def newTransaction(self, form):
         bHand = BicycleHandler()
@@ -114,56 +114,43 @@ class TransactionHandler:
         try:
             amount = form['amount']
             payment = form['payment']
-            # plan = form['plan']
+            reqPlan = form['plan']
             if payment == 'CARD':
                 stripeID = form['id']['id']
-
         except Exception as e:
             traceback.print_exc()
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments 1."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
         cHand = ClientHandler()
-
-        # session['quantity'] = amount
-        # session['payment'] = payment
 
         cid = current_user.roleID
         email = current_user.email
         if cHand.getDebtorFlag(cid) is True:
-            return jsonify(Error="An error has occurred."), 403
+            return jsonify(Error="An error has occurred. Please contact an administrator."), 403
 
         available = bHand.getAvailableBicycleCount()
         if available < int(amount):
-            # session.pop('amount', None)
-            # session.pop('payment', None)
             return jsonify("We are sorry. At the moment there are not enough bicycles available for rent.")
 
         rentedAmount = rHand.getRentalAmountByCID(cid)
         if int(amount) + rentedAmount > 4:
-            # session.pop('amount', None)
-            # session.pop('payment', None)
-            return jsonify("We are sorry, but you will exceed the maximum (4) rented bicycles allowed by our services.")
+            return jsonify("We are sorry, but you will exceed the maximum of 4 rented bicycles allowed by our services.")
 
         rHand = RentalHandler()
-        # amount = session['quantity']
         cid = current_user.roleID
 
-        if amount is None or not amount.isnumeric():
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments 2."), 400
         #Integration with the strip API static values for testing
 
-        plan = RentalPlanHandler().getPlan()
+        plan = RentalPlanHandler().getPlan(reqPlan)
         if plan is None:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments 3."), 400
+            return jsonify(Error="No valid plan was selected."), 400
 
         try:
-            # if session['payment'] == "CASH":
             if payment == "CASH":
                 total = int(plan[1]) * int(amount)
                 token = "CASH"
                 dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
 
-            # elif session['payment'] == 'CARD':
             elif payment == 'CARD':
                 customer = stripe.Customer.create(email= email, source= stripeID)
                 subscription = stripe.Subscription.create(
@@ -190,7 +177,7 @@ class TransactionHandler:
                 total = int(cost) * int(amount)
 
             else:
-                return jsonify(Error="An error has occurred. Please verify the submitted arguments 4."), 400
+                return jsonify(Error="A valid payment method was not selected."), 400
 
             tDao = TransactionDAO()
             tid = tDao.newTransaction(token, cid, amount, total, dt)
@@ -264,4 +251,4 @@ class TransactionHandler:
             pass
         # session.pop('amount', None)
         # session.pop('payment', None)
-        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        return jsonify(Error="An error has occurred."), 400

@@ -118,10 +118,10 @@ class UsersHandler:
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
 
-        if uName:
+        if uName and uLName:
                 uDao.updateNames(email, uName, uLName)
         else:
-            return jsonify(Error="No attributes in update request"), 400
+            return jsonify(Error="A required field has been left empty."), 400
         row = uDao.getUserByEmail(email)
         result = self.build_worker_dict(row)
         # return jsonify(User=result)
@@ -138,7 +138,8 @@ class UsersHandler:
         if uName:
                 uDao.updateName(email, uName)
         else:
-            return jsonify(Error="No attributes in update request"), 400
+            return jsonify(Error="A required field has been left empty."), 400
+
         row = uDao.getUserByEmail(email)
         result = self.build_worker_dict(row)
         # return jsonify(User=result)
@@ -150,12 +151,12 @@ class UsersHandler:
         try:
             uLName = form['LName']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
         if uLName:
             uDao.updateLName(email, uLName)
         else:
-            return jsonify(Error="No attributes in update request"), 400
+            return jsonify(Error="A required field has been left empty."), 400
         row = uDao.getUserByEmail(email)
         result = self.build_worker_dict(row)
         # return jsonify(User=result)
@@ -167,11 +168,15 @@ class UsersHandler:
         password = form['newPassword']
         email = current_user.email
 
-        if not uDao.getUserByEmail(email):
-            return jsonify(Error="An error has occurred. Please verify the submmited arguments."), 400
-        else:
+        # if not uDao.getUserByEmail(email):
+        #     return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        # else:
+        try:
             uDao.updatePassword(email, password)
-            return jsonify("Update was successsful.")
+        except:
+            return jsonify(Error="An error has occurred. Please verify the submitted data.")
+
+        return jsonify("Update was successsful.")
 
     def updatePNumber(self, form):
         uDao = UsersDAO()
@@ -179,10 +184,10 @@ class UsersHandler:
         try:
             pNumber = form['PNumber']
         except Exception as e:
-            return jsonify(Error="An error has occurred. please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
-        if not uDao.getUserByEmail(email):
-            return jsonify(Error="An error has occurred."), 400
+        # if not uDao.getUserByEmail(email):
+        #     return jsonify(Error="An error has occurred."), 400
 
         uDao.updatePNumber(email, pNumber)
         return jsonify("Update was successsful.")
@@ -191,7 +196,7 @@ class UsersHandler:
         uDao = UsersDAO()
         row = uDao.getUserWithCID(cid)
         if not row:
-            return jsonify(Error="User not found."), 400
+            return jsonify(Error="Invalid credentials."), 400
         else:
             user = self.build_user_dict(row)
             return jsonify(user)
@@ -216,7 +221,7 @@ class UsersHandler:
         uDao = UsersDAO()
         row = uDao.getUserWithWID(wid)
         if not row:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="Invalid credentials."), 400
         else:
             user = self.build_user_dict(row)
             return jsonify(user)
@@ -277,9 +282,12 @@ class UsersHandler:
             return jsonify(Error="An error has occurred."), 400
 
         uDao = UsersDAO()
+        if self.getUserIDByEmail(email) is None:
+            return jsonify(Error="An error has occurred."), 400
+
         uid = uDao.confirmAccount(email)
         if uid is None:
-            return jsonify(Error="An error has occurred."), 400
+            return jsonify(Error="This link has already expired."), 400
         return jsonify("Account was successfully confirmed.")
 
     def confirmForgotPassword(self, form):
@@ -289,12 +297,12 @@ class UsersHandler:
             return jsonify(Error="An error has occurred."), 400
 
         if not email:
-            return jsonify(Error="An error has occurred."), 400
+            return jsonify(Error="A required field has been left empty."), 400
 
         uid = self.getUserIDByEmail(email)
 
         if not uid:
-            return jsonify(Error="An error has occurred."), 400
+            return jsonify(Error="Invalid credentials."), 400
         try:
             eHand = EmailHandler()
             eHand.confirmResetPassword(email)
@@ -339,13 +347,13 @@ class UsersHandler:
             return jsonify(Error="An error has occurred."), 400
 
         if not email:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="A required field has been left empty."), 400
 
         confirmation = uHand.getConfirmation(email)
         if confirmation is True:
-            return jsonify(Error="An error has occurred."), 401
+            return jsonify(Error="The email provided has already been confirmed. If you think this is an error please contact an administrator."), 401
         elif confirmation is None:
-            return jsonify(Error="An error has occurred."), 403
+            return jsonify(Error="Invalid credentials."), 403
         else:
             eHand = EmailHandler()
             try:

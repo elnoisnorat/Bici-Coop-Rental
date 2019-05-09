@@ -2,9 +2,7 @@ import psycopg2
 from config.dbconfig import pg_config
 class RentalPlanDAO:
     def __init__(self):
-        connection_url = "dbname=%s user=%s password=%s host=%s port=%s" % (
-        pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
-        self.conn = psycopg2._connect(connection_url)
+        self.conn = psycopg2._connect(pg_config['connection_url'])
 
     def getRentalPlan(self):
         cursor = self.conn.cursor()
@@ -15,10 +13,10 @@ class RentalPlanDAO:
             result.append(row)
         return result
 
-    def getPlan(self):
+    def getPlan(self, reqPlan):
         cur = self.conn.cursor()
-        query = " Select name, amount from plans WHERE PID = 1"
-        cur.execute(query)
+        query = " Select name, amount from plans WHERE PID = %s"
+        cur.execute(query, (reqPlan))
         result = cur.fetchone()
         return result
 

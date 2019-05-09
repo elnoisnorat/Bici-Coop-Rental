@@ -2,9 +2,7 @@ import psycopg2
 from config.dbconfig import pg_config
 class WorkerDAO:
     def __init__(self):
-        connection_url = "dbname=%s user=%s password=%s host=%s port=%s" % (
-        pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
-        self.conn = psycopg2._connect(connection_url)
+        self.conn = psycopg2._connect(pg_config['connection_url'])
 
     def workerLogin(self, email, password):
         cur = self.conn.cursor()
@@ -17,7 +15,6 @@ class WorkerDAO:
         row = cur.fetchone()
         if row is None:
             return row
-
         return row
 
     def getWorkerByID(self, wid):

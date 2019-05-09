@@ -30,7 +30,7 @@ class ClientHandler:
             password = form['password']
         except Exception as e:
             return -2
-        if email and password:                                                  #No null arguments
+        if email and password:                                                  #No null data
             confirmation = uHand.getConfirmation(email)
             if confirmation is False or confirmation is None:                                          #User does not exist
                 return -2
@@ -66,30 +66,32 @@ class ClientHandler:
 
     def insert(self, form):
         uHandler = UsersHandler()
+        if uHandler.getUserIDByEmail(form['Email']) is not None:
+            return jsonify(Error="Please use another email address."), 400
         try:
             uHandler.insert(form, 'Client')                               #Try to insert a new user with role admin
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
         return jsonify("Account was successfully created.")
 
     def getClient(self, form):
         cDao = ClientDAO()
 
         filteredArgs = {}
-        for arg in form:                                                        #Filter arguments received using a dictionary
+        for arg in form:                                                        #Filter data received using a dictionary
             if form[arg] and arg in self.client_attributes:
                 if arg != 'orderby':
                     filteredArgs[arg] = form[arg]
                 elif form[arg] in self.orderBy_attributes:
                     filteredArgs[arg] = form[arg]
 
-        if len(filteredArgs) == 0:                                              #No arguments given getAll()
+        if len(filteredArgs) == 0:                                              #No data given getAll()
             client_list = cDao.getAllClients()
 
         elif not 'orderby' in filteredArgs:                                       #If no order by give list without order
             client_list = cDao.getClientByArguments(filteredArgs)
 
-        elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:          #If order by with no other arguments getAll() ordered
+        elif ((len(filteredArgs)) == 1) and 'orderby' in filteredArgs:          #If order by with no other data getAll() ordered
             client_list = cDao.getClientWithSorting(filteredArgs['orderby'])
 
         else:

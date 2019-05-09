@@ -51,26 +51,26 @@ class MaintenanceHandler:
             try:
                 plate = form['lp']
             except:
-                return jsonify(Error='An error has occurred. Please verify the submitted arguments.'), 400
+                return jsonify(Error='An error has occurred. Please verify the submitted data.'), 400
             bid = rHand.getBIDByCIDAndPlate(cid, plate)
             if not bid:
-                return jsonify("You have no current bicycle rental at this time."), 400
+                return jsonify("You have no current bicycle rentals at this time."), 400
             try:
                 service_list = form["Services"]
                 filteredArgs = []
                 active_service_list = mDao.getRequestByBID(bid)
-                for service in service_list:  # Filter arguments received using a dictionary
+                for service in service_list:  # Filter data received using a dictionary
                     if service and service in self.valid_services_Client and service not in active_service_list:
                         filteredArgs.append(service)
             except Exception as e:
-                return jsonify(Error="An error has occurred."), 400
+                return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
         elif current_user.role == 'Worker':
             bHand = BicycleHandler()
             try:
                 rfid = form['rfid']
             except Exception as e:
-                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
             if rfid:
                 bid = bHand.getBIDByRFIDForMaintenance(rfid)
             else:
@@ -80,22 +80,25 @@ class MaintenanceHandler:
                 try:
                     plate = form['lp']
                 except Exception as e:
-                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                    return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
                 if plate:
                     bid = bHand.getBIDByPlateForMaintenance(plate)
                 else:
                     bid = None
                 if not bid:
-                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                    return jsonify(Error="A required field has been left empty."), 400
             try:
                 service_list = form["Services"]
                 filteredArgs = []
                 active_service_list = mDao.getRequestByBID(bid)
-                for service in service_list:  # Filter arguments received using a dictionary
+                for service in service_list:  # Filter data received using a dictionary
                     if service and service in self.valid_services_Worker and service not in active_service_list:
                         filteredArgs.append(service)
             except Exception as e:
-                return jsonify(Error="An error has occurred."), 400
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+
+        else:
+            return jsonify(Error="Unauthorized access."), 403
 
         try:
             other = form['Other']
@@ -105,7 +108,7 @@ class MaintenanceHandler:
             pass
 
         if len(filteredArgs) == 0:
-            return jsonify(Error="These services have already been requested."), 400
+            return jsonify(Error="Invalid services have been requested."), 400
 
         try:
             mDao.requestMaintenance(uid, bid, filteredArgs)  # Insert #1
@@ -131,21 +134,21 @@ class MaintenanceHandler:
             email = form['Email']
             mid = form['mID']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
         wHand = WorkerHandler()
         if email is None:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="A required field has been left empty."), 400
 
         wid = wHand.getWorkerForMaintenance(email)
         if wid is None:
-            return jsonify(Error="An error has occurred. Please contact an Administrator."), 403
+            return jsonify(Error="Invalid credentials."), 403
         if mid:
             mDao = MaintenanceDAO()
             wHand = WorkerHandler()
             cHand = ClientHandler()
             reqID = mDao.getRequestedByWithMID(mid)
             if reqID is None:
-                return jsonify(Error="An error has occurred."), 400
+                return jsonify(Error="Invalid credentials."), 400
 
             if wHand.getWorkerByUID(reqID):
                 pass
@@ -161,12 +164,13 @@ class MaintenanceHandler:
                 if mService == "New Plate":
                     plate = form['lp']
                     if plate is None:
-                        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                        return jsonify(Error="A required field has been left empty."), 400
                     check = mDao.provideMaintenancePlate(wid, mid, notes, plate)
+
                 elif mService == "New RFID Tag":
                     rfid = form['rfid']
                     if rfid is None:
-                        return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                        return jsonify(Error="A required field has been left empty."), 400
                     check = mDao.provideMaintenanceRFID(wid, mid, notes, rfid)
                 else:
                     check = mDao.provideMaintenance(wid, mid, notes)
@@ -175,7 +179,7 @@ class MaintenanceHandler:
                 return jsonify(Error="An error has occurred."), 400
 
             if check is None:
-                return jsonify(Error="An error has occurred."), 400
+                return jsonify(Error="Invalid credentials."), 400
             elif check == 0:
                 return jsonify("Maintenance has been completed.")
             elif check == 1:
@@ -185,4 +189,4 @@ class MaintenanceHandler:
                 }
                 return jsonify(cResult)
         else:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400

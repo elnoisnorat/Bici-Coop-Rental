@@ -59,39 +59,38 @@ class WorkerHandler:
 
     def insert(self, form):
         uHandler = UsersHandler()
+        if uHandler.getUserIDByEmail(form['Email']) is not None:
+            return jsonify(Error="Please use another email address."), 400
         try:
             uHandler.insert(form, "Worker")
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
         return jsonify("Account was successfully created.")
 
     def updateStatus(self, form):
         try:
             wid = form['wID']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
         wDao = WorkerDAO()
         if not wid:                                                                 #Check for null value
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="A required field has been left empty."), 400
 
         worker = wDao.getWorkerByID(wid)
 
         if worker is None:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400                          #Check if worker exists
+            return jsonify(Error="Invalid credentials."), 400
         else:
             status = worker[5]
             if status == 'ACTIVE':
-                valid = wDao.updateStatus(wid, 'INACTIVE')                                      #Update Status
+                wDao.updateStatus(wid, 'INACTIVE')                                      #Update Status
 
             elif status == 'ACTIVE':
-                valid = wDao.updateStatus(wid, 'ACTIVE')                                      #Update Status
+                wDao.updateStatus(wid, 'ACTIVE')                                      #Update Status
 
             else:
-                return jsonify(Error="An error has occurred."), 400
-
-            if valid is None:
-                return
+                return jsonify(Error="Invalid credentials."), 400
 
             # row = wDao.getWorkerByID(wid)
             # result = self.build_worker_dict(row)
@@ -104,7 +103,7 @@ class WorkerHandler:
         password = form['password']
         print(email)
         print(password)
-        if email and password:                                                      #No null arguments
+        if email and password:                                                      #No null data
             confirmation = uHand.getConfirmation(email)
             if confirmation is False or confirmation is None:
                 return -2

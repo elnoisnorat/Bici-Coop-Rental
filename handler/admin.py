@@ -17,7 +17,7 @@ class AdminHandler:
         uHand = UsersHandler()
         email = form['Email']
         password = form['password']
-        if email and password:                                              #No null arguments
+        if email and password:                                              #No null data
             confirmation = uHand.getConfirmation(email)
             if confirmation is False or confirmation is None:                                      #User does not exist
                 return -2
@@ -57,8 +57,10 @@ class AdminHandler:
         :return: A response object with a message confirming account creation
         '''
         uHandler = UsersHandler()
+        if uHandler.getUserIDByEmail(form['Email']) is not None:
+            return jsonify(Error="Please use another email address."), 400
         try:    #Try to insert a new user with role admin
             uHandler.insert(form, "Admin")
         except Exception as e:  #Catch an exception during the creation process
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
         return jsonify("Account was successfully created.")

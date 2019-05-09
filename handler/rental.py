@@ -93,23 +93,26 @@ class RentalHandler:
         if not rfid:
             try:
                 plate = form['lp']
-                bid = bHand.getBIDByPlate(plate)
+                if plate:
+                    bid = bHand.getBIDByPlate(plate)
+                else:
+                    return jsonify(Error="A required field has been left empty."), 400
+
             except Exception as e:
-                return jsonify(Error="No arguments given to identify the bicycle."), 400
+                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
         else:
             bid = bHand.getBIDByRFID(rfid)
 
         if not bid:
-            return jsonify(Error="A bicycle with the given arguments does not exist. "
-                                 "Please verify the submitted arguments."), 400
+            return jsonify(Error="No bicycle was found with the given data."), 400
         rid = rDao.getRIDByBID(bid)
         if not rid:
             return jsonify(Error="There is no current rental for this bicycle."), 400
 
         debt = rDao.checkIn(wID, rid)
         stripeID = rDao.getStripeToken(rid)
-        row = rDao.getRentalByID(rid)
-        rental = self.build_checkIn_dict(row)
+        # row = rDao.getRentalByID(rid)
+        # rental = self.build_checkIn_dict(row)
 
         if stripeID == 'CASH':
             if debt is True:
@@ -148,35 +151,34 @@ class RentalHandler:
         bHand = BicycleHandler()
         bid = bHand.getBIDByRFID(rfid)
         if not bid:
-            return jsonify(Error="A bicycle with the given arguments does not exist. "
-                                 "Please verify the submitted arguments."), 400
+            return jsonify(Error="No bicycle was found with the given data."), 400
 
         if rid is not None:
             rental = rDao.getRentalByID(rid)
             if rental is None:
-                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                return jsonify(Error="No rental request was found with the given code."), 400
 
-        else:
-            try:
-                email = form['email']
-            except Exception as e:
-                return jsonify(Error="No arguments given to identify the rental."), 400
-            if email:
-                uHand = UsersHandler()
-                cHand = ClientHandler()
-                uID = uHand.getUserIDByEmail(email)
-                if uID is None:
-                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-                cID = cHand.getCIDByUID(uID)
-                if cID is None:
-                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-                rid = rDao.getRentalByCIDCheckOut(cID)
-            else:
-                return jsonify(Error="No arguments given to identify the rental."), 400
-
-        if not rid:
-            return jsonify(Error="A rental with the given arguments does not exist. "
-                                 "Please verify the submitted arguments."), 400
+        # else:
+        #     try:
+        #         email = form['email']
+        #     except Exception as e:
+        #         return jsonify(Error="No arguments given to identify the rental."), 400
+        #     if email:
+        #         uHand = UsersHandler()
+        #         cHand = ClientHandler()
+        #         uID = uHand.getUserIDByEmail(email)
+        #         if uID is None:
+        #             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        #         cID = cHand.getCIDByUID(uID)
+        #         if cID is None:
+        #             return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+        #         rid = rDao.getRentalByCIDCheckOut(cID)
+        #     else:
+        #         return jsonify(Error="No arguments given to identify the rental."), 400
+        #
+        # if not rid:
+        #     return jsonify(Error="A rental with the given arguments does not exist. "
+        #                          "Please verify the submitted arguments."), 400
         bStatus = bHand.getStatusByID(bid)
         if bStatus == 'AVAILABLE':
             try:
@@ -193,11 +195,10 @@ class RentalHandler:
 
         try:
             scheduler.remove_job('rental' + str(rid))
-            print("Rental" + str(rid) + " has been removed.")
+            # print("Rental" + str(rid) + " has been removed.")
         except Exception as e:
             pass
-        token = rDao.getStripeToken(rid)
-
+        # token = rDao.getStripeToken(rid)
         # if token == "CASH":
         #     money2collect = rDao.getMoneyToCollect(rid)
         #     return jsonify("Check-out was successful. The client has chosen to pay in cash. Please collect $" + str(money2collect) +".")
@@ -229,7 +230,7 @@ class RentalHandler:
 
                 oldBID = rDao.get_rental_by_rid_and_rfid(rid, oldRFID)
                 if oldBID is None:
-                    return jsonify(Error="This bicycle is not linked to the provided information."), 400
+                    return jsonify(Error="This bicycle is not linked to a rental request."), 400
 
                 newBID = bHand.get_bicycle_for_swap(newRFID)
                 if newBID is None:
@@ -239,12 +240,11 @@ class RentalHandler:
                     bHand.swapStatus(newBID, rid)
                     return jsonify("The bicycle swap was successful.")
                 except Exception as e:
-                    return jsonify(Error="An error has occurred.")
+                    return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
             else:
-                return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+                return jsonify(Error="The scanned tags have the same value."), 400
         else:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-
+            return jsonify(Error="A required field has been left empty."), 400
 
     def getPlan(self):
         rDao = RentalDAO()

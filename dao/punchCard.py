@@ -5,9 +5,7 @@ from config.dbconfig import pg_config
 class PunchCardDAO:
 
     def __init__(self):
-        connection_url = "dbname=%s user=%s password=%s host=%s port=%s" % (
-        pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'])
-        self.conn = psycopg2._connect(connection_url)
+        self.conn = psycopg2._connect(pg_config['connection_url'])
 
     def inType(self, wid):
         cursor = self.conn.cursor()

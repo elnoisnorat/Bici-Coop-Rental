@@ -21,7 +21,7 @@ class RentalPlanHandler:
             result_list.append(result)
         return jsonify(RentalPlan=result_list)
 
-    def getPlan(self):
+    def getPlan(self, reqPlan):
         rDao = RentalPlanDAO()
         try:
             result = rDao.getPlan()

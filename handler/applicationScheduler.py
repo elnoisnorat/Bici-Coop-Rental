@@ -23,7 +23,7 @@ class SchedulerHandler:
                 stripe.Subscription.delete(stripeID)
             scheduler.remove_job('debt' + str(rid))
         except Exception as e:
-            print("Something went wrong with schedule: rental" + str(rid))
+            #print("Something went wrong with schedule: rental" + str(rid))
             traceback.print_exc()
 
             scheduler.add_job(func=self.wasDispatched, args=[rid], trigger="date",

@@ -9,7 +9,7 @@ class BicycleHandler():
     def __init__(self):
         self.orderBy_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'snumber']
         self.bike_attributes = ['bid', 'lp', 'rfid', 'bikestatus', 'model', 'brand', 'snumber', 'orderby']
-        self.update_attributes = ['lp', 'bikestatus', 'rfid', 'brand', 'model']
+        self.update_attributes = ['lp', 'bikestatus', 'rfid', 'brand', 'model', 'snumber']
 
     def build_bike_dict(self, row):
         """
@@ -89,7 +89,7 @@ class BicycleHandler():
             brand = form['brand']
             snumber = form['snumber']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
         if plate and rfid and model and brand and snumber:
             bDao = BicycleDAO()
@@ -99,7 +99,7 @@ class BicycleHandler():
             except Exception as e:
                 return jsonify(Error="An error has occurred."), 400
         else:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
     def getBIDByRFID(self, rfid):
         """
@@ -127,10 +127,10 @@ class BicycleHandler():
         try:
             bid = form['bid']
         except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
         if not bid:
-            return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
+            return jsonify(Error="A required field has been left empty."), 400
 
         filteredArgs = {}
         for arg in form:
@@ -141,16 +141,15 @@ class BicycleHandler():
             return jsonify(Error="No values given for update request."), 400
 
         if not bDao.getBikeByID(bid):
-            return jsonify(Error="A bicycle with the given arguments does not exist. "
-                                 "Please verify the submitted arguments."), 400
+            return jsonify(Error="Invalid credentials."), 400
 
         try:
             bDao.updateBicycle(filteredArgs, bid)                                               #UPDATE #1
         except Exception as e:
             return jsonify(Error="An error has occurred."), 400
 
-        row = bDao.getBikeByID(bid)
-        result = self.build_bike_dict(row)
+        # row = bDao.getBikeByID(bid)
+        # result = self.build_bike_dict(row)
         #return jsonify(Bicycle=result)
         return jsonify("Update was successful.")
 
