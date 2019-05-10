@@ -9,7 +9,7 @@ from flask_mail import Mail, Message
 from config.account import EMAIL, PASSWORD, AWS_LINK
 from config.encryption import SECRET_KEY
 
-app.config['DEBUG']= True
+app.config['DEBUG']= False
 app.config['TESTING']= False
 app.config['MAIL_SERVER']= 'smtp.gmail.com'
 app.config['MAIL_PORT']= 465
