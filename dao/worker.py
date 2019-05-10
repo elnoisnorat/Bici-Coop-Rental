@@ -1,16 +1,21 @@
 import psycopg2
 from config.dbconfig import pg_config
+from config.encryption import SECRET_KEY
 class WorkerDAO:
     def __init__(self):
         self.conn = psycopg2._connect(pg_config['connection_url'])
 
     def workerLogin(self, email, password):
         cur = self.conn.cursor()
+        # query = ''' Select wID, status
+        #     From Users natural inner join Worker
+        #     Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s and password = crypt(%s, password) '''
         query ='''
             Select wID, status
             From Users natural inner join Worker
             Where email = %s and password = crypt(%s, password)
         '''
+        # cur.execute(query, (SECRET_KEY, email, password, ) )
         cur.execute(query, (email, password))
         row = cur.fetchone()
         if row is None:
@@ -19,11 +24,21 @@ class WorkerDAO:
 
     def getWorkerByID(self, wid):
         cursor = self.conn.cursor()
+        # query = '''select  WID,
+        #                                                              PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+        #                                                              PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
+        #                                                              PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
+        #                                                              PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+        #                                                              Status
+        #                                                              from Users NATURAL INNER JOIN Worker WID = %s and confirmation = %s;
+        #
+        #                                                              '''
         query = '''
             Select WID, FName, LName, Email, PNumber, Status
             From Users natural inner join Worker
             Where WID = %s and confirmation = %s
         '''
+        #cursor.execute(query, (SECRET_KEY, SECRET_KEY, SECRET_KEY, SECRET_KEY, wid, True,))
         cursor.execute(query, (wid, True,))
         result = cursor.fetchone()
         return result
@@ -106,7 +121,17 @@ class WorkerDAO:
 
     def getAllWorkers(self):
         cursor = self.conn.cursor()
+        # query = '''select  WID,
+        #                                                                      PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+        #                                                                      PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
+        #                                                                      PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
+        #                                                                      PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+        #                                                                      Status
+        #                                                                      from Users NATURAL INNER JOIN Worker;
+        #
+        #                                                                      '''
         query = '''SELECT WID, FName, LName, Email, PNumber, Status FROM Worker NATURAL INNER JOIN Users'''
+        # cursor.execute(query, (SECRET_KEY, SECRET_KEY, SECRET_KEY, SECRET_KEY,))
         cursor.execute(query)
         result = []
         for row in cursor:
@@ -115,10 +140,14 @@ class WorkerDAO:
 
     def getWIDByEmail(self, email):
         cursor = self.conn.cursor()
+        # query = '''SELECT WID
+        #             FROM Worker NATURAL INNER JOIN Users
+        #             Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s '''
         query = '''SELECT WID 
                     FROM Worker NATURAL INNER JOIN Users
                     Where Email = %s
                     '''
+        #cursor.execute(query, (SECRET_KEY, email,))
         cursor.execute(query, (email,))
         row = cursor.fetchone()
         if row is None:
@@ -127,10 +156,15 @@ class WorkerDAO:
 
     def getWorkerForMaintenance(self, email):
         cursor = self.conn.cursor()
+        # query = '''SELECT WID
+        #                     FROM Worker NATURAL INNER JOIN Users
+        #                     Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s and status = 'ACTIVE' and confirmation = %s
+        #                     '''
         query = '''SELECT WID 
                     FROM Worker NATURAL INNER JOIN Users
                     Where Email = %s and status = 'ACTIVE' and confirmation = %s
                     '''
+        #cursor.execute(query, (SECRET_KEY, email, True))
         cursor.execute(query, (email, True))
         row = cursor.fetchone()
         if row is None:
@@ -139,10 +173,18 @@ class WorkerDAO:
 
     def getConfirmedWorker(self):
         cursor = self.conn.cursor()
+        # query = query = '''select  WID,
+        #                                                                      PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+        #                                                                      PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
+        #                                                                      PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
+        #                                                                      PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+        #                                                                      Status
+        #                                                                      from Users NATURAL INNER JOIN Worker;'''
         query = '''SELECT WID, FName, LName, Email, PNumber, Status 
                     FROM Worker NATURAL INNER JOIN Users
                     Where confirmation = %s
                     '''
+        # cursor.execute(query, (SECRET_KEY, SECRET_KEY, SECRET_KEY, SECRET_KEY, True, ))
         cursor.execute(query, (True,))
         result = []
         for row in cursor:

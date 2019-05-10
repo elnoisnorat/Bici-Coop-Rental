@@ -1,4 +1,6 @@
 from config.dbconfig import pg_config
+from config.encryption import SECRET_KEY
+
 from flask import jsonify
 
 import psycopg2
@@ -10,11 +12,15 @@ class ClientDAO:
 
     def clientLogin(self, email, password):
         cur = self.conn.cursor()
+        # query = '''Select CID
+        #             From Users natural inner join Client
+        #             Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s and password = crypt(%s, password);'''
         query = '''
             Select CID
             From Users natural inner join Client
             Where email = %s and password = crypt(%s, password)
         '''
+        # cur.execute(query, (SECRET_KEY, email, password))
         cur.execute(query, (email, password))
 
         row = cur.fetchone()
@@ -34,11 +40,26 @@ class ClientDAO:
 
     def getClientByUID(self, uid):
         cursor = self.conn.cursor()
+        # query = '''select  UID,
+        #                                 PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+        #                                 PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
+        #                                 password,
+        #                                 PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
+        #                                 PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+        #                                 confirmation,
+        #                                 logattempt,
+        #                                 Blocked,
+        #                                 CID
+        #
+        #                                 from Users NATURAL INNER JOIN Client Where UID = %s;
+        #
+        #                                 '''
         query = '''
             Select *
             From Client
             Where UID = %s
         '''
+        # cursor.execute(query, (SECRET_KEY, SECRET_KEY, SECRET_KEY, SECRET_KEY, uid, ))
         cursor.execute(query, (uid,))
         result = cursor.fetchone()
         return result
@@ -101,9 +122,21 @@ class ClientDAO:
 
     def getAllClients(self):
         cursor = self.conn.cursor()
+        # query = '''select  CID,
+        #                                        PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+        #                                        PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
+        #                                        PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
+        #                                        PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+        #                                        , DebtorFlag
+        #
+        #
+        #                                        from Users NATURAL INNER JOIN Client;
+        #
+        #                                        '''
         query = '''SELECT CID, FName, LName, Email, PNumber, DebtorFlag 
                    from Client NATURAL INNER JOIN Users
                 '''
+        # cursor.execute(query, (SECRET_KEY, SECRET_KEY, SECRET_KEY, SECRET_KEY, ))
         cursor.execute(query)
         result = []
         for row in cursor:
@@ -125,11 +158,14 @@ class ClientDAO:
 
     def getPhoneNumber(self, cid):
         cursor = self.conn.cursor()
+        # query = ''' Select PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber From Users natural inner join Client
+        #                 Where CID = %s'''
         query = '''
                         Select pnumber
                         From Users natural inner join Client
                         Where CID = %s
                         '''
+        #cursor.execute(query, (SECRET_KEY, cid,))
         cursor.execute(query, (cid,))
         result = cursor.fetchone()
         if result is None:
@@ -159,11 +195,14 @@ class ClientDAO:
 
     def getName(self, cid):
         cursor = self.conn.cursor()
+        # query = '''select PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname From Client NATURAL INNER JOIN Users
+        #                 Where cid = %s'''
         query = '''
                         Select fname
                         From Client NATURAL INNER JOIN Users
                         Where cid = %s
                         '''
+        #cursor.execute(query, (SECRET_KEY, cid,))
         cursor.execute(query, (cid,))
         result = cursor.fetchone()
         if result is None:
