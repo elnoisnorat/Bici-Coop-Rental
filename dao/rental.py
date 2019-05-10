@@ -284,7 +284,7 @@ class RentalDAO:
 
     def getDebtToCollect(self, rid):
         cursor = self.conn.cursor()
-        query = "SELECT  ceil((DATE_PART('day', current_date - (SELECT dueDate from Rental where RID = %s))) )* (SELECT amount from plans WHERE PID = %s);"
+        query = "SELECT  ceil((DATE_PART('day', current_date + 1 - (SELECT dueDate from Rental where RID = %s))) )* (SELECT amount from plans WHERE PID = %s);"
         cursor.execute(query, (rid, 2,))
 
         row = cursor.fetchone()[0]
@@ -307,6 +307,13 @@ class RentalDAO:
                             Update Rental set etime = now() Where rid = %s
                         '''
                 cursor.execute(query, (iteration[0],))
+                query = '''
+                            UPDATE bike SET bikestatus = 'AVAILABLE'
+                            WHERE BID in (SELECT bid from bike 
+                                          where bikestatus = 'RESERVED' limit 1) 
+                        '''
+                cursor.execute(query)
+
             query = '''
                         Update Transactions set status = 'CANCELED' Where tid = (Select tid From RentLink Where rid = %s) 
                     '''

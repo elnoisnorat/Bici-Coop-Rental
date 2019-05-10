@@ -122,9 +122,6 @@ class UsersHandler:
                 uDao.updateNames(email, uName, uLName)
         else:
             return jsonify(Error="A required field has been left empty."), 400
-        row = uDao.getUserByEmail(email)
-        result = self.build_worker_dict(row)
-        # return jsonify(User=result)
         return jsonify("Update was successful.")
 
     def updateName(self, form):
@@ -140,9 +137,6 @@ class UsersHandler:
         else:
             return jsonify(Error="A required field has been left empty."), 400
 
-        row = uDao.getUserByEmail(email)
-        result = self.build_worker_dict(row)
-        # return jsonify(User=result)
         return jsonify("Update was successful.")
 
     def updateLName(self, form):
@@ -157,9 +151,7 @@ class UsersHandler:
             uDao.updateLName(email, uLName)
         else:
             return jsonify(Error="A required field has been left empty."), 400
-        row = uDao.getUserByEmail(email)
-        result = self.build_worker_dict(row)
-        # return jsonify(User=result)
+
         return jsonify("Update was successful.")
 
     def updatePassword(self, form):     #When User is logged in
@@ -168,9 +160,6 @@ class UsersHandler:
         password = form['newPassword']
         email = current_user.email
 
-        # if not uDao.getUserByEmail(email):
-        #     return jsonify(Error="An error has occurred. Please verify the submitted arguments."), 400
-        # else:
         try:
             uDao.updatePassword(email, password)
         except:
@@ -185,9 +174,6 @@ class UsersHandler:
             pNumber = form['PNumber']
         except Exception as e:
             return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
-
-        # if not uDao.getUserByEmail(email):
-        #     return jsonify(Error="An error has occurred."), 400
 
         uDao.updatePNumber(email, pNumber)
         return jsonify("Update was successsful.")

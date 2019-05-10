@@ -9,7 +9,7 @@ class RentalPlanDAO:
         # self.conn = psycopg2._connect(pg_config['connection_url'])
     def getRentalPlan(self):
         cursor = self.conn.cursor()
-        query = "Select * From Plans"
+        query = "Select * From Plans order by PID"
         cursor.execute(query)
         result = []
         for row in cursor:
@@ -19,7 +19,7 @@ class RentalPlanDAO:
     def getPlan(self, reqPlan):
         cur = self.conn.cursor()
         query = " Select name, amount from plans WHERE PID = %s"
-        cur.execute(query, (reqPlan))
+        cur.execute(query, (reqPlan,))
         result = cur.fetchone()
         return result
 

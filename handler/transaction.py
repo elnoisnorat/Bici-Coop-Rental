@@ -156,7 +156,7 @@ class TransactionHandler:
                 subscription = stripe.Subscription.create(
                     customer=customer['id'],
                     items=[{'plan': str(plan[0]),
-                            'quantity': amount,
+                            'quantity': int(amount),
                             }],
                 )
                 dt = datetime.datetime.today() + datetime.timedelta(weeks=1)
@@ -175,7 +175,6 @@ class TransactionHandler:
                 cost = subscription['items']['data'][0]['plan']['amount']
                 token = subscription["id"]
                 total = int(cost) * int(amount)
-
             else:
                 return jsonify(Error="A valid payment method was not selected."), 400
 
@@ -228,6 +227,7 @@ class TransactionHandler:
             pass
         except stripe.error.InvalidRequestError as e:
             # Invalid parameters were supplied to Stripe's API
+
             print('InvalidRequestError')
             pass
         except stripe.error.AuthenticationError as e:

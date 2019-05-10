@@ -130,7 +130,7 @@ class ClientDAO:
                                                PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                                                PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
                                                PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
-                                               , DebtorFlag
+                                               DebtorFlag
 
 
                                                from Users NATURAL INNER JOIN Client;

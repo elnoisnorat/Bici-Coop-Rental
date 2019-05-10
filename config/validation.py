@@ -558,19 +558,23 @@ def validCheckIn(f):
                     pass
                 else:
                     return jsonify(Error="The rfid provided does not meet our standards."), 400
-        except Exception as e:
-            pass
-
-        try:
-            lp = request.json['lp']
-            if lp:
-                if len(lp) <= 10 and lp.isalnum():
-                    valid = True
-                    pass
             else:
-                return jsonify(Error="The license plate provided does not meet our standards."), 400
+                try:
+                    lp = request.json['lp']
+                    if lp:
+                        if len(lp) <= 10 and lp.isalnum():
+                            valid = True
+                            pass
+                        else:
+                            return jsonify(Error="The license plate provided does not meet our standards."), 400
+                    else:
+                        return jsonify(Error="A required field has been left empty."), 400
+
+                except Exception as e:
+                    return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
+
         except Exception as e:
-            pass
+            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
         if valid is True:
             return f(*args, **kwargs)

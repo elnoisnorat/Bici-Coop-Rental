@@ -64,7 +64,7 @@ class UsersDAO:
             PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
             PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
             PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
-            PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+            PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber
             from Users where UID = %s;
     
             '''
@@ -85,7 +85,7 @@ class UsersDAO:
             PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
             PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
             PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
-            PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+            PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber
             from Users where  PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s;
 
             '''
@@ -110,6 +110,7 @@ class UsersDAO:
         #     Where Email = %s
         # '''
         cursor.execute(query, (fName, SECRET_KEY, lName, SECRET_KEY, SECRET_KEY, email, ))
+        self.conn.commit()
         # cursor.execute(query, (fName, lName, email,))
 
     def updateName(self, email, fName):
@@ -123,6 +124,8 @@ class UsersDAO:
         #     Where Email = %s
         # '''
         cursor.execute(query, (fName, SECRET_KEY, SECRET_KEY, email, ))
+        self.conn.commit()
+
         # cursor.execute(query, (fName, email,))
 
     def updateLName(self, email, uLName):
@@ -136,6 +139,8 @@ class UsersDAO:
         #     Where Email = %s
         # '''
         cursor.execute(query, (uLName, SECRET_KEY, SECRET_KEY, email, ))
+        self.conn.commit()
+
         # cursor.execute(query, (uLName, email,))
 
     def updatePassword(self, email, password):
@@ -170,7 +175,7 @@ class UsersDAO:
                     PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
                     PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                     PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
-                    PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+                    PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber
                     from Users natural inner join Client where  CID = %s;
 
                     '''
@@ -207,7 +212,7 @@ class UsersDAO:
                            PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
                            PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                            PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
-                           PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+                           PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber
                            from Users natural inner join Worker where  wid = %s;
 
                            '''
@@ -329,7 +334,7 @@ class UsersDAO:
                             PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
                             PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                             PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
-                            PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+                            PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber
                             from Users;
 
                             '''
@@ -369,7 +374,7 @@ class UsersDAO:
                                         PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                                         PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
                                         PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
-                                        CID,
+                                        CID
                                         from Users NATURAL INNER JOIN Client Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s;
 
                                         '''
@@ -385,7 +390,7 @@ class UsersDAO:
                                                     PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                                                     PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
                                                     PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
-                                                    AID,
+                                                    AID
                                                     from Users NATURAL INNER JOIN Admin Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s;
 
                                                     '''
@@ -401,7 +406,7 @@ class UsersDAO:
                                                                PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
                                                                PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
                                                                PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
-                                                               WID,
+                                                               WID
                                                                from Users NATURAL INNER JOIN Worker Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s;
 
                                                                '''
