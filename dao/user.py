@@ -1,3 +1,5 @@
+import traceback
+
 import psycopg2
 from config.encryption import SECRET_KEY
 from config.dbconfig import pg_config
@@ -470,6 +472,7 @@ class UsersDAO:
             self.conn.commit()
             eHand.resetPassword(email, password)
         except Exception as e:
+            traceback.print_exc()
             self.conn.rollback()
             raise e
 

@@ -1,3 +1,5 @@
+import traceback
+
 import datetime
 
 import jwt
@@ -64,4 +66,5 @@ class EmailHandler():
             mail.send(msg)
             return "TEST COMPLETED"
         except Exception as e:
+            traceback.print_exc()
             raise e
