@@ -598,7 +598,7 @@ def validCheckOut(f):
             else:
                 return jsonify(Error="The confirmation code provided does not meet our standards."), 400
         else:
-            return jsonify(Error="Missing request inputs."), 400
+            return jsonify(Error="A required field has been left empty."), 400
 
         return f(*args, **kwargs)
     return decorated
@@ -686,33 +686,36 @@ def validRentBicycle(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         try:
-            amount = request.json['amount']
-            payment = request.json['payment']
-            plan = request.json['plan']
-        except Exception as e:
-            return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
+            try:
+                amount = request.json['amount']
+                payment = request.json['payment']
+                plan = request.json['plan']
+            except Exception as e:
+                return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
 
-        if amount and payment and plan:
-            if len(amount) == 1 and amount.isnumeric():
-                if 1 <= int(amount) <= 4:
+            if amount and payment and plan:
+                if len(amount) == 1 and amount.isnumeric():
+                    if 1 <= int(amount) <= 4:
+                        pass
+                    else:
+                        return jsonify(Error="The amount provided exceeds our allowed limit."), 400
+                else:
+                    return jsonify(Error="The amount provided is not a number."), 400
+
+
+                if len(payment) == 4 and payment.isupper():
                     pass
                 else:
-                    return jsonify(Error="The amount provided exceeds our allowed limit."), 400
-            else:
-                return jsonify(Error="The amount provided is not a number."), 400
+                    return jsonify(Error="The payment method provided does not meet our standards."), 400
 
-
-            if len(payment) == 4 and payment.isupper():
-                pass
+                if 1 <= len(plan) <= 10 and plan.isnumeric():
+                    pass
+                else:
+                    return jsonify(Error="The selected plan does not meet our standards."), 400
             else:
-                return jsonify(Error="The payment method provided does not meet our standards."), 400
-
-            if 1 <= len(plan) <= 10 and plan.isnumeric():
-                pass
-            else:
-                return jsonify(Error="The selected plan does not meet our standards."), 400
-        else:
-            return jsonify(Error="A required field has been left empty."), 400
+                return jsonify(Error="A required field has been left empty."), 400
+        except Exception as e:
+            return jsonify("VALIDATION BLEW UP"), 400
         return f(*args, **kwargs)
     return decorated
 
@@ -728,7 +731,7 @@ def validRentalMaintenance(f):
                     else:
                         return jsonify(Error="The license plate provided does not meet our standards."), 400
                 else:
-                    return jsonify(Error="Missing input data."), 400
+                    return jsonify(Error="A required field has been left empty."), 400
             except Exception as e:
                 return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
         elif current_user.role == "Worker":
@@ -740,7 +743,18 @@ def validRentalMaintenance(f):
                     else:
                         return jsonify(Error="The rfid provided does not meet our standards."), 400
                 else:
-                    return jsonify(Error="Missing input data."), 400
+                    try:
+                        lp = request.json['lp']
+                        if lp:
+                            if len(lp) <= 10 and lp.isalnum():
+                                pass
+                            else:
+                                return jsonify(Error="The license plate provided does not meet our standards."), 400
+                        else:
+                            return jsonify(Error="A required field has been left empty."), 400
+                    except Exception as e:
+                        return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
+
             except:
                 return jsonify(Error="An error has occurred. Please verify the submitted data."), 400
         else:

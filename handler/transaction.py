@@ -33,14 +33,14 @@ class TransactionHandler:
         #result["WorkerName"] = row[6]
         #result["WorkerLastName"] = row[7]
 
-    def getAllTransactions(self):
-        transDao = TransactionDAO()
-        transactionList = transDao.getAllTransactions()
-        resultList = []
-        for row in transactionList:
-            result = self.build_transaction_dict(row)
-            resultList.append(result)
-        return jsonify(Transactions=resultList)
+    # def getAllTransactions(self):
+    #     transDao = TransactionDAO()
+    #     transactionList = transDao.getAllTransactions()
+    #     resultList = []
+    #     for row in transactionList:
+    #         result = self.build_transaction_dict(row)
+    #         resultList.append(result)
+    #     return jsonify(Transactions=resultList)
 
     def getTransactionByClientId(self, cID):
         transDao = TransactionDAO()

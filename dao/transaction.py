@@ -7,20 +7,26 @@ import psycopg2
 class TransactionDAO:
 
     def __init__(self):
-        self.conn = psycopg2._connect(pg_config['connection_url'])
-
-    def getAllTransactions(self):
-        cursor = self.conn.cursor()
-        query = "SELECT TID, Stamp, token, FName, LName, LP FROM Transactions natural inner join Client natural inner join Users natural inner join Bike;"
-        cursor.execute(query)
-        result = []
-        for row in cursor:
-            result.append(row)
-            query = "SELECT FName, LName FROM Transactions natural inner join Worker natural inner join User;"
-        cursor.execute(query)
-        for row in cursor:
-            result.append(row)
-        return result
+        connection_url = "dbname=%s user=%s password=%s host=%s port=%s sslmode=%s sslrootcert=%s" % (
+            pg_config['dbname'], pg_config['user'], pg_config['passwd'], pg_config['host'], pg_config['port'],
+            pg_config['mode'], pg_config['cert'])
+        self.conn = psycopg2._connect(connection_url)
+        # self.conn = psycopg2._connect(pg_config['connection_url'])
+    # def getAllTransactions(self):
+    #     cursor = self.conn.cursor()
+    #     query = "SELECT TID, Stamp, token, FName, LName, LP FROM Transactions natural inner join Client natural inner join Users natural inner join Bike;"
+    #     cursor.execute(query)
+    #     result = []
+    #     for row in cursor:
+    #         result.append(row)
+    #         query = '''SELECT  PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+    #                     PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname
+    #                      FROM Transactions natural inner join Client natural inner join Users;'''
+    #         query = "SELECT FName, LName FROM Transactions natural inner join Worker natural inner join User;"
+    #     cursor.execute(query)
+    #     for row in cursor:
+    #         result.append(row)
+    #     return result
 
     def getTransactionByClientId(self, cID):
         cursor = self.conn.cursor()

@@ -867,7 +867,7 @@ def test():
     #     else:
     #         return "successfull #F"
     # except:
-    print(int(test))
+    print(test)
     return "#F"
 
 
@@ -900,5 +900,5 @@ def logout():
     return jsonify('You are now logged out')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(ssl_context=('cert.pem', 'key.pem'))
     #debug=True)#, ssl_context=('cert.pem', 'key.pem'))
