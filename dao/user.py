@@ -461,7 +461,7 @@ class UsersDAO:
     def updateForgottenPassword(self, email, password):
         eHand = EmailHandler()
         try:
-            query ='''update Users set password = crypt(%s,  gen_salt('bf')) PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s'''
+            query ='''update Users set password = crypt(%s,  gen_salt('bf')) Where PGP_SYM_DECRYPT(Users.Email::bytea, %s) = %s'''
             cursor = self.conn.cursor()
             # query = '''
             #     update Users set password = crypt(%s,  gen_salt('bf'))
