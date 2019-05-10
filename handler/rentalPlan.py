@@ -24,7 +24,7 @@ class RentalPlanHandler:
     def getPlan(self, reqPlan):
         rDao = RentalPlanDAO()
         try:
-            result = rDao.getPlan()
+            result = rDao.getPlan(reqPlan)
             return result
             pass
         except Exception as e:
