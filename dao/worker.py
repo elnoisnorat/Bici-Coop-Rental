@@ -177,12 +177,13 @@ class WorkerDAO:
     def getConfirmedWorker(self):
         cursor = self.conn.cursor()
         query = query = '''select  WID,
-                                                                             PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
-                                                                             PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
-                                                                             PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
-                                                                             PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
-                                                                             Status
-                                                                             from Users NATURAL INNER JOIN Worker;'''
+                             PGP_SYM_DECRYPT(Users.FName::bytea, %s) as Fname,
+                             PGP_SYM_DECRYPT(Users.Lname::bytea, %s) as Lname,
+                             PGP_SYM_DECRYPT(Users.Email::bytea, %s) as Email,
+                             PGP_SYM_DECRYPT(Users.PNumber::bytea, %s) as PNumber,
+                             Status
+                             from Users NATURAL INNER JOIN Worker
+                             Where Confirmation = %s;'''
         # query = '''SELECT WID, FName, LName, Email, PNumber, Status
         #             FROM Worker NATURAL INNER JOIN Users
         #             Where confirmation = %s
