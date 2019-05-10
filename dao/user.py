@@ -29,7 +29,8 @@ class UsersDAO:
                 PGP_SYM_ENCRYPT(%s, %s),
                 %s,
                 %s,
-                %s;
+                %s
+                returning UID;
                 '''
             cursor.execute(query, (FName, SECRET_KEY, LName, SECRET_KEY, password, PNumber, SECRET_KEY, Email, SECRET_KEY, False, datetime.datetime.now(), 0,))
             # query = '''

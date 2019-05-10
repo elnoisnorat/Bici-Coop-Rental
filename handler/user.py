@@ -65,7 +65,7 @@ class UsersHandler:
 
         if FName and LName and password and PNumber and Email and Role:
             try:
-                uID = uDao.insert(FName, LName, password, PNumber, Email, Role)   #INSERT #1
+                uDao.insert(FName, LName, password, PNumber, Email, Role)   #INSERT #1
 
             except Exception as e:
                 raise e
